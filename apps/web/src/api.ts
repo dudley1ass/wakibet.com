@@ -1,11 +1,28 @@
 const API_BASE =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) || "";
 
+const MISSING_BASE_HELP =
+  "This production build has no VITE_API_BASE, so /api requests go to the static site and never reach the API. " +
+  "In Render → your Static Site → Environment, add VITE_API_BASE = https://YOUR-API.onrender.com (no trailing slash), " +
+  "then redeploy with Clear build cache.";
+
 let accessToken: string | null = null;
 
 function baseUrl(): string {
   if (API_BASE) return API_BASE.replace(/\/$/, "");
   return "";
+}
+
+function assertJsonResponse(res: Response, path: string): void {
+  const ct = res.headers.get("content-type") || "";
+  if (res.ok && !ct.includes("application/json")) {
+    if (!API_BASE && import.meta.env.PROD) {
+      throw new Error(MISSING_BASE_HELP);
+    }
+    throw new Error(
+      `Expected JSON from ${path} but got "${ct}". Check VITE_API_BASE and API CORS.`,
+    );
+  }
 }
 
 export function setAccessToken(token: string | null): void {
@@ -47,6 +64,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     headers: { ...authHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  assertJsonResponse(res, path);
   let data: Record<string, unknown> = {};
   try {
     data = (await res.json()) as Record<string, unknown>;
@@ -55,6 +73,9 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   }
   if (!res.ok) {
     throw new Error(formatError(data, res));
+  }
+  if (import.meta.env.PROD && !API_BASE && Object.keys(data).length === 0) {
+    throw new Error(MISSING_BASE_HELP);
   }
   return data as T;
 }
@@ -72,9 +93,17 @@ export type AuthSuccessPayload = {
 /** Normalize login/register JSON (snake_case or camelCase) and load /me if `user` is missing. */
 export async function finalizeAuthFromLoginResponse(raw: Record<string, unknown>): Promise<AuthSuccessPayload> {
   const envelope = (raw.data as Record<string, unknown> | undefined) ?? raw;
-  const access_token = (envelope.access_token ?? envelope.accessToken) as string | undefined;
+  const access_token = (envelope.access_token ??
+    envelope.accessToken ??
+    envelope.token) as string | undefined;
   if (!access_token) {
-    throw new Error("Server did not return an access token.");
+    const keys = Object.keys(raw).length ? Object.keys(raw).join(", ") : "(empty JSON)";
+    if (!API_BASE && import.meta.env.PROD) {
+      throw new Error(MISSING_BASE_HELP);
+    }
+    throw new Error(
+      `Server did not return an access token (response keys: ${keys}). Check the API / network tab.`,
+    );
   }
   setAccessToken(access_token);
 
@@ -102,6 +131,7 @@ export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${baseUrl()}${path}`, {
     headers: authHeaders(),
   });
+  assertJsonResponse(res, path);
   let data: Record<string, unknown> = {};
   try {
     data = (await res.json()) as Record<string, unknown>;
