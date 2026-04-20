@@ -21,6 +21,8 @@ const DashboardResponse = z.object({
   recent_bets: z.array(RecentBet),
 });
 
+const ErrorMessage = z.object({ message: z.string() });
+
 export const usersRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -29,19 +31,19 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
     {
       schema: {
         tags: ["users"],
-        response: { 200: DashboardResponse },
+        response: { 200: DashboardResponse, 401: ErrorMessage },
       },
     },
     async (req, reply) => {
       const hdr = req.headers.authorization;
       if (!hdr?.startsWith("Bearer ")) {
-        return reply.code(401).send({ message: "Missing bearer token." });
+        return reply.code(401).send({ message: "Missing bearer token." } as const);
       }
       let payload: { sub: string };
       try {
         payload = verifyAccessToken(hdr.slice(7));
       } catch {
-        return reply.code(401).send({ message: "Invalid or expired token." });
+        return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
       const wallet = await prisma.wallet.findUnique({ where: { userId: payload.sub } });
       const dills = wallet ? Number(wallet.cachedBalance) : 0;

@@ -50,6 +50,8 @@ const LoginResponse = z.object({
   user: AuthUserResponse,
 });
 
+const ErrorMessage = z.object({ message: z.string() });
+
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -59,14 +61,14 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       schema: {
         tags: ["auth"],
         body: RegisterBody,
-        response: { 200: LoginResponse },
+        response: { 200: LoginResponse, 409: ErrorMessage },
       },
     },
     async (req, reply) => {
       const { email, password, dob, state, display_name } = req.body;
       const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
       if (existing) {
-        return reply.code(409).send({ message: "An account with this email already exists." });
+        return reply.code(409).send({ message: "An account with this email already exists." } as const);
       }
       const passwordHash = await bcrypt.hash(password, 10);
       const dateOfBirth = parseDob(dob);
@@ -126,17 +128,17 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       schema: {
         tags: ["auth"],
         body: LoginBody,
-        response: { 200: LoginResponse },
+        response: { 200: LoginResponse, 401: ErrorMessage },
       },
     },
     async (req, reply) => {
       const { email, password } = req.body;
       const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
       if (!user?.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
-        return reply.code(401).send({ message: "Invalid email or password." });
+        return reply.code(401).send({ message: "Invalid email or password." } as const);
       }
       if (user.isBanned) {
-        return reply.code(401).send({ message: "Account is suspended." });
+        return reply.code(401).send({ message: "Account is suspended." } as const);
       }
       const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
       const virtual_cents = wallet ? Math.round(Number(wallet.cachedBalance) * 100) : 0;
@@ -158,23 +160,23 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     {
       schema: {
         tags: ["auth"],
-        response: { 200: AuthUserResponse },
+        response: { 200: AuthUserResponse, 401: ErrorMessage },
       },
     },
     async (req, reply) => {
       const hdr = req.headers.authorization;
       if (!hdr?.startsWith("Bearer ")) {
-        return reply.code(401).send({ message: "Missing bearer token." });
+        return reply.code(401).send({ message: "Missing bearer token." } as const);
       }
       let payload: { sub: string; email: string };
       try {
         payload = verifyAccessToken(hdr.slice(7));
       } catch {
-        return reply.code(401).send({ message: "Invalid or expired token." });
+        return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
       const user = await prisma.user.findUnique({ where: { id: payload.sub } });
       if (!user || user.isBanned) {
-        return reply.code(401).send({ message: "Invalid or expired token." });
+        return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
       const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
       const virtual_cents = wallet ? Math.round(Number(wallet.cachedBalance) * 100) : 0;
