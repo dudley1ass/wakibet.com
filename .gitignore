@@ -8,4 +8,5 @@ build
 .DS_Store
 apps/mobile/.expo
 apps/mobile/dist
+apps/web/dist
 openapi.json

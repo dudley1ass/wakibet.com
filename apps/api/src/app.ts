@@ -13,6 +13,8 @@ import { z } from "zod";
 import { scorePlayerMatch } from "@wakibet/shared";
 import { logger } from "./lib/logger.js";
 import { healthRoutes } from "./routes/health.js";
+import { authRoutes } from "./routes/auth.js";
+import { usersRoutes } from "./routes/users.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -29,11 +31,12 @@ export async function buildApp() {
   /** Render / browser hits `/` — API has no SPA; return JSON instead of 404. */
   app.get("/", { schema: { hide: true } }, async () => ({
     service: "wakibet-api",
-    message: "This URL is the HTTP API only. Open /docs for Swagger.",
+    message: "HTTP API. Deploy apps/web as a Render Static Site for the browser UI.",
     links: {
       docs: "/docs",
       health: "/api/v1/health",
       openapiJson: "/documentation/json",
+      auth: "/api/v1/auth/me",
     },
   }));
 
@@ -90,6 +93,8 @@ export async function buildApp() {
   );
 
   await app.register(healthRoutes);
+  await app.register(authRoutes);
+  await app.register(usersRoutes);
 
   if (process.env.SENTRY_DSN) {
     app.addHook("onError", async (_request, _reply, error) => {

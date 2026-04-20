@@ -16,4 +16,17 @@ Dashboard checklist
 
 Render sets PORT automatically; the API listens on 0.0.0.0:$PORT.
 
+Env var WAKIBET_JWT_SECRET: long random string (required for auth in production).
+
+---
+
+Static Site (browser UI — apps/web)
+------------------------------------
+New Static Site, same repo, root empty.
+
+Build:   pnpm run render:build:web
+Publish: apps/web/dist
+
+Build env: VITE_API_BASE = https://YOUR-API.onrender.com   (no trailing slash)
+
 After saving, trigger Manual Deploy.

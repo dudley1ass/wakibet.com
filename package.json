@@ -10,6 +10,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "render:build": "pnpm install --frozen-lockfile && pnpm --filter @wakibet/shared build && pnpm --filter @wakibet/api build",
+    "render:build:web": "pnpm install --frozen-lockfile && pnpm --filter @wakibet/web build",
     "render:start": "pnpm --filter @wakibet/api start",
     "db:generate": "pnpm --filter @wakibet/api exec prisma generate",
     "db:migrate": "pnpm --filter @wakibet/api exec prisma migrate dev",
