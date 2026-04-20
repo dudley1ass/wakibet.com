@@ -40,6 +40,11 @@ export async function buildApp() {
     },
   }));
 
+  /** Browsers request these automatically; without routes they clutter the console with 404. */
+  for (const path of ["/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"]) {
+    app.get(path, { schema: { hide: true } }, async (_req, reply) => reply.code(204).send());
+  }
+
   await app.register(swagger, {
     transform: jsonSchemaTransform,
     openapi: {
