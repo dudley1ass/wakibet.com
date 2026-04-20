@@ -21,11 +21,20 @@ Env var WAKIBET_JWT_SECRET: long random string (required for auth in production)
 
 Static Site (browser UI — apps/web)
 ------------------------------------
-[ ] Root Directory: EMPTY (not "frontend", not "backend")
-[ ] Build Command:  pnpm run render:build:web
-[ ] Publish directory:  apps/web/dist
+[ ] Root Directory: EMPTY — delete ALL text in the box (not "frontend", not "backend",
+    not "apps/web"). If Render still says 'frontend' does not exist, the box is not empty.
 
-Build-time env:
-[ ] VITE_API_BASE = https://YOUR-API.onrender.com  (no trailing slash)
+[ ] Build Command (copy exactly — note the COLONS):
+      pnpm run render:build:web
+    Wrong names will fail: NOT render-build:web, NOT npm run build from repo root alone.
+
+[ ] Publish directory (copy exactly):
+      apps/web/dist
+
+Build-time env (required or the site will call /api on the static host and login will fail):
+[ ] VITE_API_BASE = https://YOUR-API.onrender.com   (no trailing slash)
+
+Still failing? Open the failed deploy → Logs and search for ERR / error / command not found.
+Common: pnpm missing (corepack is enabled by the script above), or wrong publish path.
 
 After saving, trigger Manual Deploy.
