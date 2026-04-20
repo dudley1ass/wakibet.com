@@ -26,6 +26,17 @@ export async function buildApp() {
 
   await app.register(cors, { origin: true });
 
+  /** Render / browser hits `/` — API has no SPA; return JSON instead of 404. */
+  app.get("/", { schema: { hide: true } }, async () => ({
+    service: "wakibet-api",
+    message: "This URL is the HTTP API only. Open /docs for Swagger.",
+    links: {
+      docs: "/docs",
+      health: "/api/v1/health",
+      openapiJson: "/documentation/json",
+    },
+  }));
+
   await app.register(swagger, {
     transform: jsonSchemaTransform,
     openapi: {
