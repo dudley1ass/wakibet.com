@@ -1,0 +1,19 @@
+Render Web Service — WakiBet API (monorepo root)
+================================================
+
+Your deploy failed because Root Directory was still "backend" (old Python app).
+This repo is Node + pnpm at the REPO ROOT.
+
+Dashboard checklist
+-------------------
+[ ] Root Directory: EMPTY (not "backend", not "apps/api")
+[ ] Environment: Node 20+ (not Python 3)
+[ ] Build Command:  pnpm run render:build
+[ ] Start Command:  pnpm run render:start
+[ ] Env var DATABASE_URL: from Render Postgres (Internal URL if DB is on Render)
+[ ] Pre-Deploy Command (optional but recommended):
+      pnpm --filter @wakibet/api exec prisma migrate deploy
+
+Render sets PORT automatically; the API listens on 0.0.0.0:$PORT.
+
+After saving, trigger Manual Deploy.

@@ -2,10 +2,15 @@
   "name": "wakibet",
   "private": true,
   "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
+    "render:build": "pnpm install --frozen-lockfile && pnpm --filter @wakibet/shared build && pnpm --filter @wakibet/api build",
+    "render:start": "pnpm --filter @wakibet/api start",
     "db:generate": "pnpm --filter @wakibet/api exec prisma generate",
     "db:migrate": "pnpm --filter @wakibet/api exec prisma migrate dev",
     "db:push": "pnpm --filter @wakibet/api exec prisma db push",

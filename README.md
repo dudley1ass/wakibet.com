@@ -61,3 +61,18 @@ This writes `openapi.json` at the monorepo root (gitignored) and refreshes `pack
 Monorepo layout, Docker Compose, Prisma schema + initial migration, Fastify app with health/meta, Swagger + `/documentation/json`, optional Sentry, Expo app with React Navigation, React Query, Zustand, and a minimal Home screen.
 
 **Not in Phase 1:** auth routes, contests, jobs, Redis usage beyond Compose, production deploy wiring.
+
+## Render (replace old Python service)
+
+The repo root is the **Node + pnpm monorepo**. There is no `backend/` folder anymore.
+
+In the Render dashboard for this Web Service:
+
+1. **Settings → Build & Deploy → Root Directory** — delete `backend` and leave the field **empty** (repository root).
+2. **Settings → Environment** — change **Environment** from **Python 3** to **Node** (pick Node **20** or newer).
+3. **Build Command:** `pnpm run render:build`
+4. **Start Command:** `pnpm run render:start`
+5. **Environment → Environment Variables:** add **`DATABASE_URL`** from a Render PostgreSQL instance (create Postgres if needed, then use the **Internal Database URL** on the same region as the web service). Optional: `SENTRY_DSN`, `NODE_ENV=production`.
+6. **Settings → Deploy → Pre-Deploy Command** (recommended): `pnpm --filter @wakibet/api exec prisma migrate deploy`
+
+Save, then **Manual Deploy**. See `RENDER.txt` for a copy-paste checklist.
