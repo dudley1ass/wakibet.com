@@ -1,12 +1,11 @@
 Render Web Service — WakiBet API (monorepo root)
 ================================================
 
-Your deploy failed because Root Directory was still "backend" (old Python app).
-This repo is Node + pnpm at the REPO ROOT.
+This repo is Node + pnpm at the REPO ROOT (no `backend/` folder).
 
 Dashboard checklist
 -------------------
-[ ] Root Directory: EMPTY (not "backend", not "apps/api")
+[ ] Root Directory: EMPTY (not "backend", not "apps/api", not "frontend")
 [ ] Environment: Node 20+ (not Python 3)
 [ ] Build Command:  pnpm run render:build
 [ ] Start Command:  pnpm run render:start
@@ -22,23 +21,11 @@ Env var WAKIBET_JWT_SECRET: long random string (required for auth in production)
 
 Static Site (browser UI — apps/web)
 ------------------------------------
-TWO valid setups:
-
-(A) Recommended — repo root as Render root
-[ ] Root Directory: EMPTY
+[ ] Root Directory: EMPTY (not "frontend", not "backend")
 [ ] Build Command:  pnpm run render:build:web
 [ ] Publish directory:  apps/web/dist
 
-(B) Legacy Render setting "Root Directory = frontend"
-    A shim folder `frontend/` now exists at repo root.
-[ ] Root Directory:  frontend
-[ ] Build Command:  pnpm run build
-[ ] Publish directory:  dist
-    (output is copied from apps/web/dist into frontend/dist)
-
-Either way, build-time env:
+Build-time env:
 [ ] VITE_API_BASE = https://YOUR-API.onrender.com  (no trailing slash)
-
-API Web Service: Root Directory EMPTY (not "backend").
 
 After saving, trigger Manual Deploy.

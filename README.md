@@ -63,9 +63,9 @@ This writes `openapi.json` at the monorepo root (gitignored) and refreshes `pack
 The browser UI lives in **`apps/web`** (React + Vite). The API service only serves JSON; deploy the web app as a **second** Render resource:
 
 1. **New → Static Site**, same repo and branch `main`.
-2. **Root Directory:** leave **empty** (repository root), **or** if your Render site is stuck on **`frontend`**, leave it — the repo now includes a **`frontend/`** shim that builds `apps/web` and writes **`frontend/dist`** (see `RENDER.txt` option B).
-3. **Build Command:** `pnpm run render:build:web` (empty root), or **`pnpm run build`** (root = `frontend`).
-4. **Publish directory:** `apps/web/dist` (empty root), or **`dist`** (root = `frontend`).
+2. **Root Directory:** leave **empty** (repository root). Do not use `frontend` or `backend`.
+3. **Build Command:** `pnpm run render:build:web`
+4. **Publish directory:** `apps/web/dist`
 5. **Environment → Environment Variable (required for build):** `VITE_API_BASE` = your API origin, e.g. `https://wakibet-com-2.onrender.com` (no trailing slash). Vite bakes this in at build time.
 6. On the **API** Web Service, set **`WAKIBET_JWT_SECRET`** to a long random string (required in production for login/register).
 
