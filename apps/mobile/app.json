@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "WakiBet",
+    "slug": "wakibet-mobile",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "wakibet",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": ["ios", "android", "web"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.wakibet.mobile"
+    },
+    "android": {
+      "package": "com.wakibet.mobile"
+    }
+  }
+}

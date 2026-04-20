@@ -1,0 +1,369 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ USERS & AUTH ============
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  username        String    @unique
+  passwordHash    String?
+  displayName     String
+  avatarUrl       String?
+  dateOfBirth     DateTime
+  country         String
+  region          String?
+  isEmailVerified Boolean   @default(false)
+  isBanned        Boolean   @default(false)
+  referredById    String?
+  referredBy      User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]    @relation("Referrals")
+
+  wallet           Wallet?
+  lineups          Lineup[]
+  contestEntries   ContestEntry[]
+  sessions         Session[]
+  notifications    Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([referredById])
+}
+
+model Session {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String    @unique
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ============ WALLET ============
+
+model Wallet {
+  id             String         @id @default(cuid())
+  userId         String         @unique
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cachedBalance  Decimal        @default(0) @db.Decimal(20, 4)
+  currency       String         @default("DILLS")
+  entries        WalletLedger[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+enum LedgerEntryType {
+  SIGNUP_BONUS
+  DAILY_LOGIN
+  REFERRAL_BONUS
+  CONTEST_ENTRY
+  CONTEST_WINNINGS
+  CONTEST_REFUND
+  ADMIN_ADJUSTMENT
+  PROMO_BONUS
+}
+
+model WalletLedger {
+  id               String           @id @default(cuid())
+  walletId         String
+  wallet           Wallet           @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type             LedgerEntryType
+  amount           Decimal          @db.Decimal(20, 4)
+  balanceAfter     Decimal          @db.Decimal(20, 4)
+  idempotencyKey   String           @unique
+  contestEntryId   String?
+  contestEntry     ContestEntry?    @relation(fields: [contestEntryId], references: [id], onDelete: SetNull)
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+
+  @@index([walletId, createdAt])
+}
+
+// ============ PICKLEBALL DOMAIN ============
+
+enum Tour {
+  PPA
+  MLP
+  APP
+  OTHER
+}
+
+enum MatchFormat {
+  SINGLES
+  DOUBLES
+  MIXED_DOUBLES
+}
+
+model Tournament {
+  id          String    @id @default(cuid())
+  externalId  String    @unique
+  name        String
+  tour        Tour
+  startsAt    DateTime
+  endsAt      DateTime
+  location    String?
+  surface     String?
+  prizePool   Decimal?  @db.Decimal(20, 2)
+  isFinalized Boolean   @default(false)
+  matches     Match[]
+  contests    Contest[]
+  players     PlayerTournamentSalary[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([startsAt])
+}
+
+model Player {
+  id          String    @id @default(cuid())
+  externalId  String    @unique
+  firstName   String
+  lastName    String
+  fullName    String
+  handedness  String?
+  country     String?
+  birthDate   DateTime?
+  photoUrl    String?
+  isActive    Boolean   @default(true)
+  dupr        Decimal?  @db.Decimal(5, 2)
+
+  matches      MatchParticipant[]
+  stats        PlayerMatchStat[]
+  salaries     PlayerTournamentSalary[]
+  lineupSlots  LineupSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model PlayerTournamentSalary {
+  id           String     @id @default(cuid())
+  playerId     String
+  player       Player     @relation(fields: [playerId], references: [id])
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  format       MatchFormat
+  salary       Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([playerId, tournamentId, format])
+  @@index([tournamentId])
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+model Match {
+  id           String     @id @default(cuid())
+  externalId   String     @unique
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  round        String
+  format       MatchFormat
+  scheduledAt  DateTime
+  startedAt    DateTime?
+  endedAt      DateTime?
+  status       MatchStatus @default(SCHEDULED)
+  scoreSummary String?
+
+  participants MatchParticipant[]
+  stats        PlayerMatchStat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tournamentId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model MatchParticipant {
+  id       String  @id @default(cuid())
+  matchId  String
+  match    Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId String
+  player   Player  @relation(fields: [playerId], references: [id])
+  side     Int
+  isWinner Boolean?
+
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, playerId])
+  @@index([matchId])
+}
+
+model PlayerMatchStat {
+  id              String  @id @default(cuid())
+  matchId         String
+  match           Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId        String
+  player          Player  @relation(fields: [playerId], references: [id])
+
+  matchWon        Boolean @default(false)
+  setsWon         Int     @default(0)
+  setsLost        Int     @default(0)
+  totalPointsWon  Int     @default(0)
+  totalPointsLost Int     @default(0)
+  aces            Int     @default(0)
+  winners         Int     @default(0)
+  unforcedErrors  Int     @default(0)
+  rawStatsJson    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
+
+// ============ CONTESTS & LINEUPS ============
+
+enum ContestType {
+  SALARY_CAP
+  HEAD_TO_HEAD
+  SEASON_LONG
+}
+
+enum ContestStatus {
+  UPCOMING
+  LOCKED
+  SCORING
+  COMPLETED
+  CANCELLED
+}
+
+enum ContestVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+model Contest {
+  id                String            @id @default(cuid())
+  name              String
+  type              ContestType       @default(SALARY_CAP)
+  visibility        ContestVisibility @default(PUBLIC)
+  inviteCode        String?           @unique
+  tournamentId    String
+  tournament        Tournament          @relation(fields: [tournamentId], references: [id])
+  salaryCap       Int
+  lineupSize      Int
+  format            MatchFormat
+  entryFee          Int
+  maxEntries        Int
+  maxEntriesPerUser Int               @default(1)
+  minEntriesToStart Int               @default(2)
+  prizeStructure    Json
+  rakePct           Decimal           @default(10.00) @db.Decimal(5, 2)
+  opensAt           DateTime
+  locksAt           DateTime
+  status            ContestStatus     @default(UPCOMING)
+
+  entries   ContestEntry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tournamentId])
+  @@index([status, opensAt])
+}
+
+model ContestEntry {
+  id         String   @id @default(cuid())
+  contestId  String
+  contest    Contest  @relation(fields: [contestId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  lineupId   String   @unique
+  lineup     Lineup   @relation(fields: [lineupId], references: [id])
+
+  finalScore Decimal? @db.Decimal(10, 2)
+  finalRank  Int?
+  payout     Int?
+
+  ledgerEntries WalletLedger[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([contestId, userId, lineupId])
+  @@index([contestId])
+  @@index([userId])
+}
+
+model Lineup {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  name        String?
+  totalSalary Int
+  slots       LineupSlot[]
+  entry       ContestEntry?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model LineupSlot {
+  id             String @id @default(cuid())
+  lineupId       String
+  lineup         Lineup @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  playerId       String
+  player         Player @relation(fields: [playerId], references: [id])
+  rosterPosition String
+  salaryAtLock   Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([lineupId, playerId])
+  @@unique([lineupId, rosterPosition])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  type        String
+  status      String
+  payload     Json
+  result      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([type, status])
+}
