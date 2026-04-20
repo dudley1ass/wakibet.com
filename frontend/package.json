@@ -1,0 +1,9 @@
+{
+  "name": "@wakibet/frontend-render-shim",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "description": "Legacy Render path: Static Site Root Directory = frontend. Delegates to apps/web.",
+  "scripts": {
+    "build": "cd .. && pnpm install --frozen-lockfile && pnpm --filter @wakibet/web build && node ./frontend/scripts/copy-dist.mjs"
+  }
+}
