@@ -22,11 +22,16 @@ Env var WAKIBET_JWT_SECRET: long random string (required for auth in production)
 
 Static Site (browser UI — apps/web)
 ------------------------------------
-New Static Site, same repo, root empty.
+IMPORTANT: There is NO "frontend" folder on main anymore (old Vite path).
+If Root Directory is "frontend" or "backend", the build WILL FAIL.
 
-Build:   pnpm run render:build:web
-Publish: apps/web/dist
+Checklist:
+[ ] Root Directory: EMPTY (not "frontend", not "backend", not "apps/web")
+[ ] Build Command:  pnpm run render:build:web
+[ ] Publish directory:  apps/web/dist
+[ ] Build-time env:  VITE_API_BASE = https://YOUR-API.onrender.com  (no trailing slash)
 
-Build env: VITE_API_BASE = https://YOUR-API.onrender.com   (no trailing slash)
+Why root empty? The build script runs from the monorepo root so pnpm can
+resolve the workspace lockfile and install all packages.
 
 After saving, trigger Manual Deploy.
