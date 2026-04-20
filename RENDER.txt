@@ -24,9 +24,10 @@ Static Site (browser UI — apps/web)
 [ ] Root Directory: EMPTY — delete ALL text in the box (not "frontend", not "backend",
     not "apps/web"). If Render still says 'frontend' does not exist, the box is not empty.
 
-[ ] Build Command (copy exactly — note the COLONS):
-      pnpm run render:build:web
-    Wrong names will fail: NOT render-build:web, NOT npm run build from repo root alone.
+[ ] Build Command (pick one):
+      pnpm run render:build:web     (fastest — only installs + builds the web app)
+    or  pnpm run build              (builds shared + api + web; skips Expo mobile)
+    Wrong: NOT bare "turbo build" alone; NOT render-build:web (wrong punctuation).
 
 [ ] Publish directory (copy exactly):
       apps/web/dist

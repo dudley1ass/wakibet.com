@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "build": "turbo run build --filter='!@wakibet/mobile'",
     "lint": "turbo lint",
     "render:build": "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @wakibet/shared build && pnpm --filter @wakibet/api build",
     "render:build:web": "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @wakibet/web build",
