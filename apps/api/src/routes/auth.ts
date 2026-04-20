@@ -38,20 +38,6 @@ const LoginBody = z.object({
   password: z.string().min(1),
 });
 
-const AuthUserResponse = z.object({
-  user_id: z.string(),
-  email: z.string(),
-  display_name: z.string(),
-  virtual_cents: z.number().int(),
-});
-
-const LoginResponse = z.object({
-  access_token: z.string(),
-  user: AuthUserResponse,
-});
-
-const ErrorMessage = z.object({ message: z.string() });
-
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -61,7 +47,6 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       schema: {
         tags: ["auth"],
         body: RegisterBody,
-        response: { 200: LoginResponse, 409: ErrorMessage },
       },
     },
     async (req, reply) => {
@@ -128,7 +113,6 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       schema: {
         tags: ["auth"],
         body: LoginBody,
-        response: { 200: LoginResponse, 401: ErrorMessage },
       },
     },
     async (req, reply) => {
@@ -160,7 +144,6 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     {
       schema: {
         tags: ["auth"],
-        response: { 200: AuthUserResponse, 401: ErrorMessage },
       },
     },
     async (req, reply) => {

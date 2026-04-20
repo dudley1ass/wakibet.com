@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { apiPost } from "../api";
+import { apiPost, finalizeAuthFromLoginResponse } from "../api";
 
 type Props = {
   onAuthSuccess: (payload: {
@@ -32,12 +32,10 @@ export default function LoginPage({ onAuthSuccess }: Props) {
     }
     try {
       setLoading(true);
-      const data = await apiPost<{
-        access_token: string;
-        user: { user_id: string; email: string; display_name: string; virtual_cents?: number };
-      }>("/api/v1/auth/login", { email, password });
+      const data = await apiPost<Record<string, unknown>>("/api/v1/auth/login", { email, password });
+      const payload = await finalizeAuthFromLoginResponse(data);
       setMessage("Logged in.");
-      onAuthSuccess(data);
+      onAuthSuccess(payload);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed.");
     } finally {
@@ -65,12 +63,10 @@ export default function LoginPage({ onAuthSuccess }: Props) {
       };
       const dn = displayName.trim();
       if (dn) body.display_name = dn;
-      const data = await apiPost<{
-        access_token: string;
-        user: { user_id: string; email: string; display_name: string; virtual_cents?: number };
-      }>("/api/v1/auth/register", body);
+      const data = await apiPost<Record<string, unknown>>("/api/v1/auth/register", body);
+      const payload = await finalizeAuthFromLoginResponse(data);
       setMessage("Account created. You're signed in.");
-      onAuthSuccess(data);
+      onAuthSuccess(payload);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Registration failed.");
     } finally {
