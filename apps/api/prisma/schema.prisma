@@ -25,16 +25,46 @@ model User {
   referredBy      User?     @relation("Referrals", fields: [referredById], references: [id])
   referrals       User[]    @relation("Referrals")
 
-  wallet           Wallet?
-  lineups          Lineup[]
-  contestEntries   ContestEntry[]
-  sessions         Session[]
-  notifications    Notification[]
+  wallet                 Wallet?
+  lineups                Lineup[]
+  contestEntries         ContestEntry[]
+  sessions               Session[]
+  notifications          Notification[]
+  winterFantasyRosters   WinterFantasyRoster[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([referredById])
+}
+
+/** Division-scoped player picks for Winter Springs test schedule (string player names). */
+model WinterFantasyRoster {
+  id          String               @id @default(cuid())
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  divisionKey String
+  picks       WinterFantasyPick[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, divisionKey], name: "WinterFantasyRoster_userId_divisionKey")
+  @@index([userId])
+}
+
+model WinterFantasyPick {
+  id         String              @id @default(cuid())
+  rosterId   String
+  roster     WinterFantasyRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  slotIndex  Int
+  playerName String
+  isCaptain  Boolean             @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@unique([rosterId, slotIndex])
+  @@index([rosterId])
 }
 
 model Session {

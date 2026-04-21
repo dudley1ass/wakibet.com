@@ -112,6 +112,25 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return data as T;
 }
 
+export async function apiPut<T>(path: string, body: unknown): Promise<T> {
+  const res = await apiFetch(path, {
+    method: "PUT",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  assertJsonResponse(res, path);
+  let data: Record<string, unknown> = {};
+  try {
+    data = (await res.json()) as Record<string, unknown>;
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    throw new Error(formatError(data, res));
+  }
+  return data as T;
+}
+
 export type AuthSuccessPayload = {
   access_token: string;
   user: {

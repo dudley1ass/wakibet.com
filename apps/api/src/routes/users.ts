@@ -1,10 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
+import { getWinterData } from "../lib/winterSpringsData.js";
 
 const RecentBet = z.object({
   selection_id: z.string(),
@@ -70,45 +69,6 @@ const DashboardResponse = z.object({
 });
 
 const ErrorMessage = z.object({ message: z.string() });
-
-type WinterMatch = {
-  match_id: string;
-  event_type: string;
-  skill_level: string;
-  age_bracket: string;
-  event_date: string;
-  player_a: string;
-  player_b: string;
-  status: string;
-};
-
-type WinterPerPlayer = {
-  match_id: string;
-  event_type: string;
-  skill_level: string;
-  age_bracket: string;
-  event_date: string;
-  opponent: string;
-};
-
-type WinterData = {
-  summary: { tournament_name: string; matches_generated: number };
-  matches: WinterMatch[];
-  per_player_matches: Record<string, WinterPerPlayer[]>;
-};
-
-let winterDataPromise: Promise<WinterData | null> | null = null;
-
-/** Load once on first dashboard request; avoids blocking server boot on large JSON parse. */
-function getWinterData(): Promise<WinterData | null> {
-  if (!winterDataPromise) {
-    const jsonPath = path.join(process.cwd(), "data", "winter_springs_test_run_matches.json");
-    winterDataPromise = readFile(jsonPath, "utf-8")
-      .then((raw) => JSON.parse(raw) as WinterData)
-      .catch(() => null);
-  }
-  return winterDataPromise;
-}
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();

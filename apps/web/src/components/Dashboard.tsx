@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { apiGet } from "../api";
 import type { SessionUser } from "../App";
+import WinterFantasySection from "./WinterFantasySection";
 import "./dashboard.css";
 
 type DashboardData = {
@@ -98,6 +99,10 @@ export default function Dashboard({ user, onLogout }: Props) {
       </button>
 
       {error && <p className="dash-error">{error}</p>}
+
+      <div style={{ marginTop: 14 }}>
+        <WinterFantasySection />
+      </div>
 
       {preview && (
         <div className="dash-grid">

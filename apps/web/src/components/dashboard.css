@@ -35,3 +35,22 @@
   .dash-grid { grid-template-columns: 1fr; }
   .dash-span-2 { grid-column: span 1; }
 }
+
+.wf-section { margin-top: 4px; }
+.wf-lead { max-width: 72ch; }
+.wf-meta { margin-bottom: 10px; }
+.wf-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.wf-label { font-size: 12px; font-weight: 600; color: #9a3412; }
+.wf-select {
+  padding: 8px 10px; border-radius: 8px; border: 1px solid #fdba74; background: #fff; color: #7c2d12; font-size: 13px;
+}
+.wf-select-grow { flex: 1; min-width: 0; }
+.wf-picks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.wf-pick-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.wf-slot { font-size: 12px; font-weight: 700; color: #9a3412; min-width: 52px; }
+.wf-cap { font-size: 12px; color: #7c2d12; white-space: nowrap; }
+.wf-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+.wf-btn { margin-top: 0; }
+.wf-score { margin-top: 12px; }
+.wf-score-total { font-size: 14px; color: #7f1d1d; margin-bottom: 8px; }
+.wf-bd { font-size: 11px; color: #92400e; }
