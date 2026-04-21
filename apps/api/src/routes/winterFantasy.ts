@@ -165,8 +165,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!parseDivisionKey(division_key)) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
-      const roster = await prisma.winterFantasyRoster.findUnique({
-        where: { userId_divisionKey: { userId: uid, divisionKey: division_key } },
+      const roster = await prisma.winterFantasyRoster.findFirst({
+        where: { userId: uid, divisionKey: division_key },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
       return {
@@ -241,11 +241,14 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       }
 
       const saved = await prisma.$transaction(async (tx) => {
-        const roster = await tx.winterFantasyRoster.upsert({
-          where: { userId_divisionKey: { userId: uid, divisionKey: division_key } },
-          create: { userId: uid, divisionKey: division_key },
-          update: {},
+        let roster = await tx.winterFantasyRoster.findFirst({
+          where: { userId: uid, divisionKey: division_key },
         });
+        if (!roster) {
+          roster = await tx.winterFantasyRoster.create({
+            data: { userId: uid, divisionKey: division_key },
+          });
+        }
         await tx.winterFantasyPick.deleteMany({ where: { rosterId: roster.id } });
         await tx.winterFantasyPick.createMany({
           data: picks.map((p, i) => ({
@@ -311,8 +314,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
       }
       const divMatches = filterMatchesForDivision(data.matches, division_key) as WinterJsonMatch[];
-      const roster = await prisma.winterFantasyRoster.findUnique({
-        where: { userId_divisionKey: { userId: uid, divisionKey: division_key } },
+      const roster = await prisma.winterFantasyRoster.findFirst({
+        where: { userId: uid, divisionKey: division_key },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
       if (!roster || roster.picks.length === 0) {
