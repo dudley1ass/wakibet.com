@@ -44,7 +44,11 @@ function emptyPicks(n: number): string[] {
   return Array.from({ length: n }, () => "");
 }
 
-export default function WinterFantasySection() {
+type WinterFantasyProps = {
+  onRosterSaved?: () => void | Promise<void>;
+};
+
+export default function WinterFantasySection({ onRosterSaved }: WinterFantasyProps) {
   const [meta, setMeta] = useState<DivisionsResponse | null>(null);
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -158,6 +162,7 @@ export default function WinterFantasySection() {
         return next;
       });
       setCaptainSlot(res.picks.find((p) => p.is_captain)?.slot_index ?? null);
+      await onRosterSaved?.();
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : "Save failed.");
     } finally {

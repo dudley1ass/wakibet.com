@@ -3,22 +3,15 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
-import { getWinterData } from "../lib/winterSpringsData.js";
+import { getWinterData, parseDivisionKey } from "../lib/winterSpringsData.js";
 
-const RecentBet = z.object({
-  selection_id: z.string(),
-  market_label: z.string(),
-  pick: z.string(),
-  status: z.string(),
+const FantasyRosterPick = z.object({
+  slot_index: z.number().int(),
+  player_name: z.string(),
+  is_captain: z.boolean(),
 });
 
 const DashboardResponse = z.object({
-  balance_cents: z.number().int(),
-  summary: z.object({
-    wins: z.number().int(),
-    losses: z.number().int(),
-    pending: z.number().int(),
-  }),
   profile: z.object({
     display_name: z.string(),
     email: z.string(),
@@ -26,14 +19,6 @@ const DashboardResponse = z.object({
     country: z.string(),
     joined_at: z.string(),
   }),
-  wallet_activity: z.array(
-    z.object({
-      id: z.string(),
-      type: z.string(),
-      amount_dills: z.number(),
-      created_at: z.string(),
-    }),
-  ),
   open_contests: z.array(
     z.object({
       id: z.string(),
@@ -65,7 +50,15 @@ const DashboardResponse = z.object({
       }),
     ),
   }),
-  recent_bets: z.array(RecentBet),
+  winter_fantasy_rosters: z.array(
+    z.object({
+      division_key: z.string(),
+      event_type: z.string(),
+      skill_level: z.string(),
+      age_bracket: z.string(),
+      picks: z.array(FantasyRosterPick),
+    }),
+  ),
 });
 
 const ErrorMessage = z.object({ message: z.string() });
@@ -96,28 +89,29 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       if (!user || user.isBanned) {
         return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
-      const wallet = await prisma.wallet.findUnique({ where: { userId: payload.sub } });
-      const dills = wallet ? Number(wallet.cachedBalance) : 0;
-      const balance_cents = Math.round(dills * 100);
-      const walletActivityRaw = wallet
-        ? await prisma.walletLedger.findMany({
-            where: { walletId: wallet.id },
-            orderBy: { createdAt: "desc" },
-            take: 8,
-          })
-        : [];
-      const wallet_activity = walletActivityRaw.map((row) => ({
-        id: row.id,
-        type: row.type,
-        amount_dills: Number(row.amount),
-        created_at: row.createdAt.toISOString(),
-      }));
-
       const winterData = await getWinterData();
 
+      const fantasyRows = await prisma.winterFantasyRoster.findMany({
+        where: { userId: payload.sub },
+        include: { picks: { orderBy: { slotIndex: "asc" } } },
+        orderBy: { updatedAt: "desc" },
+      });
+      const winter_fantasy_rosters = fantasyRows.map((r) => {
+        const parsed = parseDivisionKey(r.divisionKey);
+        return {
+          division_key: r.divisionKey,
+          event_type: parsed?.event_type ?? "",
+          skill_level: parsed?.skill_level ?? "",
+          age_bracket: parsed?.age_bracket ?? "",
+          picks: r.picks.map((p) => ({
+            slot_index: p.slotIndex,
+            player_name: p.playerName,
+            is_captain: p.isCaptain,
+          })),
+        };
+      });
+
       return {
-        balance_cents,
-        summary: { wins: 0, losses: 0, pending: 0 },
         profile: {
           display_name: user.displayName,
           email: user.email,
@@ -125,7 +119,6 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           country: user.country,
           joined_at: user.createdAt.toISOString(),
         },
-        wallet_activity,
         open_contests: winterData
           ? [
               {
@@ -157,7 +150,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
               player_b: m.player_b,
             })) ?? [],
         },
-        recent_bets: [] as { selection_id: string; market_label: string; pick: string; status: string }[],
+        winter_fantasy_rosters,
       };
     },
   );
