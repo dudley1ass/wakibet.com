@@ -25,6 +25,25 @@ type DashboardData = {
     entry_fee_dills: number;
     status: string;
   }[];
+  winter_springs: {
+    tournament_name: string;
+    generated_matches: number;
+    my_upcoming_matches: {
+      match_id: string;
+      event_type: string;
+      skill_level: string;
+      age_bracket: string;
+      event_date: string;
+      opponent: string;
+    }[];
+    featured_matches: {
+      match_id: string;
+      event_type: string;
+      event_date: string;
+      player_a: string;
+      player_b: string;
+    }[];
+  };
   recent_bets: {
     selection_id: string;
     market_label: string;
@@ -129,11 +148,56 @@ export default function Dashboard({ user, onLogout }: Props) {
             )) : <p className="dash-empty">Contest lobby coming next.</p>}
           </section>
 
+          <section className="dash-card dash-span-2">
+            <div className="dash-label">
+              {preview.winter_springs.tournament_name} - My Upcoming Matches
+            </div>
+            <div className="dash-sub">
+              Generated test schedule: {preview.winter_springs.generated_matches} matches
+            </div>
+            {preview.winter_springs.my_upcoming_matches.length ? (
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Match</th>
+                    <th>Event</th>
+                    <th>Division</th>
+                    <th>Date</th>
+                    <th>Opponent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.winter_springs.my_upcoming_matches.map((m) => (
+                    <tr key={m.match_id}>
+                      <td>{m.match_id}</td>
+                      <td>{m.event_type}</td>
+                      <td>
+                        {m.skill_level} / {m.age_bracket}
+                      </td>
+                      <td>{m.event_date}</td>
+                      <td>{m.opponent}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="dash-empty">
+                No direct matches mapped to this account yet. Use your tournament full name in profile
+                display_name to map test schedules.
+              </p>
+            )}
+          </section>
+
           <section className="dash-card">
             <div className="dash-label">Recent Picks</div>
             {preview.recent_bets.length ? preview.recent_bets.slice(0, 4).map((b) => (
               <div className="dash-list-item" key={b.selection_id}><div>{b.market_label}</div><small>{b.pick} - {b.status}</small></div>
-            )) : <p className="dash-empty">No picks yet. Enter a contest to build a lineup.</p>}
+            )) : preview.winter_springs.featured_matches.slice(0, 4).map((m) => (
+              <div className="dash-list-item" key={m.match_id}>
+                <div>{m.event_type}</div>
+                <small>{m.player_a} vs {m.player_b} - {m.event_date}</small>
+              </div>
+            ))}
           </section>
         </div>
       )}

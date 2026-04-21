@@ -1,4 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../lib/prisma.js";
@@ -41,10 +43,71 @@ const DashboardResponse = z.object({
       status: z.string(),
     }),
   ),
+  winter_springs: z.object({
+    tournament_name: z.string(),
+    generated_matches: z.number().int(),
+    my_upcoming_matches: z.array(
+      z.object({
+        match_id: z.string(),
+        event_type: z.string(),
+        skill_level: z.string(),
+        age_bracket: z.string(),
+        event_date: z.string(),
+        opponent: z.string(),
+      }),
+    ),
+    featured_matches: z.array(
+      z.object({
+        match_id: z.string(),
+        event_type: z.string(),
+        event_date: z.string(),
+        player_a: z.string(),
+        player_b: z.string(),
+      }),
+    ),
+  }),
   recent_bets: z.array(RecentBet),
 });
 
 const ErrorMessage = z.object({ message: z.string() });
+
+type WinterMatch = {
+  match_id: string;
+  event_type: string;
+  skill_level: string;
+  age_bracket: string;
+  event_date: string;
+  player_a: string;
+  player_b: string;
+  status: string;
+};
+
+type WinterPerPlayer = {
+  match_id: string;
+  event_type: string;
+  skill_level: string;
+  age_bracket: string;
+  event_date: string;
+  opponent: string;
+};
+
+type WinterData = {
+  summary: { tournament_name: string; matches_generated: number };
+  matches: WinterMatch[];
+  per_player_matches: Record<string, WinterPerPlayer[]>;
+};
+
+function loadWinterData(): WinterData | null {
+  const jsonPath = path.join(process.cwd(), "data", "winter_springs_test_run_matches.json");
+  if (!existsSync(jsonPath)) return null;
+  try {
+    return JSON.parse(readFileSync(jsonPath, "utf-8")) as WinterData;
+  } catch {
+    return null;
+  }
+}
+
+const winterData = loadWinterData();
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -100,7 +163,37 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           joined_at: user.createdAt.toISOString(),
         },
         wallet_activity,
-        open_contests: [],
+        open_contests: winterData
+          ? [
+              {
+                id: "winter-springs-2026",
+                name: "Winter Springs Spring Classic",
+                entry_fee_dills: 500,
+                status: "UPCOMING",
+              },
+            ]
+          : [],
+        winter_springs: {
+          tournament_name: winterData?.summary.tournament_name ?? "Winter Springs Spring Classic (test run)",
+          generated_matches: winterData?.summary.matches_generated ?? 0,
+          my_upcoming_matches:
+            winterData?.per_player_matches[user.displayName]?.slice(0, 8).map((m) => ({
+              match_id: m.match_id,
+              event_type: m.event_type,
+              skill_level: m.skill_level,
+              age_bracket: m.age_bracket,
+              event_date: m.event_date,
+              opponent: m.opponent,
+            })) ?? [],
+          featured_matches:
+            winterData?.matches.slice(0, 8).map((m) => ({
+              match_id: m.match_id,
+              event_type: m.event_type,
+              event_date: m.event_date,
+              player_a: m.player_a,
+              player_b: m.player_b,
+            })) ?? [],
+        },
         recent_bets: [] as { selection_id: string; market_label: string; pick: string; status: string }[],
       };
     },
