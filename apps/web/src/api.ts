@@ -6,7 +6,39 @@ const MISSING_BASE_HELP =
   "In Render → your Static Site → Environment, add VITE_API_BASE = https://YOUR-API.onrender.com (no trailing slash), " +
   "then redeploy with Clear build cache.";
 
+const DEFAULT_FETCH_MS = 20_000;
+
 let accessToken: string | null = null;
+
+function createTimeoutSignal(ms: number): AbortSignal {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  ctrl.signal.addEventListener("abort", () => clearTimeout(id), { once: true });
+  return ctrl.signal;
+}
+
+function isTimedOut(e: unknown): boolean {
+  if (e instanceof DOMException) {
+    return e.name === "AbortError" || e.name === "TimeoutError";
+  }
+  return e instanceof Error && e.name === "AbortError";
+}
+
+async function apiFetch(path: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(`${baseUrl()}${path}`, {
+      ...init,
+      signal: createTimeoutSignal(DEFAULT_FETCH_MS),
+    });
+  } catch (e) {
+    if (isTimedOut(e)) {
+      throw new Error(
+        `Request to ${path} timed out after ${DEFAULT_FETCH_MS / 1000}s. Check VITE_API_BASE, that the API is running, and your network.`,
+      );
+    }
+    throw e;
+  }
+}
 
 function baseUrl(): string {
   if (API_BASE) return API_BASE.replace(/\/$/, "");
@@ -59,7 +91,7 @@ function formatError(data: Record<string, unknown>, res: Response): string {
 }
 
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${baseUrl()}${path}`, {
+  const res = await apiFetch(path, {
     method: "POST",
     headers: { ...authHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -128,7 +160,7 @@ export async function finalizeAuthFromLoginResponse(raw: Record<string, unknown>
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${baseUrl()}${path}`, {
+  const res = await apiFetch(path, {
     headers: authHeaders(),
   });
   assertJsonResponse(res, path);

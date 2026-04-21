@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { existsSync, readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -97,17 +97,18 @@ type WinterData = {
   per_player_matches: Record<string, WinterPerPlayer[]>;
 };
 
-function loadWinterData(): WinterData | null {
-  const jsonPath = path.join(process.cwd(), "data", "winter_springs_test_run_matches.json");
-  if (!existsSync(jsonPath)) return null;
-  try {
-    return JSON.parse(readFileSync(jsonPath, "utf-8")) as WinterData;
-  } catch {
-    return null;
-  }
-}
+let winterDataPromise: Promise<WinterData | null> | null = null;
 
-const winterData = loadWinterData();
+/** Load once on first dashboard request; avoids blocking server boot on large JSON parse. */
+function getWinterData(): Promise<WinterData | null> {
+  if (!winterDataPromise) {
+    const jsonPath = path.join(process.cwd(), "data", "winter_springs_test_run_matches.json");
+    winterDataPromise = readFile(jsonPath, "utf-8")
+      .then((raw) => JSON.parse(raw) as WinterData)
+      .catch(() => null);
+  }
+  return winterDataPromise;
+}
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -151,6 +152,8 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         amount_dills: Number(row.amount),
         created_at: row.createdAt.toISOString(),
       }));
+
+      const winterData = await getWinterData();
 
       return {
         balance_cents,
