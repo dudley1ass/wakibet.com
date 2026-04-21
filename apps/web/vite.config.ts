@@ -9,9 +9,9 @@ export default defineConfig(({ mode }) => {
   const viteApiBase =
     (fromFiles.VITE_API_BASE || process.env.VITE_API_BASE || "").trim() || undefined;
   if (mode === "production" && !viteApiBase) {
-    throw new Error(
-      "Production build requires VITE_API_BASE (your API origin, e.g. https://wakibet-com-2.onrender.com). " +
-        "In Render → Static Site → Environment, add VITE_API_BASE (available at build time), then redeploy.",
+    console.warn(
+      "[wakibet-web] VITE_API_BASE is missing at build time. The site will deploy, " +
+        "but auth/API calls will fail until you set VITE_API_BASE in Render Static Site env and redeploy.",
     );
   }
 
