@@ -1,10 +1,30 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { apiGet } from "../api";
 import type { SessionUser } from "../App";
+import "./dashboard.css";
 
 type DashboardData = {
   balance_cents: number;
   summary: { wins: number; losses: number; pending: number };
+  profile: {
+    display_name: string;
+    email: string;
+    state: string | null;
+    country: string;
+    joined_at: string;
+  };
+  wallet_activity: {
+    id: string;
+    type: string;
+    amount_dills: number;
+    created_at: string;
+  }[];
+  open_contests: {
+    id: string;
+    name: string;
+    entry_fee_dills: number;
+    status: string;
+  }[];
   recent_bets: {
     selection_id: string;
     market_label: string;
@@ -25,7 +45,6 @@ export default function Dashboard({ user, onLogout }: Props) {
 
   async function handleLoadDashboard() {
     setError(null);
-    setPreview(null);
     try {
       setLoading(true);
       const data = await apiGet<DashboardData>("/api/v1/users/me/dashboard");
@@ -37,101 +56,89 @@ export default function Dashboard({ user, onLogout }: Props) {
     }
   }
 
+  const joined = preview ? new Date(preview.profile.joined_at).toLocaleDateString() : "--";
+  const balanceDills = preview ? (preview.balance_cents / 100).toFixed(2) : "0.00";
+  const totalBets = preview ? preview.summary.wins + preview.summary.losses + preview.summary.pending : 0;
+
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: "900px",
-        background: "rgba(255,255,255,0.92)",
-        borderRadius: "16px",
-        padding: "20px",
-        boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
-        border: "1px solid rgba(180, 83, 9, 0.25)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "12px",
-          alignItems: "center",
-        }}
-      >
+    <div className="dash-shell">
+      <div className="dash-head">
         <div>
-          <h1 style={{ margin: 0, fontSize: "20px", color: "#7f1d1d" }}>WakiBet</h1>
-          <div style={{ fontSize: "11px", color: "#92400e" }}>
-            Logged in as <strong>{user.display_name || user.email}</strong>
-            {user.display_name ? (
-              <span style={{ fontWeight: 400, color: "#b45309" }}> ({user.email})</span>
-            ) : null}
-          </div>
+          <h1>WakiBet</h1>
+          <p>
+            Welcome back, <strong>{user.display_name || user.email}</strong>
+          </p>
         </div>
-        <button
-          type="button"
-          onClick={onLogout}
-          style={{
-            fontSize: "11px",
-            padding: "6px 12px",
-            borderRadius: "999px",
-            border: "1px solid #fdba74",
-            background: "white",
-            color: "#9a3412",
-            cursor: "pointer",
-          }}
-        >
+        <button type="button" onClick={onLogout} className="dash-ghost-btn">
           Log out
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={() => void handleLoadDashboard()}
-        disabled={loading}
-        style={{
-          marginTop: "4px",
-          padding: "10px 16px",
-          borderRadius: "999px",
-          border: "none",
-          background: "linear-gradient(135deg, #b45309, #7f1d1d)",
-          color: "white",
-          fontWeight: "600",
-          cursor: loading ? "wait" : "pointer",
-          opacity: loading ? 0.7 : 1,
-        }}
-      >
-        {loading ? "Loading…" : "Load my dashboard"}
+      <button type="button" onClick={() => void handleLoadDashboard()} disabled={loading} className="dash-main-btn">
+        {loading ? "Refreshing..." : "Refresh dashboard"}
       </button>
 
-      {error && <p style={{ marginTop: "10px", fontSize: "12px", color: "#b91c1c" }}>{error}</p>}
+      {error && <p className="dash-error">{error}</p>}
 
       {preview && (
-        <div style={{ marginTop: "16px", fontSize: "13px", color: "#422006" }}>
-          <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
-            Balance: {(preview.balance_cents / 100).toFixed(2)} credits
-          </p>
-          <p style={{ margin: "0 0 8px", fontSize: "12px", color: "#92400e" }}>
-            Record — wins: {preview.summary.wins}, losses: {preview.summary.losses}, pending:{" "}
-            {preview.summary.pending}
-          </p>
-          {preview.recent_bets?.length ? (
-            <ul style={{ paddingLeft: "18px", margin: 0 }}>
-              {preview.recent_bets.slice(0, 8).map((b) => (
-                <li key={b.selection_id} style={{ marginBottom: "4px" }}>
-                  {b.market_label} — pick {b.pick} ({b.status})
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p style={{ fontSize: "12px", color: "#92400e" }}>
-              No picks yet. Enter a contest to build a lineup.
-            </p>
-          )}
+        <div className="dash-grid">
+          <section className="dash-card">
+            <div className="dash-label">Available Balance</div>
+            <div className="dash-big">{balanceDills} DILLS</div>
+            <div className="dash-sub">Virtual wallet for contest entries</div>
+          </section>
+
+          <section className="dash-card">
+            <div className="dash-label">Performance</div>
+            <div className="dash-row"><span>Wins</span><strong>{preview.summary.wins}</strong></div>
+            <div className="dash-row"><span>Losses</span><strong>{preview.summary.losses}</strong></div>
+            <div className="dash-row"><span>Pending</span><strong>{preview.summary.pending}</strong></div>
+            <div className="dash-row"><span>Total Picks</span><strong>{totalBets}</strong></div>
+          </section>
+
+          <section className="dash-card">
+            <div className="dash-label">Profile</div>
+            <div className="dash-row"><span>Name</span><strong>{preview.profile.display_name}</strong></div>
+            <div className="dash-row"><span>Email</span><strong>{preview.profile.email}</strong></div>
+            <div className="dash-row"><span>Location</span><strong>{preview.profile.state ?? "--"}, {preview.profile.country}</strong></div>
+            <div className="dash-row"><span>Joined</span><strong>{joined}</strong></div>
+          </section>
+
+          <section className="dash-card dash-span-2">
+            <div className="dash-label">Wallet Activity</div>
+            {preview.wallet_activity.length ? (
+              <table className="dash-table">
+                <thead><tr><th>Type</th><th>Amount</th><th>When</th></tr></thead>
+                <tbody>
+                  {preview.wallet_activity.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.type.replaceAll("_", " ")}</td>
+                      <td>{row.amount_dills.toFixed(2)} DILLS</td>
+                      <td>{new Date(row.created_at).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : <p className="dash-empty">No wallet activity yet.</p>}
+          </section>
+
+          <section className="dash-card">
+            <div className="dash-label">Open Contests</div>
+            {preview.open_contests.length ? preview.open_contests.map((c) => (
+              <div className="dash-list-item" key={c.id}><div>{c.name}</div><small>{c.entry_fee_dills} DILLS - {c.status}</small></div>
+            )) : <p className="dash-empty">Contest lobby coming next.</p>}
+          </section>
+
+          <section className="dash-card">
+            <div className="dash-label">Recent Picks</div>
+            {preview.recent_bets.length ? preview.recent_bets.slice(0, 4).map((b) => (
+              <div className="dash-list-item" key={b.selection_id}><div>{b.market_label}</div><small>{b.pick} - {b.status}</small></div>
+            )) : <p className="dash-empty">No picks yet. Enter a contest to build a lineup.</p>}
+          </section>
         </div>
       )}
 
-      <p style={{ marginTop: "14px", fontSize: "11px", color: "#92400e" }}>
-        New stack: Fastify + Prisma API. Contest lobby and live leaderboard next.
-      </p>
+      <p className="dash-footnote">Dashboard upgraded with profile and wallet activity. Next: live contests and leaderboard modules.</p>
     </div>
   );
 }
