@@ -46,6 +46,19 @@ type DashboardData = {
     }[];
   };
   winter_fantasy_rosters: FantasyRosterRow[];
+  fantasy_season: {
+    tournaments_planned: number;
+    tournaments_with_schedule: number;
+    total_fantasy_points: number;
+    by_division: {
+      division_key: string;
+      event_type: string;
+      skill_level: string;
+      age_bracket: string;
+      roster_points: number;
+    }[];
+    note: string;
+  };
 };
 
 type Props = {
@@ -57,46 +70,86 @@ function WinterSpringsHero({
   tournamentName,
   matchCount,
   rosters,
+  fantasySeason,
 }: {
   tournamentName: string;
   matchCount: number;
   rosters: FantasyRosterRow[];
+  fantasySeason: DashboardData["fantasy_season"];
 }) {
   return (
     <section className="dash-hero" aria-labelledby="dash-hero-title">
-      <div className="dash-hero-inner">
-        <p className="dash-hero-kicker">Your event</p>
-        <h2 id="dash-hero-title" className="dash-hero-title">
-          {tournamentName}
-        </h2>
-        <p className="dash-hero-sub">
-          Test schedule: {matchCount.toLocaleString()} generated matches · Fantasy rosters you save appear below
-        </p>
-        {rosters.length > 0 ? (
-          <div className="dash-hero-rosters">
-            {rosters.map((r) => (
-              <div className="dash-hero-division" key={r.division_key}>
-                <div className="dash-hero-division-head">
-                  <span className="dash-hero-division-title">{r.event_type}</span>
-                  <span className="dash-hero-division-meta">
-                    {r.skill_level} · {r.age_bracket}
-                  </span>
+      <div className="dash-hero-split">
+        <div className="dash-hero-col dash-hero-col--rosters">
+          <p className="dash-hero-kicker">Your event</p>
+          <h2 id="dash-hero-title" className="dash-hero-title">
+            {tournamentName}
+          </h2>
+          <p className="dash-hero-sub">
+            Test schedule: {matchCount.toLocaleString()} generated matches · Featured divisions only (see builder)
+          </p>
+          {rosters.length > 0 ? (
+            <div className="dash-hero-rosters">
+              {rosters.map((r) => (
+                <div className="dash-hero-division" key={r.division_key}>
+                  <div className="dash-hero-division-head">
+                    <span className="dash-hero-division-title">{r.event_type}</span>
+                    <span className="dash-hero-division-meta">
+                      {r.skill_level} · {r.age_bracket}
+                    </span>
+                  </div>
+                  <ul className="dash-hero-picks">
+                    {r.picks.map((p) => (
+                      <li key={`${r.division_key}-${p.slot_index}`}>
+                        <span className="dash-hero-slot">#{p.slot_index + 1}</span>
+                        <span className="dash-hero-name">{p.player_name}</span>
+                        {p.is_captain ? <span className="dash-hero-cap">Captain</span> : null}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="dash-hero-picks">
-                  {r.picks.map((p) => (
-                    <li key={`${r.division_key}-${p.slot_index}`}>
-                      <span className="dash-hero-slot">#{p.slot_index + 1}</span>
-                      <span className="dash-hero-name">{p.player_name}</span>
-                      {p.is_captain ? <span className="dash-hero-cap">Captain</span> : null}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+              ))}
+            </div>
+          ) : (
+            <p className="dash-hero-empty">
+              Save a roster in the builder below — only featured divisions appear here.
+            </p>
+          )}
+        </div>
+
+        <div className="dash-hero-col dash-hero-col--points" aria-labelledby="dash-season-points-title">
+          <p className="dash-hero-kicker">Season fantasy (test)</p>
+          <h2 id="dash-season-points-title" className="dash-hero-title dash-hero-title--secondary">
+            Points accrued
+          </h2>
+          <p className="dash-hero-sub">
+            Rolling total across tournaments as we plug in schedules — targeting{" "}
+            <strong>{fantasySeason.tournaments_planned}</strong> events for a full system test.
+          </p>
+          <div className="dash-season-total" aria-live="polite">
+            {fantasySeason.total_fantasy_points}
+            <span className="dash-season-total-label">pts</span>
           </div>
-        ) : (
-          <p className="dash-hero-empty">Save a roster for a division in the builder below — it will show up here.</p>
-        )}
+          <p className="dash-season-meta">
+            Schedule live: <strong>{fantasySeason.tournaments_with_schedule}</strong> /{" "}
+            {fantasySeason.tournaments_planned} tournaments
+          </p>
+          {fantasySeason.by_division.length > 0 ? (
+            <ul className="dash-season-bydiv">
+              {fantasySeason.by_division.map((d) => (
+                <li key={d.division_key}>
+                  <span className="dash-season-div-name">
+                    {d.event_type} · {d.skill_level} / {d.age_bracket}
+                  </span>
+                  <span className="dash-season-div-pts">{d.roster_points} pts</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="dash-hero-empty">Save a featured-division roster to see per-division points here.</p>
+          )}
+          <p className="dash-season-note">{fantasySeason.note}</p>
+        </div>
       </div>
     </section>
   );
@@ -159,6 +212,7 @@ export default function Dashboard({ user, onLogout }: Props) {
             tournamentName={preview.winter_springs.tournament_name}
             matchCount={preview.winter_springs.generated_matches}
             rosters={preview.winter_fantasy_rosters}
+            fantasySeason={preview.fantasy_season}
           />
 
           <div style={{ marginTop: 16 }}>
@@ -241,7 +295,10 @@ export default function Dashboard({ user, onLogout }: Props) {
         </>
       )}
 
-      <p className="dash-footnote">Fantasy rosters are saved per division; refresh or save again to update the hero.</p>
+      <p className="dash-footnote">
+        Featured divisions only (5+ players or 4 with 6+ matches). Season total will grow as we attach four more
+        tournament schedules after Winter Springs.
+      </p>
     </div>
   );
 }

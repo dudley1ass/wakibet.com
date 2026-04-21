@@ -187,10 +187,12 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
 
   return (
     <section className="dash-card wf-section">
-      <div className="dash-label">Winter Springs — division fantasy</div>
+      <div className="dash-label">Winter Springs — featured divisions only</div>
       <p className="dash-sub wf-lead">
-        Pick {rosterSize} players from one division. Scoring uses wins, point differential, medals, and bracket
-        advancement when those fields exist on matches; until then, scores stay at 0 even though the schedule is live.
+        Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
+        <strong>6+</strong> generated matches so round robin gives everyone enough games. Pick {rosterSize} players per
+        division. Scoring uses wins, margin, medals, and advancement when those fields exist on matches; until then
+        points stay at 0.
       </p>
 
       {loadingMeta && <p className="dash-empty">Loading divisions…</p>}

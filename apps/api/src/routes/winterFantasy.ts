@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
-  scoreWinterFantasyRoster,
   scoreWinterPlayerFromMatches,
   WINTER_FANTASY_ROSTER_SIZE,
   WINTER_FANTASY_RULES,
@@ -10,10 +9,12 @@ import {
 } from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
+import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
   filterMatchesForDivision,
   getWinterData,
-  listDivisionsFromMatches,
+  isDivisionFeaturedFromMatches,
+  listFeaturedDivisionsFromMatches,
   parseDivisionKey,
   uniquePlayersInMatches,
 } from "../lib/winterSpringsData.js";
@@ -88,7 +89,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         tournament_name: data.summary.tournament_name,
         scoring_version: WINTER_FANTASY_RULES.version,
         roster_size: WINTER_FANTASY_ROSTER_SIZE,
-        divisions: listDivisionsFromMatches(data.matches),
+        divisions: listFeaturedDivisionsFromMatches(data.matches),
       };
     },
   );
@@ -128,6 +129,12 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       const ms = filterMatchesForDivision(data.matches, division_key);
       if (ms.length === 0) {
         return reply.code(400).send({ message: "Unknown division." } as const);
+      }
+      if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
+        return reply.code(400).send({
+          message:
+            "This division is not open for fantasy. We only use featured divisions: 5+ players, or 4 players with at least 6 schedule matches.",
+        } as const);
       }
       return {
         division_key,
@@ -233,6 +240,12 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!data) {
         return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
       }
+      if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
+        return reply.code(400).send({
+          message:
+            "This division is not open for fantasy. Featured divisions only: 5+ players, or 4 players with at least 6 schedule matches.",
+        } as const);
+      }
       const pool = new Set(uniquePlayersInMatches(filterMatchesForDivision(data.matches, division_key)));
       for (const n of names) {
         if (!pool.has(n)) {
@@ -313,6 +326,12 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!data) {
         return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
       }
+      if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
+        return reply.code(400).send({
+          message:
+            "This division is not open for fantasy. Featured divisions only: 5+ players, or 4 players with at least 6 schedule matches.",
+        } as const);
+      }
       const divMatches = filterMatchesForDivision(data.matches, division_key) as WinterJsonMatch[];
       const roster = await prisma.winterFantasyRoster.findFirst({
         where: { userId: uid, divisionKey: division_key },
@@ -330,13 +349,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           breakdown,
         };
       });
-      const roster_total = scoreWinterFantasyRoster(
-        rows.map((r) => ({
-          player_name: r.player_name,
-          points: r.fantasy_points,
-          is_captain: r.is_captain,
-        })),
-      );
+      const roster_total = fantasyRosterTotalPoints(data.matches, division_key, roster.picks);
       return {
         division_key,
         roster_total,

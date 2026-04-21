@@ -3,7 +3,14 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
-import { getWinterData, parseDivisionKey } from "../lib/winterSpringsData.js";
+import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
+import {
+  getWinterData,
+  isDivisionFeaturedFromMatches,
+  parseDivisionKey,
+} from "../lib/winterSpringsData.js";
+
+const SEASON_TOURNAMENTS_PLANNED = 5;
 
 const FantasyRosterPick = z.object({
   slot_index: z.number().int(),
@@ -59,6 +66,21 @@ const DashboardResponse = z.object({
       picks: z.array(FantasyRosterPick),
     }),
   ),
+  fantasy_season: z.object({
+    tournaments_planned: z.number().int(),
+    tournaments_with_schedule: z.number().int(),
+    total_fantasy_points: z.number(),
+    by_division: z.array(
+      z.object({
+        division_key: z.string(),
+        event_type: z.string(),
+        skill_level: z.string(),
+        age_bracket: z.string(),
+        roster_points: z.number(),
+      }),
+    ),
+    note: z.string(),
+  }),
 });
 
 const ErrorMessage = z.object({ message: z.string() });
@@ -91,12 +113,16 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       }
       const winterData = await getWinterData();
 
+      const matches = winterData?.matches ?? [];
       const fantasyRows = await prisma.winterFantasyRoster.findMany({
         where: { userId: payload.sub },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
         orderBy: { updatedAt: "desc" },
       });
-      const winter_fantasy_rosters = fantasyRows.map((r) => {
+      const featuredRows = winterData
+        ? fantasyRows.filter((r) => isDivisionFeaturedFromMatches(matches, r.divisionKey))
+        : [];
+      const winter_fantasy_rosters = featuredRows.map((r) => {
         const parsed = parseDivisionKey(r.divisionKey);
         return {
           division_key: r.divisionKey,
@@ -110,6 +136,35 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           })),
         };
       });
+
+      const by_division = winter_fantasy_rosters.map((roster) => ({
+        division_key: roster.division_key,
+        event_type: roster.event_type,
+        skill_level: roster.skill_level,
+        age_bracket: roster.age_bracket,
+        roster_points: winterData
+          ? Math.round(
+              fantasyRosterTotalPoints(
+                matches,
+                roster.division_key,
+                roster.picks.map((p) => ({
+                  playerName: p.player_name,
+                  isCaptain: p.is_captain,
+                })),
+              ) * 100,
+            ) / 100
+          : 0,
+      }));
+      const total_fantasy_points =
+        Math.round(by_division.reduce((s, d) => s + d.roster_points, 0) * 100) / 100;
+      const fantasy_season = {
+        tournaments_planned: SEASON_TOURNAMENTS_PLANNED,
+        tournaments_with_schedule: winterData ? 1 : 0,
+        total_fantasy_points,
+        by_division,
+        note:
+          "Season test: Winter Springs counts today; four more tournaments will roll into this total as we wire them in. Points follow match results in the schedule JSON (wins, margin, medals, advancement).",
+      };
 
       return {
         profile: {
@@ -151,6 +206,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
             })) ?? [],
         },
         winter_fantasy_rosters,
+        fantasy_season,
       };
     },
   );

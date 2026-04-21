@@ -67,6 +67,43 @@ export function uniquePlayersInMatches(matches: WinterMatch[]): string[] {
   return [...s].sort((a, b) => a.localeCompare(b));
 }
 
+/**
+ * Featured divisions for fantasy: enough "teams" (here: distinct players) for a fair pool.
+ * — 5+ players, or
+ * — exactly 4 players with at least 6 generated matches (typical full round-robin doubles coverage).
+ */
+export const FEATURED_MIN_PLAYERS = 5;
+export const FEATURED_FOUR_PLAYER_MIN_MATCHES = 6;
+
+export function isFeaturedWinterDivision(row: {
+  player_count: number;
+  match_count: number;
+}): boolean {
+  if (row.player_count >= FEATURED_MIN_PLAYERS) return true;
+  if (row.player_count === 4 && row.match_count >= FEATURED_FOUR_PLAYER_MIN_MATCHES) return true;
+  return false;
+}
+
+export function listFeaturedDivisionsFromMatches(matches: WinterMatch[]): {
+  division_key: string;
+  event_type: string;
+  skill_level: string;
+  age_bracket: string;
+  match_count: number;
+  player_count: number;
+}[] {
+  return listDivisionsFromMatches(matches).filter(isFeaturedWinterDivision);
+}
+
+export function isDivisionFeaturedFromMatches(matches: WinterMatch[], divisionKey: string): boolean {
+  const ms = filterMatchesForDivision(matches, divisionKey);
+  if (ms.length === 0) return false;
+  return isFeaturedWinterDivision({
+    player_count: uniquePlayersInMatches(ms).length,
+    match_count: ms.length,
+  });
+}
+
 export function listDivisionsFromMatches(matches: WinterMatch[]): {
   division_key: string;
   event_type: string;
