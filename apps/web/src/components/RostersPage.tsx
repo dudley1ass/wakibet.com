@@ -108,6 +108,14 @@ function RosterCard({
           <div className="rost-tournament">{roster.tournament_name}</div>
           <div className="rost-meta">
             <span className="rost-badge">{roster.tournament_key}</span>
+            <span className="rost-badge" title="WakiCash spent on this lineup">
+              {roster.waki_cash_spent}/{roster.waki_cash_budget} WakiCash
+            </span>
+            {!roster.waki_lineup_complete ? (
+              <span className="rost-badge rost-badge--warn" title="Save 5 picks under Pick / Edit Teams">
+                {roster.picks.length} picks — needs 5
+              </span>
+            ) : null}
           </div>
         </div>
         {pts != null ? (
@@ -131,6 +139,9 @@ function RosterCard({
             <li key={p.slot_index} className="rost-pick-row">
               <span className="rost-slot">#{p.slot_index + 1}</span>
               <span className="rost-name">{p.player_name}</span>
+              <span className="rost-wc" title="WakiCash for this player in this division">
+                {p.waki_cash ?? "—"} WC
+              </span>
               {p.is_captain ? <span className="rost-cap">Captain</span> : null}
             </li>
           ))}

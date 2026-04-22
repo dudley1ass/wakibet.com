@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { playerWakiCashCost, WAKICASH_BUDGET_PER_LINEUP, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
 import {
@@ -27,6 +28,7 @@ const FantasyRosterPick = z.object({
   slot_index: z.number().int(),
   player_name: z.string(),
   is_captain: z.boolean(),
+  waki_cash: z.number().int(),
 });
 
 const DashboardResponse = z.object({
@@ -79,6 +81,9 @@ const DashboardResponse = z.object({
       event_type: z.string(),
       skill_level: z.string(),
       age_bracket: z.string(),
+      waki_cash_spent: z.number().int(),
+      waki_cash_budget: z.number().int(),
+      waki_lineup_complete: z.boolean(),
       picks: z.array(FantasyRosterPick),
     }),
   ),
@@ -86,6 +91,8 @@ const DashboardResponse = z.object({
     tournaments_planned: z.number().int(),
     tournaments_with_schedule: z.number().int(),
     total_fantasy_points: z.number(),
+    waki_cash_spent_total: z.number().int(),
+    waki_cash_budget_total: z.number().int(),
     by_division: z.array(
       z.object({
         tournament_key: z.enum(TOURNAMENT_KEYS),
@@ -214,18 +221,26 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         if (!parsedStored) return null;
         const parsed = parseDivisionKey(parsedStored.division_key);
         const tournamentData = tournamentDataByKey[parsedStored.tournament_key];
+        const skill = parsed?.skill_level ?? "";
+        const picks = r.picks.map((p) => ({
+          slot_index: p.slotIndex,
+          player_name: p.playerName,
+          is_captain: p.isCaptain,
+          waki_cash: playerWakiCashCost(skill, p.playerName),
+        }));
+        const waki_cash_spent = picks.reduce((s, p) => s + p.waki_cash, 0);
+        const waki_lineup_complete = r.picks.length === WINTER_FANTASY_ROSTER_SIZE;
         return {
           tournament_key: parsedStored.tournament_key,
           tournament_name: tournamentData?.summary.tournament_name ?? parsedStored.tournament_key,
           division_key: parsedStored.division_key,
           event_type: parsed?.event_type ?? "",
-          skill_level: parsed?.skill_level ?? "",
+          skill_level: skill,
           age_bracket: parsed?.age_bracket ?? "",
-          picks: r.picks.map((p) => ({
-            slot_index: p.slotIndex,
-            player_name: p.playerName,
-            is_captain: p.isCaptain,
-          })),
+          waki_cash_spent,
+          waki_cash_budget: WAKICASH_BUDGET_PER_LINEUP,
+          waki_lineup_complete,
+          picks,
         };
       }).filter((row): row is NonNullable<typeof row> => Boolean(row));
 
@@ -251,6 +266,9 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       }));
       const total_fantasy_points =
         Math.round(by_division.reduce((s, d) => s + d.roster_points, 0) * 100) / 100;
+      const waki_cash_spent_total = winter_fantasy_rosters.reduce((s, r) => s + r.waki_cash_spent, 0);
+      const waki_cash_budget_total =
+        winter_fantasy_rosters.filter((r) => r.waki_lineup_complete).length * WAKICASH_BUDGET_PER_LINEUP;
       const tournamentsWithSchedule = TOURNAMENT_KEYS.filter((k) => Boolean(tournamentDataByKey[k])).length;
       const tournamentOptions = listTournamentOptions();
       const tournament_schedules = TOURNAMENT_KEYS.map((k) => {
@@ -282,9 +300,11 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         tournaments_planned: SEASON_TOURNAMENTS_PLANNED,
         tournaments_with_schedule: tournamentsWithSchedule,
         total_fantasy_points,
+        waki_cash_spent_total,
+        waki_cash_budget_total,
         by_division,
         note:
-          "WakiPoints v3 rolls up across loaded tournament schedules. Engine uses winners, optional scores/seeds/stage text, medals, upset flags, and streak / division meta when data supports them.",
+          "WakiPoints v3 rolls up across loaded tournament schedules. Engine uses winners, optional scores/seeds/stage text, medals, upset flags, and streak / division meta when data supports them. Each featured lineup uses 100 WakiCash (skill-based prices; captain 1.5× on WakiPoints).",
       };
 
       const leaderboardRanked = computeFantasyLeaderboard(

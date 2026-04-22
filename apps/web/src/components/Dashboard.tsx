@@ -10,7 +10,10 @@ export type FantasyRosterRow = {
   event_type: string;
   skill_level: string;
   age_bracket: string;
-  picks: { slot_index: number; player_name: string; is_captain: boolean }[];
+  waki_cash_spent: number;
+  waki_cash_budget: number;
+  waki_lineup_complete: boolean;
+  picks: { slot_index: number; player_name: string; is_captain: boolean; waki_cash: number }[];
 };
 
 type FantasyPulse = {
@@ -68,6 +71,8 @@ export type DashboardData = {
     tournaments_planned: number;
     tournaments_with_schedule: number;
     total_fantasy_points: number;
+    waki_cash_spent_total: number;
+    waki_cash_budget_total: number;
     by_division: {
       tournament_key: string;
       tournament_name: string;
@@ -212,6 +217,23 @@ export default function Dashboard({ user, onLogout }: Props) {
               <div className="dash-kpi-value">{pulse.my_rank != null ? `#${pulse.my_rank}` : "—"}</div>
               <div className="dash-kpi-label">
                 Of {pulse.rank_players_count} {pulse.rank_players_count === 1 ? "Player" : "Players"}
+              </div>
+            </div>
+            <div className="dash-kpi-card dash-kpi-card--wakicash">
+              <div className="dash-kpi-kicker">WakiCash</div>
+              <div className="dash-kpi-value">
+                {(() => {
+                  const ws = preview.fantasy_season.waki_cash_spent_total;
+                  const wb = preview.fantasy_season.waki_cash_budget_total;
+                  if (ws === 0 && wb === 0) return "—";
+                  if (wb === 0) return `${ws}`;
+                  return `${ws} / ${wb}`;
+                })()}
+              </div>
+              <div className="dash-kpi-label">
+                {preview.fantasy_season.waki_cash_budget_total === 0 && preview.fantasy_season.waki_cash_spent_total > 0
+                  ? "Spent (re-save lineups to 5 picks)"
+                  : "Spent / budget (100 per full lineup)"}
               </div>
             </div>
             <div className="dash-kpi-card dash-kpi-card--delta">

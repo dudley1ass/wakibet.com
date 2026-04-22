@@ -2,7 +2,9 @@ import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
+  playerWakiCashCost,
   scoreWinterPlayerFromMatches,
+  validateWakiCashLineup,
   WINTER_FANTASY_ROSTER_SIZE,
   WINTER_FANTASY_RULES,
   type WinterJsonMatch,
@@ -152,7 +154,9 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({
             tournament_key: z.enum(TOURNAMENT_KEYS),
             division_key: z.string(),
-            players: z.array(z.string()),
+            skill_level: z.string(),
+            waki_cash_budget: z.number().int(),
+            players: z.array(z.object({ player_name: z.string(), waki_cash: z.number().int() })),
           }),
           401: ErrorMessage,
           400: ErrorMessage,
@@ -185,10 +189,18 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
             "This division is not open for fantasy. We only use featured divisions: 5+ players, or 4 players with at least 6 schedule matches.",
         } as const);
       }
+      const parsed = parseDivisionKey(division_key);
+      const skill = parsed?.skill_level ?? "";
+      const names = uniquePlayersInMatches(ms);
       return {
         tournament_key,
         division_key,
-        players: uniquePlayersInMatches(ms),
+        skill_level: skill,
+        waki_cash_budget: 100,
+        players: names.map((player_name) => ({
+          player_name,
+          waki_cash: playerWakiCashCost(skill, player_name),
+        })),
       };
     },
   );
@@ -208,6 +220,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
                 slot_index: z.number().int(),
                 player_name: z.string(),
                 is_captain: z.boolean(),
+                waki_cash: z.number().int(),
               }),
             ),
           }),
@@ -223,6 +236,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!parseDivisionKey(division_key)) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
+      const divParsed = parseDivisionKey(division_key);
+      const skill = divParsed?.skill_level ?? "";
       const storedDivisionKey = toStoredDivisionKey(tournament_key, division_key);
       const roster = await prisma.winterFantasyRoster.findFirst({
         where:
@@ -239,6 +254,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
               slot_index: p.slotIndex,
               player_name: p.playerName,
               is_captain: p.isCaptain,
+              waki_cash: playerWakiCashCost(skill, p.playerName),
             }))
           : [],
       };
@@ -260,6 +276,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
                 slot_index: z.number().int(),
                 player_name: z.string(),
                 is_captain: z.boolean(),
+                waki_cash: z.number().int(),
               }),
             ),
           }),
@@ -277,7 +294,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
       const { tournament_key, division_key, picks } = req.body;
-      if (!parseDivisionKey(division_key)) {
+      const divParsed = parseDivisionKey(division_key);
+      if (!divParsed) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
       const storedDivisionKey = toStoredDivisionKey(tournament_key, division_key);
@@ -287,8 +305,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           .send({ message: `Exactly ${WINTER_FANTASY_ROSTER_SIZE} picks are required.` } as const);
       }
       const captains = picks.filter((p) => p.is_captain);
-      if (captains.length > 1) {
-        return reply.code(400).send({ message: "At most one player may be captain." } as const);
+      if (captains.length !== 1) {
+        return reply.code(400).send({ message: "Choose exactly one captain (1.5× WakiPoints)." } as const);
       }
       const names = picks.map((p) => p.player_name);
       if (new Set(names).size !== names.length) {
@@ -315,6 +333,17 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         if (!pool.has(n)) {
           return reply.code(400).send({ message: `Player is not in this division: ${n}` } as const);
         }
+      }
+
+      const skill = divParsed.skill_level;
+      const wakiPicks = picks.map((p) => ({
+        player_name: p.player_name,
+        is_captain: Boolean(p.is_captain),
+        waki_cash: playerWakiCashCost(skill, p.player_name),
+      }));
+      const wakiCheck = validateWakiCashLineup(wakiPicks);
+      if (!wakiCheck.ok) {
+        return reply.code(400).send({ message: wakiCheck.message } as const);
       }
 
       const saved = await prisma.$transaction(async (tx) => {
@@ -356,6 +385,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           slot_index: p.slotIndex,
           player_name: p.playerName,
           is_captain: p.isCaptain,
+          waki_cash: playerWakiCashCost(skill, p.playerName),
         })),
       };
     },
@@ -441,7 +471,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         players: rows,
         note:
           "WakiPoints v3: full scoring table (see site scoring page). Categories apply when schedule rows include winners, optional scores/seeds/stage flags, and pipeline markers. " +
-          "Captain applies ×1.5 to that player’s base WakiPoints on the roster total.",
+          "Captain applies ×1.5 to that player’s base WakiPoints on the roster total. " +
+          "Lineups use 100 WakiCash with skill-based prices (see Pick / Edit Teams).",
       };
     },
   );

@@ -182,6 +182,29 @@
 .wf-slot { font-size: 12px; font-weight: 700; color: #fbbf24; min-width: 52px; }
 .wf-cap { font-size: 12px; color: #fde68a; white-space: nowrap; }
 .wf-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+.wf-wakicash-bar {
+  margin: 12px 0 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(12, 10, 10, 0.55);
+  font-size: 13px;
+  color: #fce7bf;
+  line-height: 1.45;
+}
+.wf-wakicash-bar strong {
+  color: #fde68a;
+}
+.wf-wakicash-ok {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #86efac;
+}
+.wf-wakicash-warn {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #fcd34d;
+}
 .wf-btn { margin-top: 0; }
 .wf-score { margin-top: 12px; }
 .wf-score-total { font-size: 14px; color: #fde68a; margin-bottom: 8px; }
@@ -348,6 +371,10 @@ a.rost-dash-link {
 }
 .rost-meta {
   margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 .rost-badge {
   font-size: 10px;
@@ -358,6 +385,12 @@ a.rost-dash-link {
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid rgba(251, 191, 36, 0.35);
+}
+.rost-badge--warn {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.55);
 }
 .rost-pts {
   font-size: 20px;
@@ -430,6 +463,12 @@ a.rost-dash-link {
   color: #fffbeb;
   min-width: 0;
 }
+.rost-wc {
+  font-size: 12px;
+  font-weight: 800;
+  color: #6ee7b7;
+  white-space: nowrap;
+}
 .rost-cap {
   font-size: 9px;
   font-weight: 800;
@@ -462,7 +501,7 @@ a.rost-dash-link {
 /* MVP dashboard blueprint: KPI → picks → hits → leaderboard + trend → actions */
 .dash-kpi-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
 }
@@ -477,6 +516,10 @@ a.rost-dash-link {
 .dash-kpi-card--points {
   border-color: rgba(252, 211, 77, 0.65);
   background: linear-gradient(160deg, rgba(120, 30, 22, 0.95), rgba(40, 12, 10, 0.95));
+}
+.dash-kpi-card--wakicash {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: linear-gradient(160deg, rgba(20, 50, 40, 0.92), rgba(12, 28, 22, 0.92));
 }
 .dash-kpi-kicker {
   font-size: 11px;
@@ -754,6 +797,9 @@ a.rost-dash-link {
 .dash-account-grid { margin-top: 10px; }
 
 @media (max-width: 820px) {
-  .dash-kpi-strip { grid-template-columns: 1fr; }
+  .dash-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dash-mid-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .dash-kpi-strip { grid-template-columns: 1fr; }
 }

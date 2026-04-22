@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { playerWakiCashCost, validateWakiCashLineup, WAKICASH_BUDGET_PER_LINEUP } from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
 import "./dashboard.css";
 
-const ROSTER_SIZE = 3;
+const ROSTER_SIZE = 5;
 
 type DivisionsResponse = {
   selected_tournament_key: string;
@@ -20,12 +21,19 @@ type DivisionsResponse = {
   }[];
 };
 
-type PlayersResponse = { tournament_key: string; division_key: string; players: string[] };
+type DivisionPlayer = { player_name: string; waki_cash: number };
+type PlayersResponse = {
+  tournament_key: string;
+  division_key: string;
+  skill_level: string;
+  waki_cash_budget: number;
+  players: DivisionPlayer[];
+};
 
 type RosterResponse = {
   tournament_key: string;
   division_key: string;
-  picks: { slot_index: number; player_name: string; is_captain: boolean }[];
+  picks: { slot_index: number; player_name: string; is_captain: boolean; waki_cash: number }[];
 };
 
 type PutRosterResponse = RosterResponse;
@@ -68,7 +76,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
   const [skillLevel, setSkillLevel] = useState("");
   const [ageBracket, setAgeBracket] = useState("");
 
-  const [players, setPlayers] = useState<string[]>([]);
+  const [players, setPlayers] = useState<DivisionPlayer[]>([]);
   const [picks, setPicks] = useState<string[]>(emptyPicks(ROSTER_SIZE));
   const [captainSlot, setCaptainSlot] = useState<number | null>(null);
 
@@ -108,6 +116,28 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
     );
     return row?.division_key ?? "";
   }, [divisions, eventType, skillLevel, ageBracket]);
+
+  const lineupWakiRows = useMemo(() => {
+    const rows: { player_name: string; is_captain: boolean; waki_cash: number }[] = [];
+    for (let i = 0; i < rosterSize; i++) {
+      const name = picks[i]?.trim();
+      if (!name) continue;
+      rows.push({
+        player_name: name,
+        is_captain: captainSlot === i,
+        waki_cash: playerWakiCashCost(skillLevel, name),
+      });
+    }
+    return rows;
+  }, [picks, rosterSize, skillLevel, captainSlot]);
+
+  const spendPreview = useMemo(() => lineupWakiRows.reduce((s, r) => s + r.waki_cash, 0), [lineupWakiRows]);
+
+  const wakiLint = useMemo(() => {
+    if (lineupWakiRows.length !== rosterSize) return { kind: "partial" as const };
+    const v = validateWakiCashLineup(lineupWakiRows);
+    return v.ok ? { kind: "ok" as const } : { kind: "err" as const, message: v.message };
+  }, [lineupWakiRows, rosterSize]);
 
   const loadDivisions = useCallback(async (nextTournamentKey: string) => {
     setMetaErr(null);
@@ -170,7 +200,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
           apiGet<PlayersResponse>(`/api/v1/winter-fantasy/division-players?tournament_key=${t}&division_key=${enc}`),
           apiGet<RosterResponse>(`/api/v1/winter-fantasy/roster?tournament_key=${t}&division_key=${enc}`),
         ]);
-        setPlayers(pl.players);
+        setPlayers(pl.players ?? []);
         const next = emptyPicks(rosterSize);
         let cap: number | null = null;
         for (const p of ro.picks) {
@@ -220,6 +250,20 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
     }
     if (new Set(filled).size !== filled.length) {
       setActionErr("Each roster slot must be a different player.");
+      return;
+    }
+    if (captainSlot === null) {
+      setActionErr("Mark exactly one captain (1.5× WakiPoints).");
+      return;
+    }
+    const wakiRows = filled.map((player_name, slot_index) => ({
+      player_name,
+      is_captain: captainSlot === slot_index,
+      waki_cash: playerWakiCashCost(skillLevel, player_name),
+    }));
+    const wakiCheck = validateWakiCashLineup(wakiRows);
+    if (!wakiCheck.ok) {
+      setActionErr(wakiCheck.message);
       return;
     }
     setBusy(true);
@@ -275,7 +319,9 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
           <h2 className="wf-page-title">Pick / Edit Teams</h2>
           <p className="wf-page-lead">
             Choose a tournament, then narrow by <strong>event</strong>, <strong>skill level</strong>, and{" "}
-            <strong>age group</strong>. Only featured divisions (full enough schedules) are listed.
+            <strong>age group</strong>. Only featured divisions (full enough schedules) are listed. Build with{" "}
+            <strong>{WAKICASH_BUDGET_PER_LINEUP} WakiCash</strong> — five players, one captain, prices scale with
+            division skill (stars cost more; sleepers stay cheap).
           </p>
         </div>
       ) : (
@@ -283,7 +329,8 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
           <div className="dash-label">Tournament fantasy — featured divisions only</div>
           <p className="dash-sub wf-lead">
             Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
-            <strong>6+</strong> generated matches. Pick {rosterSize} players per division.
+            <strong>6+</strong> generated matches. Pick {rosterSize} players per division under{" "}
+            <strong>{WAKICASH_BUDGET_PER_LINEUP} WakiCash</strong> (max two 32+ players, at least one 16 or less).
           </p>
         </>
       )}
@@ -411,6 +458,16 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
 
           {resolvedDivisionKey && (
             <>
+              <div className="wf-wakicash-bar">
+                <strong>WakiCash:</strong> {spendPreview} / {WAKICASH_BUDGET_PER_LINEUP} spent
+                {wakiLint.kind === "ok" ? (
+                  <div className="wf-wakicash-ok">Lineup passes budget and roster rules.</div>
+                ) : wakiLint.kind === "err" ? (
+                  <div className="wf-wakicash-warn">{wakiLint.message}</div>
+                ) : (
+                  <div className="wf-wakicash-warn">Fill all {rosterSize} slots to validate WakiCash rules.</div>
+                )}
+              </div>
               <div className="wf-picks">
                 {Array.from({ length: rosterSize }, (_, slot) => (
                   <div key={slot} className="wf-pick-row">
@@ -423,8 +480,8 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
                     >
                       <option value="">Choose player…</option>
                       {players.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
+                        <option key={p.player_name} value={p.player_name}>
+                          {p.player_name} ({p.waki_cash} WC)
                         </option>
                       ))}
                     </select>

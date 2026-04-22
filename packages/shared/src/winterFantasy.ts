@@ -4,7 +4,7 @@
  * Rows without optional data (scores, seeds, flags) simply skip those buckets.
  */
 
-export const WINTER_FANTASY_ROSTER_SIZE = 3;
+export const WINTER_FANTASY_ROSTER_SIZE = 5;
 
 /** v3 scoring constants (WakiBet full table). Captain multiplier stays at roster level (×1.5). */
 export const WINTER_FANTASY_RULES = {
