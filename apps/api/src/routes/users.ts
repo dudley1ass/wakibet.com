@@ -5,12 +5,15 @@ import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
 import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
-  getWinterData,
+  getTournamentData,
   isDivisionFeaturedFromMatches,
+  listTournamentOptions,
+  parseStoredDivisionKey,
   parseDivisionKey,
+  TOURNAMENT_KEYS,
 } from "../lib/winterSpringsData.js";
 
-const SEASON_TOURNAMENTS_PLANNED = 5;
+const SEASON_TOURNAMENTS_PLANNED = TOURNAMENT_KEYS.length;
 
 const FantasyRosterPick = z.object({
   slot_index: z.number().int(),
@@ -34,31 +37,36 @@ const DashboardResponse = z.object({
       status: z.string(),
     }),
   ),
-  winter_springs: z.object({
-    tournament_name: z.string(),
-    generated_matches: z.number().int(),
-    my_upcoming_matches: z.array(
-      z.object({
-        match_id: z.string(),
-        event_type: z.string(),
-        skill_level: z.string(),
-        age_bracket: z.string(),
-        event_date: z.string(),
-        opponent: z.string(),
-      }),
-    ),
-    featured_matches: z.array(
-      z.object({
-        match_id: z.string(),
-        event_type: z.string(),
-        event_date: z.string(),
-        player_a: z.string(),
-        player_b: z.string(),
-      }),
-    ),
-  }),
+  tournament_schedules: z.array(
+    z.object({
+      tournament_key: z.enum(TOURNAMENT_KEYS),
+      tournament_name: z.string(),
+      generated_matches: z.number().int(),
+      my_upcoming_matches: z.array(
+        z.object({
+          match_id: z.string(),
+          event_type: z.string(),
+          skill_level: z.string(),
+          age_bracket: z.string(),
+          event_date: z.string(),
+          opponent: z.string(),
+        }),
+      ),
+      featured_matches: z.array(
+        z.object({
+          match_id: z.string(),
+          event_type: z.string(),
+          event_date: z.string(),
+          player_a: z.string(),
+          player_b: z.string(),
+        }),
+      ),
+    }),
+  ),
   winter_fantasy_rosters: z.array(
     z.object({
+      tournament_key: z.enum(TOURNAMENT_KEYS),
+      tournament_name: z.string(),
       division_key: z.string(),
       event_type: z.string(),
       skill_level: z.string(),
@@ -111,21 +119,34 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       if (!user || user.isBanned) {
         return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
-      const winterData = await getWinterData();
-
-      const matches = winterData?.matches ?? [];
+      const tournamentDataEntries = await Promise.all(
+        TOURNAMENT_KEYS.map(async (k) => [k, await getTournamentData(k)] as const),
+      );
+      const tournamentDataByKey = Object.fromEntries(tournamentDataEntries) as Record<
+        (typeof TOURNAMENT_KEYS)[number],
+        Awaited<ReturnType<typeof getTournamentData>>
+      >;
       const fantasyRows = await prisma.winterFantasyRoster.findMany({
         where: { userId: payload.sub },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
         orderBy: { updatedAt: "desc" },
       });
-      const featuredRows = winterData
-        ? fantasyRows.filter((r) => isDivisionFeaturedFromMatches(matches, r.divisionKey))
-        : [];
+      const featuredRows = fantasyRows.filter((r) => {
+        const parsedStored = parseStoredDivisionKey(r.divisionKey);
+        if (!parsedStored) return false;
+        const data = tournamentDataByKey[parsedStored.tournament_key];
+        if (!data) return false;
+        return isDivisionFeaturedFromMatches(data.matches, parsedStored.division_key);
+      });
       const winter_fantasy_rosters = featuredRows.map((r) => {
-        const parsed = parseDivisionKey(r.divisionKey);
+        const parsedStored = parseStoredDivisionKey(r.divisionKey);
+        if (!parsedStored) return null;
+        const parsed = parseDivisionKey(parsedStored.division_key);
+        const tournamentData = tournamentDataByKey[parsedStored.tournament_key];
         return {
-          division_key: r.divisionKey,
+          tournament_key: parsedStored.tournament_key,
+          tournament_name: tournamentData?.summary.tournament_name ?? parsedStored.tournament_key,
+          division_key: parsedStored.division_key,
           event_type: parsed?.event_type ?? "",
           skill_level: parsed?.skill_level ?? "",
           age_bracket: parsed?.age_bracket ?? "",
@@ -135,17 +156,17 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
             is_captain: p.isCaptain,
           })),
         };
-      });
+      }).filter((row): row is NonNullable<typeof row> => Boolean(row));
 
       const by_division = winter_fantasy_rosters.map((roster) => ({
         division_key: roster.division_key,
         event_type: roster.event_type,
         skill_level: roster.skill_level,
         age_bracket: roster.age_bracket,
-        roster_points: winterData
+        roster_points: tournamentDataByKey[roster.tournament_key]
           ? Math.round(
               fantasyRosterTotalPoints(
-                matches,
+                tournamentDataByKey[roster.tournament_key]?.matches ?? [],
                 roster.division_key,
                 roster.picks.map((p) => ({
                   playerName: p.player_name,
@@ -157,13 +178,40 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       }));
       const total_fantasy_points =
         Math.round(by_division.reduce((s, d) => s + d.roster_points, 0) * 100) / 100;
+      const tournamentsWithSchedule = TOURNAMENT_KEYS.filter((k) => Boolean(tournamentDataByKey[k])).length;
+      const tournamentOptions = listTournamentOptions();
+      const tournament_schedules = TOURNAMENT_KEYS.map((k) => {
+        const data = tournamentDataByKey[k];
+        return {
+          tournament_key: k,
+          tournament_name: data?.summary.tournament_name ?? tournamentOptions.find((t) => t.tournament_key === k)?.label ?? k,
+          generated_matches: data?.summary.matches_generated ?? 0,
+          my_upcoming_matches:
+            data?.per_player_matches[user.displayName]?.slice(0, 8).map((m) => ({
+              match_id: m.match_id,
+              event_type: m.event_type,
+              skill_level: m.skill_level,
+              age_bracket: m.age_bracket,
+              event_date: m.event_date,
+              opponent: m.opponent,
+            })) ?? [],
+          featured_matches:
+            data?.matches.slice(0, 8).map((m) => ({
+              match_id: m.match_id,
+              event_type: m.event_type,
+              event_date: m.event_date,
+              player_a: m.player_a,
+              player_b: m.player_b,
+            })) ?? [],
+        };
+      });
       const fantasy_season = {
         tournaments_planned: SEASON_TOURNAMENTS_PLANNED,
-        tournaments_with_schedule: winterData ? 1 : 0,
+        tournaments_with_schedule: tournamentsWithSchedule,
         total_fantasy_points,
         by_division,
         note:
-          "Season test: Winter Springs counts today; four more tournaments will roll into this total as we wire them in. Points follow match results in the schedule JSON (wins, margin, medals, advancement).",
+          "Season test: points roll up across available tournament schedules. Points follow match results in the schedule JSON (wins, margin, medals, advancement).",
       };
 
       return {
@@ -174,37 +222,15 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           country: user.country,
           joined_at: user.createdAt.toISOString(),
         },
-        open_contests: winterData
-          ? [
-              {
-                id: "winter-springs-2026",
-                name: "Winter Springs Spring Classic",
-                entry_fee_dills: 500,
-                status: "UPCOMING",
-              },
-            ]
-          : [],
-        winter_springs: {
-          tournament_name: winterData?.summary.tournament_name ?? "Winter Springs Spring Classic (test run)",
-          generated_matches: winterData?.summary.matches_generated ?? 0,
-          my_upcoming_matches:
-            winterData?.per_player_matches[user.displayName]?.slice(0, 8).map((m) => ({
-              match_id: m.match_id,
-              event_type: m.event_type,
-              skill_level: m.skill_level,
-              age_bracket: m.age_bracket,
-              event_date: m.event_date,
-              opponent: m.opponent,
-            })) ?? [],
-          featured_matches:
-            winterData?.matches.slice(0, 8).map((m) => ({
-              match_id: m.match_id,
-              event_type: m.event_type,
-              event_date: m.event_date,
-              player_a: m.player_a,
-              player_b: m.player_b,
-            })) ?? [],
-        },
+        open_contests: listTournamentOptions()
+          .filter((t) => Boolean(tournamentDataByKey[t.tournament_key]))
+          .map((t) => ({
+            id: `${t.tournament_key}-2026`,
+            name: tournamentDataByKey[t.tournament_key]?.summary.tournament_name ?? t.label,
+            entry_fee_dills: 500,
+            status: "UPCOMING",
+          })),
+        tournament_schedules,
         winter_fantasy_rosters,
         fantasy_season,
       };

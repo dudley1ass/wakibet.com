@@ -27,8 +27,26 @@ export type WinterData = {
   per_player_matches: Record<string, WinterPerPlayer[]>;
 };
 
+export const TOURNAMENT_KEYS = ["winter_springs", "pictona", "jacksonville", "bradenton"] as const;
+export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
+
+const TOURNAMENT_FILES: Record<TournamentKey, string> = {
+  winter_springs: "winter_springs_test_run_matches.json",
+  pictona: "pictona_test_run_matches.json",
+  jacksonville: "jacksonville_test_run_matches.json",
+  bradenton: "bradenton_test_run_matches.json",
+};
+
+const TOURNAMENT_LABELS: Record<TournamentKey, string> = {
+  winter_springs: "Winter Springs",
+  pictona: "Pictona",
+  jacksonville: "Jacksonville",
+  bradenton: "Bradenton",
+};
+
 /** Stable division id: unlikely to appear in skill or age fields. */
 export const DIVISION_KEY_DELIM = ":::";
+const STORED_ROSTER_KEY_DELIM = "::TOURNEY::";
 
 export function divisionKeyFromMatch(m: WinterMatch): string {
   return `${m.event_type}${DIVISION_KEY_DELIM}${m.skill_level}${DIVISION_KEY_DELIM}${m.age_bracket}`;
@@ -42,6 +60,38 @@ export function parseDivisionKey(key: string): {
   const parts = key.split(DIVISION_KEY_DELIM);
   if (parts.length !== 3) return null;
   return { event_type: parts[0], skill_level: parts[1], age_bracket: parts[2] };
+}
+
+export function isTournamentKey(value: string): value is TournamentKey {
+  return (TOURNAMENT_KEYS as readonly string[]).includes(value);
+}
+
+export function listTournamentOptions(): {
+  tournament_key: TournamentKey;
+  label: string;
+}[] {
+  return TOURNAMENT_KEYS.map((k) => ({ tournament_key: k, label: TOURNAMENT_LABELS[k] }));
+}
+
+export function toStoredDivisionKey(tournamentKey: TournamentKey, divisionKey: string): string {
+  return `${tournamentKey}${STORED_ROSTER_KEY_DELIM}${divisionKey}`;
+}
+
+export function parseStoredDivisionKey(storedKey: string): {
+  tournament_key: TournamentKey;
+  division_key: string;
+} | null {
+  const idx = storedKey.indexOf(STORED_ROSTER_KEY_DELIM);
+  if (idx < 0) {
+    // Backward compatibility with older Winter Springs rows.
+    if (!parseDivisionKey(storedKey)) return null;
+    return { tournament_key: "winter_springs", division_key: storedKey };
+  }
+  const tournamentKey = storedKey.slice(0, idx);
+  const divisionKey = storedKey.slice(idx + STORED_ROSTER_KEY_DELIM.length);
+  if (!isTournamentKey(tournamentKey)) return null;
+  if (!parseDivisionKey(divisionKey)) return null;
+  return { tournament_key: tournamentKey, division_key: divisionKey };
 }
 
 export function filterMatchesForDivision(
@@ -149,15 +199,21 @@ export function listDivisionsFromMatches(matches: WinterMatch[]): {
   return rows;
 }
 
-let winterDataPromise: Promise<WinterData | null> | null = null;
+const tournamentDataPromises = new Map<TournamentKey, Promise<WinterData | null>>();
 
-/** Load once; first caller pays parse cost (not at process boot). */
+/** Load once per tournament; first caller pays parse cost. */
+export function getTournamentData(tournamentKey: TournamentKey): Promise<WinterData | null> {
+  const cached = tournamentDataPromises.get(tournamentKey);
+  if (cached) return cached;
+  const jsonPath = path.join(process.cwd(), "data", TOURNAMENT_FILES[tournamentKey]);
+  const promise = readFile(jsonPath, "utf-8")
+    .then((raw) => JSON.parse(raw) as WinterData)
+    .catch(() => null);
+  tournamentDataPromises.set(tournamentKey, promise);
+  return promise;
+}
+
+/** Backward compatibility for existing call sites. */
 export function getWinterData(): Promise<WinterData | null> {
-  if (!winterDataPromise) {
-    const jsonPath = path.join(process.cwd(), "data", "winter_springs_test_run_matches.json");
-    winterDataPromise = readFile(jsonPath, "utf-8")
-      .then((raw) => JSON.parse(raw) as WinterData)
-      .catch(() => null);
-  }
-  return winterDataPromise;
+  return getTournamentData("winter_springs");
 }

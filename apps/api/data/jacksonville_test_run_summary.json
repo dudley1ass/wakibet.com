@@ -1,0 +1,9 @@
+{
+  "tournament_name": "Jacksonville (test run)",
+  "source_file": "C:\\Users\\robin\\Downloads\\Jacksonville_Player_Data.xlsx",
+  "players_in_registrations": 37,
+  "players_with_generated_matches": 36,
+  "divisions_considered": 9,
+  "matches_generated": 163,
+  "generation_mode": "round_robin_by_player_within_division"
+}

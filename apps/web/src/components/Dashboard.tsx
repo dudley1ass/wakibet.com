@@ -5,6 +5,8 @@ import WinterFantasySection from "./WinterFantasySection";
 import "./dashboard.css";
 
 export type FantasyRosterRow = {
+  tournament_key: string;
+  tournament_name: string;
   division_key: string;
   event_type: string;
   skill_level: string;
@@ -26,7 +28,8 @@ type DashboardData = {
     entry_fee_dills: number;
     status: string;
   }[];
-  winter_springs: {
+  tournament_schedules: {
+    tournament_key: string;
     tournament_name: string;
     generated_matches: number;
     my_upcoming_matches: {
@@ -44,7 +47,7 @@ type DashboardData = {
       player_a: string;
       player_b: string;
     }[];
-  };
+  }[];
   winter_fantasy_rosters: FantasyRosterRow[];
   fantasy_season: {
     tournaments_planned: number;
@@ -95,7 +98,7 @@ function WinterSpringsHero({
                   <div className="dash-hero-division-head">
                     <span className="dash-hero-division-title">{r.event_type}</span>
                     <span className="dash-hero-division-meta">
-                      {r.skill_level} · {r.age_bracket}
+                      {r.tournament_name} · {r.skill_level} · {r.age_bracket}
                     </span>
                   </div>
                   <ul className="dash-hero-picks">
@@ -157,6 +160,7 @@ function WinterSpringsHero({
 
 export default function Dashboard({ user, onLogout }: Props) {
   const [preview, setPreview] = useState<DashboardData | null>(null);
+  const [selectedScheduleTournament, setSelectedScheduleTournament] = useState<string>("winter_springs");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -166,6 +170,11 @@ export default function Dashboard({ user, onLogout }: Props) {
       setLoading(true);
       const data = await apiGet<DashboardData>("/api/v1/users/me/dashboard");
       setPreview(data);
+      setSelectedScheduleTournament((prev) => {
+        const exists = data.tournament_schedules.some((t) => t.tournament_key === prev);
+        if (exists) return prev;
+        return data.tournament_schedules[0]?.tournament_key ?? "winter_springs";
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load dashboard.");
     } finally {
@@ -178,6 +187,9 @@ export default function Dashboard({ user, onLogout }: Props) {
   }, [loadDashboard]);
 
   const joined = preview ? new Date(preview.profile.joined_at).toLocaleDateString() : "--";
+  const selectedSchedule = preview?.tournament_schedules.find(
+    (t) => t.tournament_key === selectedScheduleTournament,
+  );
 
   return (
     <div className="dash-shell">
@@ -209,8 +221,8 @@ export default function Dashboard({ user, onLogout }: Props) {
       {preview && (
         <>
           <WinterSpringsHero
-            tournamentName={preview.winter_springs.tournament_name}
-            matchCount={preview.winter_springs.generated_matches}
+            tournamentName={selectedSchedule?.tournament_name ?? preview.tournament_schedules[0]?.tournament_name ?? "Tournament"}
+            matchCount={selectedSchedule?.generated_matches ?? 0}
             rosters={preview.winter_fantasy_rosters}
             fantasySeason={preview.fantasy_season}
           />
@@ -257,9 +269,24 @@ export default function Dashboard({ user, onLogout }: Props) {
             </section>
 
             <section className="dash-card dash-span-2">
-              <div className="dash-label">{preview.winter_springs.tournament_name} — your schedule matches</div>
+              <div className="dash-label">Tournament schedule matches</div>
+              <div className="dash-row" style={{ marginTop: 8 }}>
+                <span>Tournament</span>
+                <select
+                  className="wf-select"
+                  value={selectedScheduleTournament}
+                  onChange={(e) => setSelectedScheduleTournament(e.target.value)}
+                  disabled={loading || preview.tournament_schedules.length === 0}
+                >
+                  {preview.tournament_schedules.map((t) => (
+                    <option key={t.tournament_key} value={t.tournament_key}>
+                      {t.tournament_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="dash-sub">Names on the schedule must match your profile display name.</div>
-              {preview.winter_springs.my_upcoming_matches.length ? (
+              {selectedSchedule && selectedSchedule.my_upcoming_matches.length ? (
                 <table className="dash-table">
                   <thead>
                     <tr>
@@ -271,7 +298,7 @@ export default function Dashboard({ user, onLogout }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {preview.winter_springs.my_upcoming_matches.map((m) => (
+                    {selectedSchedule.my_upcoming_matches.map((m) => (
                       <tr key={`${m.match_id}-${m.event_type}-${m.skill_level}-${m.age_bracket}`}>
                         <td>{m.match_id}</td>
                         <td>{m.event_type}</td>
@@ -296,8 +323,8 @@ export default function Dashboard({ user, onLogout }: Props) {
       )}
 
       <p className="dash-footnote">
-        Featured divisions only (5+ players or 4 with 6+ matches). Season total will grow as we attach four more
-        tournament schedules after Winter Springs.
+        Featured divisions only (5+ players or 4 with 6+ matches). Season total reflects all tournament schedules
+        currently loaded in the system.
       </p>
     </div>
   );

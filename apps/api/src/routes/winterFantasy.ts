@@ -12,10 +12,13 @@ import { verifyAccessToken } from "../lib/jwt.js";
 import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
   filterMatchesForDivision,
-  getWinterData,
+  getTournamentData,
   isDivisionFeaturedFromMatches,
   listFeaturedDivisionsFromMatches,
+  listTournamentOptions,
   parseDivisionKey,
+  TOURNAMENT_KEYS,
+  toStoredDivisionKey,
   uniquePlayersInMatches,
 } from "../lib/winterSpringsData.js";
 
@@ -32,7 +35,11 @@ async function userIdFromBearer(authHeader: string | undefined): Promise<string 
 }
 
 const DivisionKeyQuery = z.object({
+  tournament_key: z.enum(TOURNAMENT_KEYS).default("winter_springs"),
   division_key: z.string().min(1),
+});
+const TournamentQuery = z.object({
+  tournament_key: z.enum(TOURNAMENT_KEYS).default("winter_springs"),
 });
 
 const PickRow = z.object({
@@ -41,6 +48,7 @@ const PickRow = z.object({
 });
 
 const PutRosterBody = z.object({
+  tournament_key: z.enum(TOURNAMENT_KEYS).default("winter_springs"),
   division_key: z.string().min(1),
   picks: z.array(PickRow).min(WINTER_FANTASY_ROSTER_SIZE).max(WINTER_FANTASY_ROSTER_SIZE),
 });
@@ -53,8 +61,16 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
     {
       schema: {
         tags: ["winter-fantasy"],
+        querystring: TournamentQuery,
         response: {
           200: z.object({
+            selected_tournament_key: z.enum(TOURNAMENT_KEYS),
+            available_tournaments: z.array(
+              z.object({
+                tournament_key: z.enum(TOURNAMENT_KEYS),
+                label: z.string(),
+              }),
+            ),
             tournament_name: z.string(),
             scoring_version: z.number().int(),
             roster_size: z.number().int(),
@@ -81,11 +97,14 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!user || user.isBanned) {
         return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
-      const data = await getWinterData();
+      const { tournament_key: tournamentKey } = req.query;
+      const data = await getTournamentData(tournamentKey);
       if (!data) {
-        return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
+        return reply.code(503).send({ message: "Tournament schedule data is not available." } as const);
       }
       return {
+        selected_tournament_key: tournamentKey,
+        available_tournaments: listTournamentOptions(),
         tournament_name: data.summary.tournament_name,
         scoring_version: WINTER_FANTASY_RULES.version,
         roster_size: WINTER_FANTASY_ROSTER_SIZE,
@@ -102,6 +121,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: DivisionKeyQuery,
         response: {
           200: z.object({
+            tournament_key: z.enum(TOURNAMENT_KEYS),
             division_key: z.string(),
             players: z.array(z.string()),
           }),
@@ -118,13 +138,13 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!user || user.isBanned) {
         return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
-      const { division_key } = req.query;
+      const { tournament_key, division_key } = req.query;
       if (!parseDivisionKey(division_key)) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
-      const data = await getWinterData();
+      const data = await getTournamentData(tournament_key);
       if (!data) {
-        return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
+        return reply.code(503).send({ message: "Tournament schedule data is not available." } as const);
       }
       const ms = filterMatchesForDivision(data.matches, division_key);
       if (ms.length === 0) {
@@ -137,6 +157,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         } as const);
       }
       return {
+        tournament_key,
         division_key,
         players: uniquePlayersInMatches(ms),
       };
@@ -151,6 +172,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: DivisionKeyQuery,
         response: {
           200: z.object({
+            tournament_key: z.enum(TOURNAMENT_KEYS),
             division_key: z.string(),
             picks: z.array(
               z.object({
@@ -168,15 +190,20 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
     async (req, reply) => {
       const uid = await userIdFromBearer(req.headers.authorization);
       if (!uid) return reply.code(401).send({ message: "Missing or invalid bearer token." } as const);
-      const { division_key } = req.query;
+      const { tournament_key, division_key } = req.query;
       if (!parseDivisionKey(division_key)) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
+      const storedDivisionKey = toStoredDivisionKey(tournament_key, division_key);
       const roster = await prisma.winterFantasyRoster.findFirst({
-        where: { userId: uid, divisionKey: division_key },
+        where:
+          tournament_key === "winter_springs"
+            ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey }] }
+            : { userId: uid, divisionKey: storedDivisionKey },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
       return {
+        tournament_key,
         division_key,
         picks: roster
           ? roster.picks.map((p) => ({
@@ -197,6 +224,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         body: PutRosterBody,
         response: {
           200: z.object({
+            tournament_key: z.enum(TOURNAMENT_KEYS),
             division_key: z.string(),
             picks: z.array(
               z.object({
@@ -219,10 +247,11 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!user || user.isBanned) {
         return reply.code(401).send({ message: "Invalid or expired token." } as const);
       }
-      const { division_key, picks } = req.body;
+      const { tournament_key, division_key, picks } = req.body;
       if (!parseDivisionKey(division_key)) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
+      const storedDivisionKey = toStoredDivisionKey(tournament_key, division_key);
       if (picks.length !== WINTER_FANTASY_ROSTER_SIZE) {
         return reply
           .code(400)
@@ -236,9 +265,9 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (new Set(names).size !== names.length) {
         return reply.code(400).send({ message: "Duplicate players are not allowed." } as const);
       }
-      const data = await getWinterData();
+      const data = await getTournamentData(tournament_key);
       if (!data) {
-        return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
+        return reply.code(503).send({ message: "Tournament schedule data is not available." } as const);
       }
       if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
         return reply.code(400).send({
@@ -255,11 +284,19 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
 
       const saved = await prisma.$transaction(async (tx) => {
         let roster = await tx.winterFantasyRoster.findFirst({
-          where: { userId: uid, divisionKey: division_key },
+          where:
+            tournament_key === "winter_springs"
+              ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey }] }
+              : { userId: uid, divisionKey: storedDivisionKey },
         });
         if (!roster) {
           roster = await tx.winterFantasyRoster.create({
-            data: { userId: uid, divisionKey: division_key },
+            data: { userId: uid, divisionKey: storedDivisionKey },
+          });
+        } else if (roster.divisionKey !== storedDivisionKey) {
+          roster = await tx.winterFantasyRoster.update({
+            where: { id: roster.id },
+            data: { divisionKey: storedDivisionKey },
           });
         }
         await tx.winterFantasyPick.deleteMany({ where: { rosterId: roster.id } });
@@ -278,6 +315,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       });
 
       return {
+        tournament_key,
         division_key,
         picks: saved.picks.map((p) => ({
           slot_index: p.slotIndex,
@@ -296,6 +334,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: DivisionKeyQuery,
         response: {
           200: z.object({
+            tournament_key: z.enum(TOURNAMENT_KEYS),
             division_key: z.string(),
             roster_total: z.number(),
             rules_version: z.number().int(),
@@ -318,13 +357,13 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
     async (req, reply) => {
       const uid = await userIdFromBearer(req.headers.authorization);
       if (!uid) return reply.code(401).send({ message: "Missing or invalid bearer token." } as const);
-      const { division_key } = req.query;
+      const { tournament_key, division_key } = req.query;
       if (!parseDivisionKey(division_key)) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
-      const data = await getWinterData();
+      const data = await getTournamentData(tournament_key);
       if (!data) {
-        return reply.code(503).send({ message: "Winter Springs schedule data is not available." } as const);
+        return reply.code(503).send({ message: "Tournament schedule data is not available." } as const);
       }
       if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
         return reply.code(400).send({
@@ -334,7 +373,16 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       }
       const divMatches = filterMatchesForDivision(data.matches, division_key) as WinterJsonMatch[];
       const roster = await prisma.winterFantasyRoster.findFirst({
-        where: { userId: uid, divisionKey: division_key },
+        where:
+          tournament_key === "winter_springs"
+            ? {
+                userId: uid,
+                OR: [
+                  { divisionKey: toStoredDivisionKey(tournament_key, division_key) },
+                  { divisionKey: division_key },
+                ],
+              }
+            : { userId: uid, divisionKey: toStoredDivisionKey(tournament_key, division_key) },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
       if (!roster || roster.picks.length === 0) {
@@ -351,6 +399,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       });
       const roster_total = fantasyRosterTotalPoints(data.matches, division_key, roster.picks);
       return {
+        tournament_key,
         division_key,
         roster_total,
         rules_version: WINTER_FANTASY_RULES.version,

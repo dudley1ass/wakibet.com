@@ -1,0 +1,9 @@
+{
+  "tournament_name": "Bradenton (test run)",
+  "source_file": "C:\\Users\\robin\\Downloads\\Bradenton_Player_Data.xlsx",
+  "players_in_registrations": 277,
+  "players_with_generated_matches": 277,
+  "divisions_considered": 12,
+  "matches_generated": 6813,
+  "generation_mode": "round_robin_by_player_within_division"
+}

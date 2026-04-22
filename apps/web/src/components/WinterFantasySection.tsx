@@ -5,6 +5,8 @@ import "./dashboard.css";
 const ROSTER_SIZE = 3;
 
 type DivisionsResponse = {
+  selected_tournament_key: string;
+  available_tournaments: { tournament_key: string; label: string }[];
   tournament_name: string;
   scoring_version: number;
   roster_size: number;
@@ -18,9 +20,10 @@ type DivisionsResponse = {
   }[];
 };
 
-type PlayersResponse = { division_key: string; players: string[] };
+type PlayersResponse = { tournament_key: string; division_key: string; players: string[] };
 
 type RosterResponse = {
+  tournament_key: string;
   division_key: string;
   picks: { slot_index: number; player_name: string; is_captain: boolean }[];
 };
@@ -28,6 +31,7 @@ type RosterResponse = {
 type PutRosterResponse = RosterResponse;
 
 type ScoreResponse = {
+  tournament_key: string;
   division_key: string;
   roster_total: number;
   rules_version: number;
@@ -53,6 +57,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
 
+  const [tournamentKey, setTournamentKey] = useState("winter_springs");
   const [divisionKey, setDivisionKey] = useState("");
   const [players, setPlayers] = useState<string[]>([]);
   const [picks, setPicks] = useState<string[]>(emptyPicks(ROSTER_SIZE));
@@ -64,13 +69,16 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
 
   const rosterSize = meta?.roster_size ?? ROSTER_SIZE;
 
-  const loadDivisions = useCallback(async () => {
+  const loadDivisions = useCallback(async (nextTournamentKey: string) => {
     setMetaErr(null);
     setLoadingMeta(true);
     try {
-      const d = await apiGet<DivisionsResponse>("/api/v1/winter-fantasy/divisions");
+      const d = await apiGet<DivisionsResponse>(
+        `/api/v1/winter-fantasy/divisions?tournament_key=${encodeURIComponent(nextTournamentKey)}`,
+      );
       setMeta(d);
       setPicks(emptyPicks(d.roster_size));
+      setTournamentKey(d.selected_tournament_key);
     } catch (e) {
       setMetaErr(e instanceof Error ? e.message : "Could not load fantasy divisions.");
     } finally {
@@ -79,7 +87,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
   }, []);
 
   useEffect(() => {
-    void loadDivisions();
+    void loadDivisions(tournamentKey);
   }, [loadDivisions]);
 
   async function loadDivisionDetail(key: string) {
@@ -95,9 +103,10 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
     setBusy(true);
     try {
       const enc = encodeURIComponent(key);
+      const t = encodeURIComponent(tournamentKey);
       const [pl, ro] = await Promise.all([
-        apiGet<PlayersResponse>(`/api/v1/winter-fantasy/division-players?division_key=${enc}`),
-        apiGet<RosterResponse>(`/api/v1/winter-fantasy/roster?division_key=${enc}`),
+        apiGet<PlayersResponse>(`/api/v1/winter-fantasy/division-players?tournament_key=${t}&division_key=${enc}`),
+        apiGet<RosterResponse>(`/api/v1/winter-fantasy/roster?tournament_key=${t}&division_key=${enc}`),
       ]);
       setPlayers(pl.players);
       const next = emptyPicks(rosterSize);
@@ -119,7 +128,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
 
   useEffect(() => {
     if (divisionKey) void loadDivisionDetail(divisionKey);
-  }, [divisionKey, rosterSize]);
+  }, [divisionKey, rosterSize, tournamentKey]);
 
   function setPickAt(slot: number, name: string) {
     setPicks((prev) => {
@@ -147,6 +156,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
     setBusy(true);
     try {
       const body = {
+        tournament_key: tournamentKey,
         division_key: divisionKey,
         picks: filled.map((player_name, slot_index) => ({
           player_name,
@@ -176,7 +186,8 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
     setBusy(true);
     try {
       const enc = encodeURIComponent(divisionKey);
-      const s = await apiGet<ScoreResponse>(`/api/v1/winter-fantasy/score?division_key=${enc}`);
+      const t = encodeURIComponent(tournamentKey);
+      const s = await apiGet<ScoreResponse>(`/api/v1/winter-fantasy/score?tournament_key=${t}&division_key=${enc}`);
       setScore(s);
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : "Could not load score.");
@@ -187,7 +198,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
 
   return (
     <section className="dash-card wf-section">
-      <div className="dash-label">Winter Springs — featured divisions only</div>
+      <div className="dash-label">Tournament fantasy — featured divisions only</div>
       <p className="dash-sub wf-lead">
         Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
         <strong>6+</strong> generated matches so round robin gives everyone enough games. Pick {rosterSize} players per
@@ -202,6 +213,33 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
         <>
           <div className="dash-sub wf-meta">
             {meta.tournament_name} · rules v{meta.scoring_version}
+          </div>
+          <div className="wf-row">
+            <label className="wf-label" htmlFor="wf-tournament">
+              Tournament
+            </label>
+            <select
+              id="wf-tournament"
+              className="wf-select"
+              value={tournamentKey}
+              onChange={(e) => {
+                const nextKey = e.target.value;
+                setTournamentKey(nextKey);
+                setDivisionKey("");
+                setPlayers([]);
+                setScore(null);
+                setCaptainSlot(null);
+                setPicks(emptyPicks(rosterSize));
+                void loadDivisions(nextKey);
+              }}
+              disabled={busy || loadingMeta}
+            >
+              {meta.available_tournaments.map((t) => (
+                <option key={t.tournament_key} value={t.tournament_key}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="wf-row">
             <label className="wf-label" htmlFor="wf-division">
