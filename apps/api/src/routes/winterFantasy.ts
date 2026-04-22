@@ -198,7 +198,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       const roster = await prisma.winterFantasyRoster.findFirst({
         where:
           tournament_key === "winter_springs"
-            ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey }] }
+            ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey: division_key }] }
             : { userId: uid, divisionKey: storedDivisionKey },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
@@ -286,7 +286,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         let roster = await tx.winterFantasyRoster.findFirst({
           where:
             tournament_key === "winter_springs"
-              ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey }] }
+              ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey: division_key }] }
               : { userId: uid, divisionKey: storedDivisionKey },
         });
         if (!roster) {
