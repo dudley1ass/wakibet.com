@@ -3,7 +3,13 @@ import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
-import { ContactPage, PrivacyPage, ResponsiblePlayPage, TermsPage } from "./components/StaticPages";
+import {
+  ContactPage,
+  PrivacyPage,
+  ResponsiblePlayPage,
+  ScoringTablePage,
+  TermsPage,
+} from "./components/StaticPages";
 
 export type SessionUser = {
   user_id: string;
@@ -93,6 +99,16 @@ function App() {
       <div className="app-shell">
         <div className="app-main">
           <ContactPage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+  if (path === "/scoring-table") {
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <ScoringTablePage />
         </div>
         <SiteFooter />
       </div>

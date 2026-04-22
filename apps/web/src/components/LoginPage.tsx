@@ -88,11 +88,11 @@ export default function LoginPage({ onAuthSuccess }: Props) {
       style={{
         width: "100%",
         maxWidth: "420px",
-        background: "rgba(255,255,255,0.92)",
+        background: "rgba(18, 12, 12, 0.92)",
         borderRadius: "16px",
         padding: "20px",
-        boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
-        border: "1px solid rgba(180, 83, 9, 0.25)",
+        boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
+        border: "1px solid rgba(245, 158, 11, 0.35)",
       }}
     >
       <div
@@ -104,18 +104,20 @@ export default function LoginPage({ onAuthSuccess }: Props) {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: "22px", color: "#7f1d1d" }}>WakiBet</h1>
+          <h1 style={{ margin: 0, fontSize: "22px", color: "#facc15" }}>
+            WakiBet <span style={{ fontSize: "14px", fontWeight: 500, color: "#fef3c7" }}>ワキベット</span>
+          </h1>
           <div style={{ fontSize: "11px", color: "#92400e" }}>
-            Fantasy contests — virtual credits only.
+            Fantasy contests — WakiPoints only.
           </div>
         </div>
         <div
           style={{
             display: "inline-flex",
-            background: "#fff7ed",
+            background: "rgba(14, 10, 10, 0.7)",
             borderRadius: "999px",
             padding: "2px",
-            border: "1px solid #fdba74",
+            border: "1px solid #f59e0b",
           }}
         >
           <button
@@ -128,7 +130,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               border: "none",
               cursor: "pointer",
               background: mode === "login" ? "#b45309" : "transparent",
-              color: mode === "login" ? "white" : "#9a3412",
+              color: mode === "login" ? "white" : "#fcd34d",
             }}
           >
             Log in
@@ -143,7 +145,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               border: "none",
               cursor: "pointer",
               background: mode === "register" ? "#b45309" : "transparent",
-              color: mode === "register" ? "white" : "#9a3412",
+              color: mode === "register" ? "white" : "#fcd34d",
             }}
           >
             Create
@@ -153,7 +155,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
 
       <form onSubmit={onSubmit} style={{ fontSize: "13px" }}>
         <div style={{ marginBottom: "8px" }}>
-          <label style={{ display: "block", fontSize: "11px", color: "#7f1d1d" }}>Email</label>
+          <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>Email</label>
           <input
             type="email"
             value={email}
@@ -163,14 +165,16 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               width: "100%",
               padding: "8px",
               borderRadius: "10px",
-              border: "1px solid #fed7aa",
+              border: "1px solid rgba(251, 191, 36, 0.42)",
+              background: "rgba(10, 8, 8, 0.85)",
+              color: "#fef3c7",
               outline: "none",
             }}
           />
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label style={{ display: "block", fontSize: "11px", color: "#7f1d1d" }}>Password</label>
+          <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>Password</label>
           <input
             type="password"
             value={password}
@@ -180,18 +184,20 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               width: "100%",
               padding: "8px",
               borderRadius: "10px",
-              border: "1px solid #fed7aa",
+              border: "1px solid rgba(251, 191, 36, 0.42)",
+              background: "rgba(10, 8, 8, 0.85)",
+              color: "#fef3c7",
               outline: "none",
             }}
           />
-          <div style={{ fontSize: "10px", color: "#92400e", marginTop: "2px" }}>
+          <div style={{ fontSize: "10px", color: "#fcd34d", marginTop: "2px" }}>
             Passwords are hashed on the server (bcrypt).
           </div>
         </div>
 
         {mode === "register" && (
           <div style={{ marginBottom: "8px" }}>
-            <label style={{ display: "block", fontSize: "11px", color: "#7f1d1d" }}>
+            <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>
               Screen name (optional)
             </label>
             <input
@@ -203,7 +209,9 @@ export default function LoginPage({ onAuthSuccess }: Props) {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "10px",
-                border: "1px solid #fed7aa",
+                border: "1px solid rgba(251, 191, 36, 0.42)",
+                background: "rgba(10, 8, 8, 0.85)",
+                color: "#fef3c7",
                 outline: "none",
               }}
             />
@@ -213,7 +221,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
         {mode === "register" && (
           <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: "11px", color: "#7f1d1d" }}>State</label>
+              <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>State</label>
               <select
                 value={stateVal}
                 onChange={(e) => setStateVal(e.target.value)}
@@ -221,7 +229,9 @@ export default function LoginPage({ onAuthSuccess }: Props) {
                   width: "100%",
                   padding: "8px",
                   borderRadius: "10px",
-                  border: "1px solid #fed7aa",
+                  border: "1px solid rgba(251, 191, 36, 0.42)",
+                  background: "rgba(10, 8, 8, 0.85)",
+                  color: "#fef3c7",
                   outline: "none",
                 }}
               >
@@ -234,7 +244,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               </select>
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: "11px", color: "#7f1d1d" }}>Date of Birth</label>
+              <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>Date of Birth</label>
               <input
                 type="date"
                 value={dob}
@@ -243,7 +253,9 @@ export default function LoginPage({ onAuthSuccess }: Props) {
                   width: "100%",
                   padding: "8px",
                   borderRadius: "10px",
-                  border: "1px solid #fed7aa",
+                  border: "1px solid rgba(251, 191, 36, 0.42)",
+                  background: "rgba(10, 8, 8, 0.85)",
+                  color: "#fef3c7",
                   outline: "none",
                 }}
               />

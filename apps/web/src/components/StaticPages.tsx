@@ -8,7 +8,7 @@ function StaticLayout({ title, children }: { title: string; children: ReactNode 
         <div className="dash-head" style={{ marginBottom: 8 }}>
           <h1 style={{ margin: 0 }}>{title}</h1>
           <a className="dash-ghost-btn" href="/">
-            Back to WakiBet
+            Back to WakiBet ワキベット
           </a>
         </div>
         <div className="static-page-body">{children}</div>
@@ -193,6 +193,50 @@ export function ContactPage() {
         {ok && <p style={{ color: "#166534", marginBottom: 0 }}>{ok}</p>}
         {err && <p style={{ color: "#b91c1c", marginBottom: 0 }}>{err}</p>}
       </form>
+    </StaticLayout>
+  );
+}
+
+export function ScoringTablePage() {
+  return (
+    <StaticLayout title="Scoring Table">
+      <p>
+        WakiBet uses <strong>WakiPoints</strong> for fantasy scoring.
+      </p>
+      <table className="dash-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>WakiPoints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Match win</td>
+            <td>+5</td>
+          </tr>
+          <tr>
+            <td>Qualify for playoffs</td>
+            <td>+10</td>
+          </tr>
+          <tr>
+            <td>Gold medal</td>
+            <td>+25</td>
+          </tr>
+          <tr>
+            <td>Upset win</td>
+            <td>+8</td>
+          </tr>
+          <tr>
+            <td>Undefeated pool run</td>
+            <td>+10</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style={{ marginTop: 12 }}>
+        Notes: bonus categories apply when corresponding match fields exist in tournament results data. Scheduled-only
+        matches score 0 until results are posted.
+      </p>
     </StaticLayout>
   );
 }

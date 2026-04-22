@@ -119,7 +119,7 @@ function WinterSpringsHero({
         <div className="dash-hero-col dash-hero-col--points" aria-labelledby="dash-season-points-title">
           <p className="dash-hero-kicker">Season fantasy (test)</p>
           <h2 id="dash-season-points-title" className="dash-hero-title dash-hero-title--secondary">
-            Points accrued
+            WakiPoints accrued
           </h2>
           <p className="dash-hero-sub">
             Rolling total across tournaments as we plug in schedules — targeting{" "}
@@ -127,7 +127,7 @@ function WinterSpringsHero({
           </p>
           <div className="dash-season-total" aria-live="polite">
             {fantasySeason.total_fantasy_points}
-            <span className="dash-season-total-label">pts</span>
+            <span className="dash-season-total-label">WakiPoints</span>
           </div>
           <p className="dash-season-meta">
             Schedule live: <strong>{fantasySeason.tournaments_with_schedule}</strong> /{" "}
@@ -140,7 +140,7 @@ function WinterSpringsHero({
                   <span className="dash-season-div-name">
                     {d.event_type} · {d.skill_level} / {d.age_bracket}
                   </span>
-                  <span className="dash-season-div-pts">{d.roster_points} pts</span>
+                  <span className="dash-season-div-pts">{d.roster_points} WakiPoints</span>
                 </li>
               ))}
             </ul>
@@ -182,7 +182,9 @@ export default function Dashboard({ user, onLogout }: Props) {
     <div className="dash-shell">
       <div className="dash-head">
         <div>
-          <h1>WakiBet</h1>
+          <h1>
+            WakiBet <span className="brand-jp">ワキベット</span>
+          </h1>
           <p>
             Welcome back, <strong>{user.display_name || user.email}</strong>
           </p>

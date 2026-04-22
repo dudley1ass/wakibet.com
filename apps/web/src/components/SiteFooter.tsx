@@ -12,7 +12,9 @@ export default function SiteFooter() {
     <footer className="site-footer">
       <div className="site-footer-inner">
         <div className="site-footer-brand">
-          <div className="site-footer-title">WakiBet</div>
+          <div className="site-footer-title">
+            WakiBet <span className="brand-jp">ワキベット</span>
+          </div>
           <div className="site-footer-copy">© 2026 WakiBet. All rights reserved.</div>
           <div className="site-footer-disclaimer">
             For entertainment purposes only. No real-money wagering.
@@ -22,6 +24,7 @@ export default function SiteFooter() {
         <nav className="site-footer-links" aria-label="Footer links">
           <a href="/terms">Terms of Use</a>
           <a href="/privacy">Privacy Policy</a>
+          <a href="/scoring-table">Scoring Table</a>
           <a href="/contact">Contact</a>
           <a href="/responsible-play">Responsible Play</a>
         </nav>

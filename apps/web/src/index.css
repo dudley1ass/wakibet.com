@@ -8,6 +8,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #fef3c7;
 }
 
 #root {
@@ -16,7 +17,10 @@ body {
 
 .app-shell {
   min-height: 100vh;
-  background: linear-gradient(145deg, #fff7ed 0%, #ffedd5 40%, #fef3c7 100%);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(185, 28, 28, 0.28), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(217, 119, 6, 0.2), transparent 40%),
+    linear-gradient(145deg, #0b0a09 0%, #1b0f0f 38%, #2b1212 100%);
   display: flex;
   flex-direction: column;
 }
@@ -30,9 +34,10 @@ body {
 }
 
 .site-footer {
-  background: #111827;
+  background: linear-gradient(180deg, #14110f 0%, #0f0b0b 100%);
   color: #f9fafb;
-  border-top: 3px solid #b45309;
+  border-top: 2px solid #f59e0b;
+  box-shadow: inset 0 1px 0 rgba(251, 191, 36, 0.2);
 }
 
 .site-footer-inner {
@@ -48,11 +53,12 @@ body {
 .site-footer-title {
   font-size: 18px;
   font-weight: 700;
+  color: #fef3c7;
 }
 
 .site-footer-copy,
 .site-footer-disclaimer {
-  color: #d1d5db;
+  color: #e7dbc0;
   font-size: 12px;
   margin-top: 4px;
 }
@@ -65,7 +71,7 @@ body {
 }
 
 .site-footer a {
-  color: #fde68a;
+  color: #fbbf24;
   text-decoration: none;
   font-size: 13px;
 }
@@ -82,15 +88,15 @@ body {
 
 .static-page-card {
   width: min(960px, 100%);
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(31, 20, 20, 0.9);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(180, 83, 9, 0.18);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .static-page-body {
-  color: #7c2d12;
+  color: #fce7bf;
   font-size: 14px;
   line-height: 1.55;
 }
@@ -98,7 +104,7 @@ body {
 .static-page-body h3 {
   margin-top: 16px;
   margin-bottom: 6px;
-  color: #7f1d1d;
+  color: #fbbf24;
 }
 
 .contact-form {
@@ -110,7 +116,7 @@ body {
   display: grid;
   gap: 4px;
   font-size: 12px;
-  color: #9a3412;
+  color: #fcd34d;
 }
 
 .contact-form input,
@@ -119,8 +125,18 @@ body {
   width: 100%;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid #fdba74;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(17, 12, 12, 0.8);
+  color: #fef3c7;
   font-size: 14px;
+}
+
+.brand-jp {
+  color: #f59e0b;
+  font-size: 0.72em;
+  font-weight: 500;
+  margin-left: 6px;
+  letter-spacing: 0.02em;
 }
 
 @media (max-width: 840px) {

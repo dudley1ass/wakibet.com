@@ -349,14 +349,14 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
           {score && (
             <div className="wf-score">
               <div className="wf-score-total">
-                Roster total: <strong>{score.roster_total}</strong> pts
+                Roster total: <strong>{score.roster_total}</strong> WakiPoints
               </div>
               <table className="dash-table">
                 <thead>
                   <tr>
                     <th>Player</th>
                     <th>Cap</th>
-                    <th>Pts</th>
+                    <th>WakiPoints</th>
                     <th>Breakdown</th>
                   </tr>
                 </thead>

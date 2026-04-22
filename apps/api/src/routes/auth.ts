@@ -7,6 +7,62 @@ import { SIGNUP_BONUS_DILLS } from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
 import { signAccessToken, verifyAccessToken } from "../lib/jwt.js";
 
+async function sendNewAccountAlert(params: {
+  email: string;
+  displayName: string;
+  userId: string;
+  state: string;
+}): Promise<void> {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) return;
+
+  const toEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.SUPPORT_EMAIL || "support@wakibet.com";
+  const fromEmail = process.env.CONTACT_FROM_EMAIL || "WakiBet Contact <onboarding@resend.dev>";
+
+  const text = [
+    "New WakiBet account created",
+    "",
+    `User ID: ${params.userId}`,
+    `Display name: ${params.displayName}`,
+    `Email: ${params.email}`,
+    `State: ${params.state}`,
+    `Created at: ${new Date().toISOString()}`,
+  ].join("\n");
+
+  const html = `
+    <h2>New WakiBet account created</h2>
+    <p><strong>User ID:</strong> ${params.userId}</p>
+    <p><strong>Display name:</strong> ${params.displayName}</p>
+    <p><strong>Email:</strong> ${params.email}</p>
+    <p><strong>State:</strong> ${params.state}</p>
+    <p><strong>Created at:</strong> ${new Date().toISOString()}</p>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [toEmail],
+        subject: "[WakiBet] New account created",
+        text,
+        html,
+      }),
+    });
+    if (!res.ok) {
+      // Best-effort notification: never block account creation.
+      console.error("new-account-alert failed", res.status);
+    }
+  } catch (err) {
+    // Best-effort notification: never block account creation.
+    console.error("new-account-alert error", err);
+  }
+}
+
 async function pickUsername(email: string): Promise<string> {
   const local = (email.split("@")[0] || "user").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 18) || "user";
   for (let i = 0; i < 12; i++) {
@@ -95,6 +151,12 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       const wallet = await prisma.wallet.findUniqueOrThrow({ where: { userId: user.id } });
       const virtual_cents = Math.round(Number(wallet.cachedBalance) * 100);
       const access_token = signAccessToken(user.id, user.email);
+      void sendNewAccountAlert({
+        email: user.email,
+        displayName: user.displayName,
+        userId: user.id,
+        state,
+      });
       return {
         access_token,
         user: {
