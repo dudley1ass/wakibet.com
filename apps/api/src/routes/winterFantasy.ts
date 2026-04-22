@@ -79,7 +79,7 @@ const PickRow = z.object({
 });
 
 const PutRosterBody = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default("winter_springs"),
+  tournament_key: z.enum(TOURNAMENT_KEYS),
   division_key: z.string().min(1),
   picks: z.array(PickRow).min(WINTER_FANTASY_ROSTER_SIZE).max(WINTER_FANTASY_ROSTER_SIZE),
 });

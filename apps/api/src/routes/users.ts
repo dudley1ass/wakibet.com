@@ -14,6 +14,7 @@ import {
 import { buildWhatIfScenarios } from "../lib/fantasyScenarios.js";
 import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
+  filterMatchesForDivision,
   getTournamentData,
   isDivisionFeaturedFromMatches,
   listTournamentOptions,
@@ -209,11 +210,14 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           },
         }),
       ]);
+      /** Include saved lineups even when schedule JSON is missing or the stored key does not resolve (so My Rosters never “loses” a save). */
       const featuredRows = fantasyRows.filter((r) => {
         const parsedStored = parseStoredDivisionKey(r.divisionKey);
         if (!parsedStored) return false;
         const data = tournamentDataByKey[parsedStored.tournament_key];
-        if (!data) return false;
+        if (!data || !data.matches?.length) return true;
+        const ms = filterMatchesForDivision(data.matches, parsedStored.division_key);
+        if (ms.length === 0) return true;
         return isDivisionFeaturedFromMatches(data.matches, parsedStored.division_key);
       });
       const winter_fantasy_rosters = featuredRows.map((r) => {
