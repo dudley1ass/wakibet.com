@@ -55,16 +55,18 @@ function escapeHtml(s: string): string {
 
 const SUPPORT_FALLBACK = "support@wakibet.com";
 
-function userFacingMailFailureMessage(resendStatus: number, resendMessage: string): string {
+/** Shown to visitors; operator hints go to logs only. */
+const CONTACT_MAIL_DOWN_MESSAGE = `We could not deliver through email right now. Please write to ${SUPPORT_FALLBACK} with the same details.`;
+
+function operatorHintForResendFailure(resendStatus: number, resendMessage: string): string | undefined {
   const m = resendMessage.toLowerCase();
-  const base = `We could not deliver through email right now. Please write to ${SUPPORT_FALLBACK} with the same details.`;
   if (resendStatus === 403 && (m.includes("domain") || m.includes("verify") || m.includes("not allowed"))) {
-    return `${base} (If you run the site: verify your sending domain in Resend and set CONTACT_FROM_EMAIL to an allowed address.)`;
+    return "Verify your sending domain in Resend and set CONTACT_FROM_EMAIL to an address on that domain.";
   }
   if (m.includes("testing emails") || m.includes("onboarding@resend")) {
-    return `${base} Resend’s test sender only delivers to approved addresses until a domain is verified.`;
+    return "Resend test sender (onboarding@resend.dev) only delivers to approved addresses until a domain is verified; set CONTACT_FROM_EMAIL after verifying the domain.";
   }
-  return base;
+  return undefined;
 }
 
 export const publicContactRoutes: FastifyPluginAsync = async (app) => {
@@ -152,12 +154,19 @@ export const publicContactRoutes: FastifyPluginAsync = async (app) => {
         } catch {
           resendMessage = raw.slice(0, 200);
         }
+        const operatorHint = operatorHintForResendFailure(res.status, resendMessage);
         req.log.error(
-          { status: res.status, resendMessage, toEmail, fromPreview: fromEmail.slice(0, 80) },
+          {
+            status: res.status,
+            resendMessage,
+            toEmail,
+            fromPreview: fromEmail.slice(0, 80),
+            ...(operatorHint ? { operatorHint } : {}),
+          },
           "Resend send failed",
         );
         return reply.code(503).send({
-          message: userFacingMailFailureMessage(res.status, resendMessage),
+          message: CONTACT_MAIL_DOWN_MESSAGE,
         } as const);
       }
 

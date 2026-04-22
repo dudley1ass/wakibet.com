@@ -109,11 +109,6 @@ function formatRankChange(delta: number | null): string {
   return `↓${Math.abs(delta)}`;
 }
 
-function pickStatusLabel(status: "alive" | "waiting"): string {
-  if (status === "waiting") return "Waiting for points";
-  return "Alive";
-}
-
 function formatRankJump(before: number | null, after: number | null): string {
   if (before == null || after == null) return "Rank TBD";
   if (before === after) return `Stay ~#${before}`;
@@ -122,8 +117,8 @@ function formatRankJump(before: number | null, after: number | null): string {
 }
 
 function whatIfTitle(kind: "win_next" | "lose_next", player: string): string {
-  if (kind === "win_next") return `If ${player} wins next match`;
-  return `If ${player} loses next match`;
+  if (kind === "win_next") return `If ${player} Wins Next Match`;
+  return `If ${player} Loses Next Match`;
 }
 
 function nextMatchSummary(data: DashboardData): string | null {
@@ -179,18 +174,18 @@ export default function Dashboard({ user, onLogout }: Props) {
             WakiBet <span className="brand-jp">ワキベット</span>
           </h1>
           <p>
-            Welcome back, <strong>{user.display_name || user.email}</strong>
+            Welcome Back, <strong>{user.display_name || user.email}</strong>
           </p>
         </div>
         <div className="dash-head-actions">
           <a className="dash-ghost-btn" href="/rosters">
-            My rosters
+            My Rosters
           </a>
           <button type="button" onClick={() => void loadDashboard()} disabled={loading} className="dash-ghost-btn">
             {loading ? "Updating…" : "Refresh"}
           </button>
           <button type="button" onClick={onLogout} className="dash-ghost-btn">
-            Log out
+            Log Out
           </button>
         </div>
       </div>
@@ -199,14 +194,14 @@ export default function Dashboard({ user, onLogout }: Props) {
 
       {loading && !preview && (
         <p className="dash-loading" role="status">
-          Loading your dashboard…
+          Loading Your Dashboard…
         </p>
       )}
 
       {preview && pulse && (
         <>
           {/* Section 1 — Primary KPI */}
-          <section className="dash-kpi-strip" aria-label="Your season standing">
+          <section className="dash-kpi-strip" aria-label="Your Season Standing">
             <div className="dash-kpi-card dash-kpi-card--points">
               <div className="dash-kpi-kicker">You</div>
               <div className="dash-kpi-value">{preview.fantasy_season.total_fantasy_points}</div>
@@ -216,49 +211,20 @@ export default function Dashboard({ user, onLogout }: Props) {
               <div className="dash-kpi-kicker">Rank</div>
               <div className="dash-kpi-value">{pulse.my_rank != null ? `#${pulse.my_rank}` : "—"}</div>
               <div className="dash-kpi-label">
-                of {pulse.rank_players_count} {pulse.rank_players_count === 1 ? "player" : "players"}
+                Of {pulse.rank_players_count} {pulse.rank_players_count === 1 ? "Player" : "Players"}
               </div>
             </div>
             <div className="dash-kpi-card dash-kpi-card--delta">
               <div className="dash-kpi-kicker">Movement</div>
               <div className="dash-kpi-value dash-kpi-delta">{formatRankChange(pulse.rank_change)}</div>
-              <div className="dash-kpi-label">vs last snapshot</div>
+              <div className="dash-kpi-label">vs Last Snapshot</div>
             </div>
-          </section>
-
-          {/* Section 2 — Current picks performance */}
-          <section className="dash-section" aria-labelledby="dash-teams-title">
-            <h2 id="dash-teams-title" className="dash-section-title">
-              Your picks · performance
-            </h2>
-            <p className="dash-section-lead">Featured divisions only. Captain scores 1.5× on that player&apos;s raw WakiPoints.</p>
-            {pulse.pick_rows.length === 0 ? (
-              <p className="dash-empty">No saved rosters yet — jump to <strong>Pick teams</strong> below.</p>
-            ) : (
-              <ul className="dash-pick-list">
-                {pulse.pick_rows.map((row) => (
-                  <li key={`${row.label}-${row.player_name}`} className="dash-pick-row">
-                    <div className="dash-pick-main">
-                      <span className="dash-pick-team">
-                        {row.player_name}
-                        {row.is_captain ? <span className="dash-pick-cap">Captain</span> : null}
-                      </span>
-                      <span className="dash-pick-meta">{row.label}</span>
-                    </div>
-                    <div className="dash-pick-right">
-                      <span className="dash-pick-pts">{row.points_on_roster} pts</span>
-                      <span className={`dash-pick-status dash-pick-status--${row.status}`}>{pickStatusLabel(row.status)}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </section>
 
           {/* What happens next — projections (same WakiPoints engine as /scoring-table) */}
           <section className="dash-section dash-section--whatif" aria-labelledby="dash-whatif-title">
             <h2 id="dash-whatif-title" className="dash-section-title">
-              What happens next
+              What Happens Next
             </h2>
             <p className="dash-section-lead">
               Hypothetical next results for your picks — deltas are recomputed with the{" "}
@@ -306,7 +272,7 @@ export default function Dashboard({ user, onLogout }: Props) {
           {/* Section 3 — Big hits */}
           <section className="dash-section dash-section--hits" aria-labelledby="dash-hits-title">
             <h2 id="dash-hits-title" className="dash-section-title">
-              Big hits
+              Big Hits
             </h2>
             <p className="dash-section-lead">Recent WakiPoints moments from your roster players.</p>
             {pulse.recent_hits.length === 0 ? (
@@ -355,7 +321,7 @@ export default function Dashboard({ user, onLogout }: Props) {
             {/* Section 5 — Trend */}
             <section className="dash-section dash-section--tight" aria-labelledby="dash-trend-title">
               <h2 id="dash-trend-title" className="dash-section-title">
-                Season climb
+                Season Climb
               </h2>
               <p className="dash-section-lead">Cumulative WakiPoints as each tournament schedule joins the season.</p>
               <div className="dash-trend-bars">
@@ -379,19 +345,19 @@ export default function Dashboard({ user, onLogout }: Props) {
           {/* Section 6 — Actions */}
           <section className="dash-section dash-actions" aria-labelledby="dash-actions-title">
             <h2 id="dash-actions-title" className="dash-section-title">
-              What&apos;s next
+              What&apos;s Next
             </h2>
             <div className="dash-action-row">
               <a className="dash-main-btn dash-action-btn" href="/pick-teams">
                 Pick / Edit Teams
               </a>
               <a className="dash-ghost-btn dash-action-btn" href="/scoring-table">
-                Scoring table
+                Scoring Table
               </a>
             </div>
             {nextMatch ? (
               <p className="dash-next-match">
-                <span className="dash-next-label">Next match</span>
+                <span className="dash-next-label">Next Match</span>
                 {nextMatch}
               </p>
             ) : (
