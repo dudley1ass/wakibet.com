@@ -160,6 +160,10 @@ export function ContactPage() {
   return (
     <StaticLayout title="Contact Us">
       <p>Send us a message and we will reply to your email.</p>
+      <p className="contact-fallback">
+        If sending fails, email us directly at{" "}
+        <a href="mailto:support@wakibet.com">support@wakibet.com</a>.
+      </p>
       <form className="contact-form" onSubmit={onSubmit}>
         <label>
           Name

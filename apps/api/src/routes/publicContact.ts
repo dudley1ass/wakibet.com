@@ -44,6 +44,29 @@ function isRateLimited(key: string): boolean {
   return row.count > RATE_MAX_PER_WINDOW;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const SUPPORT_FALLBACK = "support@wakibet.com";
+
+function userFacingMailFailureMessage(resendStatus: number, resendMessage: string): string {
+  const m = resendMessage.toLowerCase();
+  const base = `We could not deliver through email right now. Please write to ${SUPPORT_FALLBACK} with the same details.`;
+  if (resendStatus === 403 && (m.includes("domain") || m.includes("verify") || m.includes("not allowed"))) {
+    return `${base} (If you run the site: verify your sending domain in Resend and set CONTACT_FROM_EMAIL to an allowed address.)`;
+  }
+  if (m.includes("testing emails") || m.includes("onboarding@resend")) {
+    return `${base} Resend’s test sender only delivers to approved addresses until a domain is verified.`;
+  }
+  return base;
+}
+
 export const publicContactRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -70,15 +93,16 @@ export const publicContactRoutes: FastifyPluginAsync = async (app) => {
         } as const);
       }
 
-      const resendApiKey = process.env.RESEND_API_KEY;
+      const resendApiKey = process.env.RESEND_API_KEY?.trim();
       if (!resendApiKey) {
         return reply.code(503).send({
-          message: "Contact service is temporarily unavailable. Please email support@wakibet.com.",
+          message: `Contact email is not configured on the server. Please write to ${SUPPORT_FALLBACK} directly.`,
         } as const);
       }
 
-      const toEmail = process.env.SUPPORT_EMAIL || "support@wakibet.com";
-      const fromEmail = process.env.CONTACT_FROM_EMAIL || "WakiBet Contact <onboarding@resend.dev>";
+      const toEmail = (process.env.SUPPORT_EMAIL || SUPPORT_FALLBACK).trim();
+      const fromEmail =
+        (process.env.CONTACT_FROM_EMAIL || "WakiBet Contact <onboarding@resend.dev>").trim();
       const topic = body.topic || "General Support";
 
       const text = [
@@ -95,12 +119,12 @@ export const publicContactRoutes: FastifyPluginAsync = async (app) => {
 
       const html = `
         <h2>New WakiBet contact submission</h2>
-        <p><strong>Name:</strong> ${body.name}</p>
-        <p><strong>Email:</strong> ${body.email}</p>
-        <p><strong>Topic:</strong> ${topic}</p>
-        <p><strong>Subject:</strong> ${body.subject}</p>
+        <p><strong>Name:</strong> ${escapeHtml(body.name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(body.email)}</p>
+        <p><strong>Topic:</strong> ${escapeHtml(topic)}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(body.subject)}</p>
         <p><strong>Message:</strong></p>
-        <pre style="white-space: pre-wrap; font-family: inherit;">${body.message}</pre>
+        <pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(body.message)}</pre>
       `;
 
       const res = await fetch("https://api.resend.com/emails", {
@@ -120,9 +144,20 @@ export const publicContactRoutes: FastifyPluginAsync = async (app) => {
       });
 
       if (!res.ok) {
-        req.log.error({ status: res.status }, "Resend send failed");
+        const raw = await res.text();
+        let resendMessage = "";
+        try {
+          const j = JSON.parse(raw) as { message?: string };
+          if (typeof j.message === "string") resendMessage = j.message;
+        } catch {
+          resendMessage = raw.slice(0, 200);
+        }
+        req.log.error(
+          { status: res.status, resendMessage, toEmail, fromPreview: fromEmail.slice(0, 80) },
+          "Resend send failed",
+        );
         return reply.code(503).send({
-          message: "Could not send your message right now. Please try again shortly.",
+          message: userFacingMailFailureMessage(res.status, resendMessage),
         } as const);
       }
 
