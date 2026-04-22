@@ -35,6 +35,12 @@ Static Site (browser UI — apps/web)
 Build-time env (required or the site will call /api on the static host and login will fail):
 [ ] VITE_API_BASE = https://YOUR-API.onrender.com   (no trailing slash)
 
+Client-side routes (required or /contact, /scoring-table, refresh on any path → 404):
+[ ] Static Site → Redirects / Rewrites → add a Rewrite (not Redirect):
+      Source: /*
+      Destination: /index.html
+    Render docs: https://render.com/docs/redirects-rewrites
+
 Still failing? Open the failed deploy → Logs and search for ERR / error / command not found.
 Common: pnpm missing (corepack is enabled by the script above), or wrong publish path.
 
