@@ -440,7 +440,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         rules_version: WINTER_FANTASY_RULES.version,
         players: rows,
         note:
-          "Scores use wins, point differential, medals, and advancement when those fields exist on matches. " +
+          "Scores use MVP rules: wins, playoff qualification, gold medals, upset wins, and undefeated runs when those fields exist on matches. " +
           "Scheduled-only rows score 0 until results are added to the schedule JSON.",
       };
     },

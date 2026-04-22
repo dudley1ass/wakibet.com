@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
+import SiteFooter from "./components/SiteFooter";
+import { ContactPage, PrivacyPage, ResponsiblePlayPage, TermsPage } from "./components/StaticPages";
 
 export type SessionUser = {
   user_id: string;
@@ -11,6 +13,7 @@ export type SessionUser = {
 };
 
 function App() {
+  const path = window.location.pathname.toLowerCase();
   const [session, setSession] = useState<SessionUser | null>(null);
   const [booting, setBooting] = useState(true);
 
@@ -55,40 +58,68 @@ function App() {
     setSession(null);
   }
 
+  if (path === "/terms") {
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <TermsPage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+  if (path === "/privacy") {
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <PrivacyPage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+  if (path === "/responsible-play") {
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <ResponsiblePlayPage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+  if (path === "/contact") {
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <ContactPage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+
   if (booting) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(145deg, #fff7ed 0%, #ffedd5 40%, #fef3c7 100%)",
-          color: "#7f1d1d",
-          fontSize: "14px",
-        }}
-      >
-        Loading…
+      <div className="app-shell">
+        <div className="app-main" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+          Loading…
+        </div>
+        <SiteFooter />
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(145deg, #fff7ed 0%, #ffedd5 40%, #fef3c7 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-    >
-      {!session ? (
-        <LoginPage onAuthSuccess={handleAuthSuccess} />
-      ) : (
-        <Dashboard user={session} onLogout={handleLogout} />
-      )}
+    <div className="app-shell">
+      <div className="app-main">
+        {!session ? (
+          <LoginPage onAuthSuccess={handleAuthSuccess} />
+        ) : (
+          <Dashboard user={session} onLogout={handleLogout} />
+        )}
+      </div>
+      <SiteFooter />
     </div>
   );
 }

@@ -6,16 +6,13 @@
 export const WINTER_FANTASY_ROSTER_SIZE = 3;
 
 export const WINTER_FANTASY_RULES = {
-  version: 1,
-  /** Per match win for a rostered player. */
-  winPoints: 10,
-  /** Weight on net points (points_for − points_against) per match. */
-  pointDiffMultiplier: 0.25,
-  medalGold: 30,
-  medalSilver: 18,
-  medalBronze: 12,
-  /** Bonus per bracket round index (1 = early) for winners when bracket_round is set. */
-  advancementPerRound: 4,
+  version: 2,
+  /** MVP scoring table. */
+  winPoints: 5,
+  playoffQualifyBonus: 10,
+  goldMedalBonus: 25,
+  upsetWinBonus: 8,
+  undefeatedPoolBonus: 10,
 } as const;
 
 export type WinterJsonMatch = {
@@ -35,6 +32,16 @@ export type WinterJsonMatch = {
   medal_for_winner?: "gold" | "silver" | "bronze";
   /** Higher / later rounds earn more advancement credit for the winner. */
   bracket_round?: number;
+  /** Optional explicit stage marker from data pipeline. */
+  stage?: string;
+  /** Optional explicit stage marker from data pipeline. */
+  bracket_stage?: string;
+  /** Optional marker for upset wins. */
+  is_upset?: boolean;
+  upset_win?: boolean;
+  /** Optional marker for undefeated pool bonus. */
+  undefeated_pool?: boolean;
+  undefeated_run?: boolean;
 };
 
 export type WinterFantasyScoreBreakdown = {
@@ -59,9 +66,10 @@ export function scoreWinterPlayerFromMatches(
 ): { total: number; breakdown: WinterFantasyScoreBreakdown[] } {
   const r = WINTER_FANTASY_RULES;
   let winsPts = 0;
-  let diffPts = 0;
-  let medalPts = 0;
-  let advancePts = 0;
+  let playoffPts = 0;
+  let goldPts = 0;
+  let upsetPts = 0;
+  let undefeatedPts = 0;
 
   for (const m of matches) {
     const isA = m.player_a === playerName;
@@ -70,34 +78,34 @@ export function scoreWinterPlayerFromMatches(
     const w = winnerDisplayName(m);
     if (w === playerName) {
       winsPts += r.winPoints;
-      if (m.medal_for_winner) {
-        medalPts +=
-          m.medal_for_winner === "gold"
-            ? r.medalGold
-            : m.medal_for_winner === "silver"
-              ? r.medalSilver
-              : r.medalBronze;
+      const stageRaw = String(m.stage ?? m.bracket_stage ?? "").toLowerCase();
+      if (
+        stageRaw.includes("playoff") ||
+        stageRaw.includes("quarter") ||
+        stageRaw.includes("semi") ||
+        stageRaw.includes("final")
+      ) {
+        playoffPts += r.playoffQualifyBonus;
       }
-      if (m.bracket_round != null && m.bracket_round > 0) {
-        advancePts += m.bracket_round * r.advancementPerRound;
+      if (m.medal_for_winner === "gold") {
+        goldPts += r.goldMedalBonus;
       }
-    }
-
-    const pa = m.points_a;
-    const pb = m.points_b;
-    if (pa != null && pb != null && Number.isFinite(pa) && Number.isFinite(pb)) {
-      const mine = isA ? pa : pb;
-      const theirs = isA ? pb : pa;
-      diffPts += (mine - theirs) * r.pointDiffMultiplier;
+      if (m.is_upset === true || m.upset_win === true) {
+        upsetPts += r.upsetWinBonus;
+      }
+      if (m.undefeated_pool === true || m.undefeated_run === true) {
+        undefeatedPts += r.undefeatedPoolBonus;
+      }
     }
   }
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const breakdown: WinterFantasyScoreBreakdown[] = [
     { label: "Wins", points: round2(winsPts) },
-    { label: "Point differential", points: round2(diffPts) },
-    { label: "Medals", points: round2(medalPts) },
-    { label: "Advancement", points: round2(advancePts) },
+    { label: "Playoff qualification", points: round2(playoffPts) },
+    { label: "Gold medals", points: round2(goldPts) },
+    { label: "Upset wins", points: round2(upsetPts) },
+    { label: "Undefeated pool runs", points: round2(undefeatedPts) },
   ];
   const total = round2(breakdown.reduce((s, b) => s + b.points, 0));
   return { total, breakdown };

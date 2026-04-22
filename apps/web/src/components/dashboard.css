@@ -141,3 +141,10 @@
 .wf-score { margin-top: 12px; }
 .wf-score-total { font-size: 14px; color: #7f1d1d; margin-bottom: 8px; }
 .wf-bd { font-size: 11px; color: #92400e; }
+.wf-score-table-wrap {
+  margin: 8px 0 14px;
+  border: 1px solid #fed7aa;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+}

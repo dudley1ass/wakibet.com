@@ -16,6 +16,7 @@ import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
 import { usersRoutes } from "./routes/users.js";
 import { winterFantasyRoutes } from "./routes/winterFantasy.js";
+import { publicContactRoutes } from "./routes/publicContact.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -100,6 +101,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(authRoutes);
+  await app.register(publicContactRoutes);
   await app.register(usersRoutes);
   await app.register(winterFantasyRoutes);
 

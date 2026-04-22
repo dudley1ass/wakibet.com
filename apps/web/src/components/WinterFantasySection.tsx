@@ -202,9 +202,43 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
       <p className="dash-sub wf-lead">
         Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
         <strong>6+</strong> generated matches so round robin gives everyone enough games. Pick {rosterSize} players per
-        division. Scoring uses wins, margin, medals, and advancement when those fields exist on matches; until then
-        points stay at 0.
+        division.
       </p>
+      <div className="wf-score-table-wrap">
+        <div className="dash-sub" style={{ marginBottom: 6 }}>
+          Scoring table (MVP)
+        </div>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Match win</td>
+              <td>+5</td>
+            </tr>
+            <tr>
+              <td>Qualify for playoffs</td>
+              <td>+10</td>
+            </tr>
+            <tr>
+              <td>Gold medal</td>
+              <td>+25</td>
+            </tr>
+            <tr>
+              <td>Upset win</td>
+              <td>+8</td>
+            </tr>
+            <tr>
+              <td>Undefeated pool run</td>
+              <td>+10</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       {loadingMeta && <p className="dash-empty">Loading divisions…</p>}
       {metaErr && <p className="dash-error">{metaErr}</p>}
