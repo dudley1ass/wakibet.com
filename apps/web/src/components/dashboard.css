@@ -238,6 +238,182 @@
   color: #fca5a5;
 }
 
+/* My Rosters page */
+.rost-shell {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.rost-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.rost-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fde68a;
+}
+.rost-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #fcd34d;
+}
+.rost-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+a.rost-dash-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+}
+.rost-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.rost-card {
+  padding: 16px 18px;
+}
+.rost-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.22);
+}
+.rost-tournament {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fffbeb;
+}
+.rost-meta {
+  margin-top: 4px;
+}
+.rost-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fcd34d;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+.rost-pts {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fde68a;
+  text-align: right;
+  line-height: 1.1;
+}
+.rost-pts-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fbbf24;
+}
+.rost-event {
+  margin-bottom: 12px;
+}
+.rost-event-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 4px;
+}
+.rost-event-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fce7bf;
+}
+.rost-players-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 8px;
+}
+.rost-pick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rost-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(12, 8, 8, 0.55);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+}
+.rost-slot {
+  font-weight: 800;
+  font-size: 12px;
+  color: #fbbf24;
+  min-width: 2em;
+}
+.rost-name {
+  flex: 1;
+  font-weight: 700;
+  color: #fffbeb;
+  min-width: 0;
+}
+.rost-cap {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.25);
+  color: #fef9c3;
+}
+.rost-empty {
+  padding: 24px 20px;
+  text-align: center;
+}
+.rost-empty-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fde68a;
+}
+.rost-empty-body {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #fcd34d;
+  line-height: 1.5;
+  max-width: 52ch;
+  margin-inline: auto;
+}
+
 /* MVP dashboard blueprint: KPI → picks → hits → leaderboard + trend → actions */
 .dash-kpi-strip {
   display: grid;

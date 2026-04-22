@@ -29,7 +29,7 @@ type FantasyPulse = {
   leaderboard: { rank: number; display_name: string; points: number; is_me: boolean }[];
 };
 
-type DashboardData = {
+export type DashboardData = {
   profile: {
     display_name: string;
     email: string;
@@ -183,6 +183,9 @@ export default function Dashboard({ user, onLogout }: Props) {
           </p>
         </div>
         <div className="dash-head-actions">
+          <a className="dash-ghost-btn" href="/rosters">
+            My rosters
+          </a>
           <button type="button" onClick={() => void loadDashboard()} disabled={loading} className="dash-ghost-btn">
             {loading ? "Updating…" : "Refresh"}
           </button>

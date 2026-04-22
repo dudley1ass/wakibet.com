@@ -20,7 +20,7 @@ const html = fs.readFileSync(indexPath, "utf8");
 
 fs.writeFileSync(path.join(dist, "404.html"), html);
 
-const routes = ["contact", "scoring-table", "terms", "privacy", "responsible-play", "pick-teams"];
+const routes = ["contact", "scoring-table", "terms", "privacy", "responsible-play", "pick-teams", "rosters"];
 for (const r of routes) {
   const dir = path.join(dist, r);
   fs.mkdirSync(dir, { recursive: true });
