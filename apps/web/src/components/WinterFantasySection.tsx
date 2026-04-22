@@ -204,41 +204,13 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
         <strong>6+</strong> generated matches so round robin gives everyone enough games. Pick {rosterSize} players per
         division.
       </p>
-      <div className="wf-score-table-wrap">
-        <div className="dash-sub" style={{ marginBottom: 6 }}>
-          Scoring table (MVP)
-        </div>
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Event</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Match win</td>
-              <td>+5</td>
-            </tr>
-            <tr>
-              <td>Qualify for playoffs</td>
-              <td>+10</td>
-            </tr>
-            <tr>
-              <td>Gold medal</td>
-              <td>+25</td>
-            </tr>
-            <tr>
-              <td>Upset win</td>
-              <td>+8</td>
-            </tr>
-            <tr>
-              <td>Undefeated pool run</td>
-              <td>+10</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <p className="dash-sub wf-lead" style={{ marginTop: 6 }}>
+        WakiPoints rules live on the{" "}
+        <a href="/scoring-table" className="wf-scoring-link">
+          scoring table
+        </a>{" "}
+        page (updated independently from this dashboard).
+      </p>
 
       {loadingMeta && <p className="dash-empty">Loading divisions…</p>}
       {metaErr && <p className="dash-error">{metaErr}</p>}
