@@ -68,7 +68,9 @@ The browser UI lives in **`apps/web`** (React + Vite). The API service only serv
 4. **Publish directory:** `apps/web/dist` (exact path from repo root)
 5. **Environment → Environment Variable (required for build):** `VITE_API_BASE` = your API origin, e.g. `https://wakibet-com-2.onrender.com` (no trailing slash). Vite bakes this in at build time.
 6. On the **API** Web Service, set **`WAKIBET_JWT_SECRET`** to a long random string (required in production for login/register).
-7. **Redirects / Rewrites (required for client-side routes):** In the **Static Site** service on Render, open **Redirects / Rewrites** and add a **Rewrite** (not a redirect): **Source** `/*` → **Destination** `/index.html`. Without this, direct visits or refresh on paths like `/contact` or `/scoring-table` return **404 Not Found** because the CDN looks for real files at those paths. See [Render: Static Site Redirects and Rewrites](https://render.com/docs/redirects-rewrites).
+7. **Redirects / Rewrites (recommended for client-side routes):** In the **Static Site** service on Render, open **Redirects / Rewrites** and add a **Rewrite** (not a redirect): **Source** `/*` → **Destination** `/index.html`. That returns **HTTP 200** for deep links. See [Render: Static Site Redirects and Rewrites](https://render.com/docs/redirects-rewrites).
+
+   The web build also copies `index.html` to **`404.html`** (and per-route `*/index.html` shells). On Render, unknown paths fall back to **`/404.html`**, so `/contact` and `/scoring-table` load the app even before you add rewrite rules (status code may still be **404** until you add the rewrite above—good for users, less ideal for SEO).
 
 ## Phase 1 scope (done here)
 

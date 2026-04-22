@@ -18,8 +18,14 @@ export type SessionUser = {
   virtual_cents?: number;
 };
 
+function normalizePathname(p: string): string {
+  const lower = p.toLowerCase();
+  if (lower.length > 1 && lower.endsWith("/")) return lower.slice(0, -1);
+  return lower;
+}
+
 function App() {
-  const path = window.location.pathname.toLowerCase();
+  const path = normalizePathname(window.location.pathname);
   const [session, setSession] = useState<SessionUser | null>(null);
   const [booting, setBooting] = useState(true);
 
