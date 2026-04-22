@@ -1,7 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiGet } from "../api";
 import type { SessionUser } from "../App";
-import WinterFantasySection from "./WinterFantasySection";
 import "./dashboard.css";
 
 export type FantasyRosterRow = {
@@ -304,8 +303,8 @@ export default function Dashboard({ user, onLogout }: Props) {
               What&apos;s next
             </h2>
             <div className="dash-action-row">
-              <a className="dash-main-btn dash-action-btn" href="#fantasy-builder">
-                Pick / edit teams
+              <a className="dash-main-btn dash-action-btn" href="/pick-teams">
+                Pick / Edit Teams
               </a>
               <a className="dash-ghost-btn dash-action-btn" href="/scoring-table">
                 Scoring table
@@ -328,10 +327,6 @@ export default function Dashboard({ user, onLogout }: Props) {
               </p>
             ) : null}
           </section>
-
-          <div style={{ marginTop: 20 }}>
-            <WinterFantasySection onRosterSaved={() => void loadDashboard()} />
-          </div>
 
           <details className="dash-account-fold">
             <summary>Account</summary>

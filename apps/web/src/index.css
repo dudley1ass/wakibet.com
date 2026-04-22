@@ -117,6 +117,127 @@ body {
   font-weight: 600;
 }
 
+/* Full scoring table (payout-board style) */
+.scoring-lede {
+  margin-top: 0;
+  max-width: 72ch;
+}
+.scoring-example {
+  margin: 16px 0 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: linear-gradient(135deg, rgba(80, 20, 18, 0.95), rgba(28, 12, 10, 0.92));
+}
+.scoring-example-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 6px;
+}
+.scoring-example-body {
+  margin: 0;
+  font-size: 14px;
+  color: #fffbeb;
+  line-height: 1.5;
+}
+.scoring-example-total {
+  color: #fde68a;
+  font-size: 1.1em;
+}
+.scoring-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.scoring-block {
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: rgba(18, 12, 10, 0.88);
+  padding: 12px 14px;
+}
+.scoring-block-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fde68a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scoring-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.scoring-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.12);
+  color: #fce7bf;
+}
+.scoring-row:last-child {
+  border-bottom: 0;
+}
+.scoring-label {
+  flex: 1;
+  min-width: 0;
+}
+.scoring-pts {
+  font-weight: 800;
+  color: #fbbf24;
+  white-space: nowrap;
+}
+.scoring-lite {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(30, 20, 16, 0.75);
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+}
+.scoring-lite-body {
+  margin: 0;
+  font-size: 12px;
+  color: #d6d3d1;
+  line-height: 1.5;
+}
+.scoring-foot {
+  margin-top: 16px;
+  font-size: 11px;
+  color: #a8a29e;
+  line-height: 1.45;
+}
+
+.pick-teams-shell {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.pick-teams-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.pick-teams-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fde68a;
+}
+.pick-teams-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #fcd34d;
+}
+
 .contact-form {
   display: grid;
   gap: 10px;

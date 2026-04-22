@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiGet, apiPut } from "../api";
 import "./dashboard.css";
 
@@ -48,17 +48,26 @@ function emptyPicks(n: number): string[] {
   return Array.from({ length: n }, () => "");
 }
 
+function sortSkillLevels(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+}
+
 type WinterFantasyProps = {
   onRosterSaved?: () => void | Promise<void>;
+  /** Larger title + payout-board styling (Pick / Edit Teams screen). */
+  pageLayout?: boolean;
 };
 
-export default function WinterFantasySection({ onRosterSaved }: WinterFantasyProps) {
+export default function WinterFantasySection({ onRosterSaved, pageLayout }: WinterFantasyProps) {
   const [meta, setMeta] = useState<DivisionsResponse | null>(null);
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
 
   const [tournamentKey, setTournamentKey] = useState("winter_springs");
-  const [divisionKey, setDivisionKey] = useState("");
+  const [eventType, setEventType] = useState("");
+  const [skillLevel, setSkillLevel] = useState("");
+  const [ageBracket, setAgeBracket] = useState("");
+
   const [players, setPlayers] = useState<string[]>([]);
   const [picks, setPicks] = useState<string[]>(emptyPicks(ROSTER_SIZE));
   const [captainSlot, setCaptainSlot] = useState<number | null>(null);
@@ -68,6 +77,37 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
   const [score, setScore] = useState<ScoreResponse | null>(null);
 
   const rosterSize = meta?.roster_size ?? ROSTER_SIZE;
+
+  const divisions = meta?.divisions ?? [];
+
+  const eventTypes = useMemo(() => {
+    const u = [...new Set(divisions.map((d) => d.event_type))];
+    u.sort((a, b) => a.localeCompare(b));
+    return u;
+  }, [divisions]);
+
+  const skillLevels = useMemo(() => {
+    if (!eventType) return [];
+    const u = [...new Set(divisions.filter((d) => d.event_type === eventType).map((d) => d.skill_level))];
+    u.sort(sortSkillLevels);
+    return u;
+  }, [divisions, eventType]);
+
+  const ageBrackets = useMemo(() => {
+    if (!eventType || !skillLevel) return [];
+    const rows = divisions.filter((d) => d.event_type === eventType && d.skill_level === skillLevel);
+    const u = [...new Set(rows.map((d) => d.age_bracket))];
+    u.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return u;
+  }, [divisions, eventType, skillLevel]);
+
+  const resolvedDivisionKey = useMemo(() => {
+    if (!eventType || !skillLevel || !ageBracket) return "";
+    const row = divisions.find(
+      (d) => d.event_type === eventType && d.skill_level === skillLevel && d.age_bracket === ageBracket,
+    );
+    return row?.division_key ?? "";
+  }, [divisions, eventType, skillLevel, ageBracket]);
 
   const loadDivisions = useCallback(async (nextTournamentKey: string) => {
     setMetaErr(null);
@@ -79,6 +119,12 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
       setMeta(d);
       setPicks(emptyPicks(d.roster_size));
       setTournamentKey(d.selected_tournament_key);
+      setEventType("");
+      setSkillLevel("");
+      setAgeBracket("");
+      setPlayers([]);
+      setScore(null);
+      setCaptainSlot(null);
     } catch (e) {
       setMetaErr(e instanceof Error ? e.message : "Could not load fantasy divisions.");
     } finally {
@@ -88,47 +134,66 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
 
   useEffect(() => {
     void loadDivisions(tournamentKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tournament loads via onChange; mount uses initial key only
   }, [loadDivisions]);
 
-  async function loadDivisionDetail(key: string) {
-    if (!key) {
-      setPlayers([]);
-      setPicks(emptyPicks(rosterSize));
-      setCaptainSlot(null);
-      setScore(null);
-      return;
-    }
-    setActionErr(null);
-    setScore(null);
-    setBusy(true);
-    try {
-      const enc = encodeURIComponent(key);
-      const t = encodeURIComponent(tournamentKey);
-      const [pl, ro] = await Promise.all([
-        apiGet<PlayersResponse>(`/api/v1/winter-fantasy/division-players?tournament_key=${t}&division_key=${enc}`),
-        apiGet<RosterResponse>(`/api/v1/winter-fantasy/roster?tournament_key=${t}&division_key=${enc}`),
-      ]);
-      setPlayers(pl.players);
-      const next = emptyPicks(rosterSize);
-      let cap: number | null = null;
-      for (const p of ro.picks) {
-        if (p.slot_index >= 0 && p.slot_index < next.length) {
-          next[p.slot_index] = p.player_name;
-          if (p.is_captain) cap = p.slot_index;
-        }
+  useEffect(() => {
+    if (!meta?.divisions.length) return;
+    const divs = meta.divisions;
+    const evs = [...new Set(divs.map((x) => x.event_type))].sort((a, b) => a.localeCompare(b));
+    const et = evs[0] ?? "";
+    const sks = [...new Set(divs.filter((x) => x.event_type === et).map((x) => x.skill_level))].sort(sortSkillLevels);
+    const sk = sks[0] ?? "";
+    const ages = divs.filter((x) => x.event_type === et && x.skill_level === sk);
+    const ag = ages[0]?.age_bracket ?? "";
+    setEventType(et);
+    setSkillLevel(sk);
+    setAgeBracket(ag);
+  }, [meta]);
+
+  const loadDivisionDetail = useCallback(
+    async (key: string) => {
+      if (!key) {
+        setPlayers([]);
+        setPicks(emptyPicks(rosterSize));
+        setCaptainSlot(null);
+        setScore(null);
+        return;
       }
-      setPicks(next);
-      setCaptainSlot(cap);
-    } catch (e) {
-      setActionErr(e instanceof Error ? e.message : "Failed to load division.");
-    } finally {
-      setBusy(false);
-    }
-  }
+      setActionErr(null);
+      setScore(null);
+      setBusy(true);
+      try {
+        const enc = encodeURIComponent(key);
+        const t = encodeURIComponent(tournamentKey);
+        const [pl, ro] = await Promise.all([
+          apiGet<PlayersResponse>(`/api/v1/winter-fantasy/division-players?tournament_key=${t}&division_key=${enc}`),
+          apiGet<RosterResponse>(`/api/v1/winter-fantasy/roster?tournament_key=${t}&division_key=${enc}`),
+        ]);
+        setPlayers(pl.players);
+        const next = emptyPicks(rosterSize);
+        let cap: number | null = null;
+        for (const p of ro.picks) {
+          if (p.slot_index >= 0 && p.slot_index < next.length) {
+            next[p.slot_index] = p.player_name;
+            if (p.is_captain) cap = p.slot_index;
+          }
+        }
+        setPicks(next);
+        setCaptainSlot(cap);
+      } catch (e) {
+        setActionErr(e instanceof Error ? e.message : "Failed to load division.");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [rosterSize, tournamentKey],
+  );
 
   useEffect(() => {
-    if (divisionKey) void loadDivisionDetail(divisionKey);
-  }, [divisionKey, rosterSize, tournamentKey]);
+    if (resolvedDivisionKey) void loadDivisionDetail(resolvedDivisionKey);
+    else void loadDivisionDetail("");
+  }, [resolvedDivisionKey, loadDivisionDetail]);
 
   function setPickAt(slot: number, name: string) {
     setPicks((prev) => {
@@ -145,6 +210,10 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
   async function handleSave() {
     setActionErr(null);
     const filled = picks.slice(0, rosterSize);
+    if (!resolvedDivisionKey) {
+      setActionErr("Choose event, skill level, and age group.");
+      return;
+    }
     if (filled.some((p) => !p.trim())) {
       setActionErr(`Choose ${rosterSize} distinct players.`);
       return;
@@ -157,7 +226,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
     try {
       const body = {
         tournament_key: tournamentKey,
-        division_key: divisionKey,
+        division_key: resolvedDivisionKey,
         picks: filled.map((player_name, slot_index) => ({
           player_name,
           is_captain: captainSlot === slot_index,
@@ -181,11 +250,11 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
   }
 
   async function handleScore() {
-    if (!divisionKey) return;
+    if (!resolvedDivisionKey) return;
     setActionErr(null);
     setBusy(true);
     try {
-      const enc = encodeURIComponent(divisionKey);
+      const enc = encodeURIComponent(resolvedDivisionKey);
       const t = encodeURIComponent(tournamentKey);
       const s = await apiGet<ScoreResponse>(`/api/v1/winter-fantasy/score?tournament_key=${t}&division_key=${enc}`);
       setScore(s);
@@ -196,20 +265,34 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
     }
   }
 
+  const sectionClass = pageLayout ? "dash-card wf-section wf-section--page" : "dash-card wf-section";
+
   return (
-    <section id="fantasy-builder" className="dash-card wf-section">
-      <div className="dash-label">Tournament fantasy — featured divisions only</div>
-      <p className="dash-sub wf-lead">
-        Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
-        <strong>6+</strong> generated matches so round robin gives everyone enough games. Pick {rosterSize} players per
-        division.
-      </p>
-      <p className="dash-sub wf-lead" style={{ marginTop: 6 }}>
-        WakiPoints rules live on the{" "}
+    <section className={sectionClass}>
+      {pageLayout ? (
+        <div className="wf-page-hero">
+          <div className="wf-page-hero-kicker">Lineup builder</div>
+          <h2 className="wf-page-title">Pick / Edit Teams</h2>
+          <p className="wf-page-lead">
+            Choose a tournament, then narrow by <strong>event</strong>, <strong>skill level</strong>, and{" "}
+            <strong>age group</strong>. Only featured divisions (full enough schedules) are listed.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="dash-label">Tournament fantasy — featured divisions only</div>
+          <p className="dash-sub wf-lead">
+            Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
+            <strong>6+</strong> generated matches. Pick {rosterSize} players per division.
+          </p>
+        </>
+      )}
+      <p className="dash-sub wf-lead" style={{ marginTop: pageLayout ? 8 : 6 }}>
+        WakiPoints rules:{" "}
         <a href="/scoring-table" className="wf-scoring-link">
-          scoring table
-        </a>{" "}
-        page (updated independently from this dashboard).
+          full scoring table
+        </a>
+        .
       </p>
 
       {loadingMeta && <p className="dash-empty">Loading divisions…</p>}
@@ -231,11 +314,8 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
               onChange={(e) => {
                 const nextKey = e.target.value;
                 setTournamentKey(nextKey);
-                setDivisionKey("");
-                setPlayers([]);
                 setScore(null);
                 setCaptainSlot(null);
-                setPicks(emptyPicks(rosterSize));
                 void loadDivisions(nextKey);
               }}
               disabled={busy || loadingMeta}
@@ -247,28 +327,89 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
               ))}
             </select>
           </div>
-          <div className="wf-row">
-            <label className="wf-label" htmlFor="wf-division">
-              Division
-            </label>
-            <select
-              id="wf-division"
-              className="wf-select"
-              value={divisionKey}
-              onChange={(e) => setDivisionKey(e.target.value)}
-              disabled={busy}
-            >
-              <option value="">Select…</option>
-              {meta.divisions.map((d) => (
-                <option key={d.division_key} value={d.division_key}>
-                  {d.event_type} — {d.skill_level} / {d.age_bracket} ({d.player_count} players, {d.match_count}{" "}
-                  matches)
-                </option>
-              ))}
-            </select>
+
+          <div className="wf-cascade">
+            <div className="wf-row">
+              <label className="wf-label" htmlFor="wf-event">
+                Event / section
+              </label>
+              <select
+                id="wf-event"
+                className="wf-select"
+                value={eventType}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setEventType(v);
+                  const sks = [...new Set(divisions.filter((d) => d.event_type === v).map((d) => d.skill_level))].sort(
+                    sortSkillLevels,
+                  );
+                  const sk = sks[0] ?? "";
+                  setSkillLevel(sk);
+                  const ages = divisions.filter((d) => d.event_type === v && d.skill_level === sk);
+                  setAgeBracket(ages[0]?.age_bracket ?? "");
+                }}
+                disabled={busy || !divisions.length}
+              >
+                {eventTypes.map((ev) => (
+                  <option key={ev} value={ev}>
+                    {ev}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="wf-row">
+              <label className="wf-label" htmlFor="wf-skill">
+                Skill level
+              </label>
+              <select
+                id="wf-skill"
+                className="wf-select"
+                value={skillLevel}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSkillLevel(v);
+                  const ages = divisions.filter((d) => d.event_type === eventType && d.skill_level === v);
+                  const ags = [...new Set(ages.map((d) => d.age_bracket))].sort((a, b) =>
+                    a.localeCompare(b, undefined, { numeric: true }),
+                  );
+                  setAgeBracket(ags[0] ?? "");
+                }}
+                disabled={busy || !eventType}
+              >
+                {skillLevels.map((sk) => (
+                  <option key={sk} value={sk}>
+                    {sk}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="wf-row">
+              <label className="wf-label" htmlFor="wf-age">
+                Age group
+              </label>
+              <select
+                id="wf-age"
+                className="wf-select"
+                value={ageBracket}
+                onChange={(e) => setAgeBracket(e.target.value)}
+                disabled={busy || !skillLevel}
+              >
+                {ageBrackets.map((ag) => {
+                  const row = divisions.find(
+                    (d) => d.event_type === eventType && d.skill_level === skillLevel && d.age_bracket === ag,
+                  );
+                  return (
+                    <option key={ag} value={ag}>
+                      {ag}
+                      {row ? ` (${row.player_count} players · ${row.match_count} matches)` : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
 
-          {divisionKey && (
+          {resolvedDivisionKey && (
             <>
               <div className="wf-picks">
                 {Array.from({ length: rosterSize }, (_, slot) => (
@@ -307,10 +448,10 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
                 <button
                   type="button"
                   className="dash-ghost-btn wf-btn"
-                  disabled={busy || !divisionKey}
+                  disabled={busy || !resolvedDivisionKey}
                   onClick={() => void handleScore()}
                 >
-                  Fantasy score
+                  Preview WakiPoints
                 </button>
               </div>
             </>
@@ -323,28 +464,25 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
               <div className="wf-score-total">
                 Roster total: <strong>{score.roster_total}</strong> WakiPoints
               </div>
-              <table className="dash-table">
-                <thead>
-                  <tr>
-                    <th>Player</th>
-                    <th>Cap</th>
-                    <th>WakiPoints</th>
-                    <th>Breakdown</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {score.players.map((row) => (
-                    <tr key={row.player_name}>
-                      <td>{row.player_name}</td>
-                      <td>{row.is_captain ? "Yes" : "—"}</td>
-                      <td>{row.fantasy_points}</td>
-                      <td className="wf-bd">
-                        {row.breakdown.map((b) => `${b.label}: ${b.points}`).join(" · ")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="wf-score-cards">
+                {score.players.map((row) => (
+                  <div key={row.player_name} className="wf-player-card">
+                    <div className="wf-player-card-head">
+                      <span className="wf-player-name">{row.player_name}</span>
+                      <span className="wf-player-pts">{row.fantasy_points} base</span>
+                      {row.is_captain ? <span className="wf-player-cap">Captain ×1.5 on lineup</span> : null}
+                    </div>
+                    <ul className="wf-bd-list">
+                      {row.breakdown.map((b) => (
+                        <li key={b.label}>
+                          <span>{b.label}</span>
+                          <span className={b.points < 0 ? "wf-neg" : ""}>{b.points > 0 ? "+" : ""}{b.points}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
               <p className="dash-footnote">{score.note}</p>
             </div>
           )}

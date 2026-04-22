@@ -265,7 +265,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         total_fantasy_points,
         by_division,
         note:
-          "Season test: points roll up across available tournament schedules. Points follow match results in the schedule JSON (wins, margin, medals, advancement).",
+          "WakiPoints v3 rolls up across loaded tournament schedules. Engine uses winners, optional scores/seeds/stage text, medals, upset flags, and streak / division meta when data supports them.",
       };
 
       const leaderboardRanked = computeFantasyLeaderboard(

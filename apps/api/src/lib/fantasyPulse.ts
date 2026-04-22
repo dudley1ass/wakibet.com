@@ -23,12 +23,29 @@ export type FantasyRosterDbRow = {
 };
 
 function headlineForBreakdownLabel(label: string, pts: number): string {
-  if (label === "Gold medals") return `🏆 Gold medal +${pts}`;
-  if (label === "Upset wins") return `🔥 Upset win +${pts}`;
-  if (label === "Playoff qualification") return `⚡ Playoff leg +${pts}`;
-  if (label === "Undefeated pool runs") return `💥 Undefeated pool +${pts}`;
-  if (label === "Wins") return `✅ Match win +${pts}`;
-  return `✨ ${label} +${pts}`;
+  const sign = pts > 0 ? "+" : "";
+  if (label === "Match win") return `✅ Match win ${sign}${pts}`;
+  if (label === "Forfeit win") return `🏁 Forfeit win ${sign}${pts}`;
+  if (label === "Gold medal") return `🏆 Gold medal ${sign}${pts}`;
+  if (label === "Silver medal") return `🥈 Silver medal ${sign}${pts}`;
+  if (label === "Bronze medal") return `🥉 Bronze medal ${sign}${pts}`;
+  if (label === "Upset win") return `🔥 Upset win ${sign}${pts}`;
+  if (label === "Playoff qualification") return `⚡ Playoff berth ${sign}${pts}`;
+  if (label === "Quarterfinal win") return `⚡ Quarterfinal ${sign}${pts}`;
+  if (label === "Semifinal win") return `⚡ Semifinal ${sign}${pts}`;
+  if (label === "Final win") return `👑 Final win ${sign}${pts}`;
+  if (label === "Undefeated pool") return `💥 Undefeated pool ${sign}${pts}`;
+  if (label === "Win margin (8+)") return `📈 Big margin ${sign}${pts}`;
+  if (label === "Win margin (5–7)") return `📈 Solid margin ${sign}${pts}`;
+  if (label === "Shutout (11–0)") return `🧱 Shutout ${sign}${pts}`;
+  if (label === "Comeback win") return `🎯 Comeback ${sign}${pts}`;
+  if (label === "Beat top-3 seed") return `🎯 Top-3 takedown ${sign}${pts}`;
+  if (label === "Low-owned pick bonus") return `🃏 Low-owned ${sign}${pts}`;
+  if (label === "3-match win streak") return `🔥 3-win streak ${sign}${pts}`;
+  if (label === "5-match win streak") return `🔥🔥 5-win streak ${sign}${pts}`;
+  if (label === "Triple play (same day)") return `🎰 Triple play ${sign}${pts}`;
+  if (label === "Perfect tournament (division)") return `✨ Perfect run ${sign}${pts}`;
+  return `✨ ${label} ${sign}${pts}`;
 }
 
 export function buildFantasyRecentHits(
@@ -49,6 +66,7 @@ export function buildFantasyRecentHits(
       for (const pick of roster.picks) {
         const lines = scoreWinterPlayerWinOnMatch(pick.player_name, m);
         for (const b of lines) {
+          if (b.points <= 0) continue;
           hits.push({
             headline: headlineForBreakdownLabel(b.label, b.points),
             points: b.points,

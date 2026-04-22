@@ -3,6 +3,7 @@ import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
+import PickTeamsPage from "./components/PickTeamsPage";
 import {
   ContactPage,
   PrivacyPage,
@@ -115,6 +116,38 @@ function App() {
       <div className="app-shell">
         <div className="app-main">
           <ScoringTablePage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (path === "/pick-teams") {
+    if (booting) {
+      return (
+        <div className="app-shell">
+          <div className="app-main" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+            Loading…
+          </div>
+          <SiteFooter />
+        </div>
+      );
+    }
+    if (!session) {
+      return (
+        <div className="app-shell">
+          <div className="app-main">
+            <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to pick and edit your teams.</p>
+            <LoginPage onAuthSuccess={handleAuthSuccess} />
+          </div>
+          <SiteFooter />
+        </div>
+      );
+    }
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <PickTeamsPage user={session} />
         </div>
         <SiteFooter />
       </div>

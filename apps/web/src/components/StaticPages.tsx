@@ -1,3 +1,4 @@
+import { WINTER_FANTASY_RULES } from "@wakibet/shared";
 import { FormEvent, useState, type ReactNode } from "react";
 import { apiPost } from "../api";
 
@@ -201,45 +202,119 @@ export function ContactPage() {
   );
 }
 
-export function ScoringTablePage() {
+function ScoringBlock({ title, rows }: { title: string; rows: { label: string; pts: string }[] }) {
   return (
-    <StaticLayout title="Scoring Table">
-      <p>
-        WakiBet uses <strong>WakiPoints</strong> for fantasy scoring.
+    <section className="scoring-block">
+      <h3 className="scoring-block-title">{title}</h3>
+      <div className="scoring-rows">
+        {rows.map((row) => (
+          <div key={row.label} className="scoring-row">
+            <span className="scoring-label">{row.label}</span>
+            <span className="scoring-pts">{row.pts}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function ScoringTablePage() {
+  const r = WINTER_FANTASY_RULES;
+  return (
+    <StaticLayout title="WakiPoints — Full Table (v3)">
+      <p className="scoring-lede">
+        <strong>WakiPoints</strong> stack <em>base</em>, <em>performance</em>, <em>progression</em>, and{" "}
+        <em>Waki bonuses</em> when tournament data includes the right fields. Captain multiplies one slot&apos;s{" "}
+        <strong>base</strong> total by {r.captainMultiplier}× on your roster.
       </p>
-      <table className="dash-table">
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>WakiPoints</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Match win</td>
-            <td>+5</td>
-          </tr>
-          <tr>
-            <td>Qualify for playoffs</td>
-            <td>+10</td>
-          </tr>
-          <tr>
-            <td>Gold medal</td>
-            <td>+25</td>
-          </tr>
-          <tr>
-            <td>Upset win</td>
-            <td>+8</td>
-          </tr>
-          <tr>
-            <td>Undefeated pool run</td>
-            <td>+10</td>
-          </tr>
-        </tbody>
-      </table>
-      <p style={{ marginTop: 12 }}>
-        Notes: bonus categories apply when corresponding match fields exist in tournament results data. Scheduled-only
-        matches score 0 until results are posted.
+
+      <div className="scoring-example" role="note">
+        <div className="scoring-example-kicker">Example</div>
+        <p className="scoring-example-body">
+          Bauer wins an upset match with big margin: <strong>+{r.matchWinPoints} match</strong> +{" "}
+          <strong>+{r.upsetWinPoints} upset</strong> + <strong>+{r.winMargin8PlusPoints} margin (8+)</strong> ={" "}
+          <strong className="scoring-example-total">{r.matchWinPoints + r.upsetWinPoints + r.winMargin8PlusPoints} WakiPoints</strong>{" "}
+          from that result row (medals / playoff legs would add on top when the schedule marks them).
+        </p>
+      </div>
+
+      <div className="scoring-board">
+        <ScoringBlock
+          title="Core match scoring"
+          rows={[
+            { label: "Match win", pts: `+${r.matchWinPoints}` },
+            { label: "Match loss", pts: "0" },
+            { label: "Forfeit win", pts: `+${r.forfeitWinPoints}` },
+          ]}
+        />
+        <ScoringBlock
+          title="Performance bonuses"
+          rows={[
+            { label: "Win by 5–7 points", pts: `+${r.winMargin57Points}` },
+            { label: "Win by 8+ points", pts: `+${r.winMargin8PlusPoints}` },
+            { label: "Shutout (11–0)", pts: `+${r.shutout110Points}` },
+            { label: "Comeback win (down ≥5, flagged)", pts: `+${r.comebackWinPoints}` },
+          ]}
+        />
+        <ScoringBlock
+          title="Tournament progression"
+          rows={[
+            { label: "Qualify for playoffs (stage text)", pts: `+${r.playoffQualifyPoints}` },
+            { label: "Quarterfinal win", pts: `+${r.quarterfinalWinPoints}` },
+            { label: "Semifinal win", pts: `+${r.semifinalWinPoints}` },
+            { label: "Final win", pts: `+${r.finalWinPoints}` },
+            { label: "Gold medal", pts: `+${r.goldMedalPoints}` },
+            { label: "Silver medal", pts: `+${r.silverMedalPoints}` },
+            { label: "Bronze medal", pts: `+${r.bronzeMedalPoints}` },
+          ]}
+        />
+        <ScoringBlock
+          title="Signature Waki bonuses"
+          rows={[
+            { label: "Upset win (flagged)", pts: `+${r.upsetWinPoints}` },
+            { label: "Beat top-3 seed (seeds on match)", pts: `+${r.beatTop3SeedPoints}` },
+            { label: "Low-owned pick (<20% users, flagged)", pts: `+${r.lowOwnedPickPoints}` },
+            { label: "Captain pick", pts: `×${r.captainMultiplier} on that player’s base` },
+          ]}
+        />
+        <ScoringBlock
+          title="Streak & consistency"
+          rows={[
+            { label: "3-match win streak (division)", pts: `+${r.winStreak3Points}` },
+            { label: "5-match win streak (division)", pts: `+${r.winStreak5Points}` },
+            { label: "Undefeated pool (flagged)", pts: `+${r.undefeatedPoolPoints}` },
+            { label: "Perfect tournament — no losses (division)", pts: `+${r.perfectTournamentDivisionPoints}` },
+          ]}
+        />
+        <ScoringBlock
+          title="High-impact specials"
+          rows={[
+            { label: "Double medal (two divisions, flagged)", pts: `+${r.doubleMedalTwoDivisionsPoints}` },
+            { label: "Triple play — 3+ wins same calendar day", pts: `+${r.triplePlaySameDayPoints} per qualifying day` },
+            { label: "Partner upset combo (flagged)", pts: `+${r.partnerUpsetComboPoints}` },
+          ]}
+        />
+        <ScoringBlock
+          title="Penalties (optional)"
+          rows={[
+            { label: "Early elimination (0 wins, 4+ finished matches)", pts: `${r.earlyEliminationPenalty}` },
+            { label: "Favorite upset loss (seeds + upset flag)", pts: `${r.favoriteUpsetLossPenalty}` },
+          ]}
+        />
+      </div>
+
+      <div className="scoring-lite">
+        <h3 className="scoring-block-title">Mental “lite mode”</h3>
+        <p className="scoring-lite-body">
+          Win {r.matchWinPoints} · Playoffs {r.playoffQualifyPoints} · Gold {r.goldMedalPoints} · Upset {r.upsetWinPoints}{" "}
+          · Undefeated pool {r.undefeatedPoolPoints} — the engine still awards deeper lines whenever the JSON carries
+          scores, seeds, and stage labels.
+        </p>
+      </div>
+
+      <p className="scoring-foot">
+        Rules version <strong>{r.version}</strong>. Rows without the needed fields in schedule data simply award 0 for
+        that category. Streaks / perfect run / triple-play are computed from results in the division slice.
       </p>
     </StaticLayout>
   );

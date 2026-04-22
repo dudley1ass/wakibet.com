@@ -440,8 +440,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         rules_version: WINTER_FANTASY_RULES.version,
         players: rows,
         note:
-          "Scores use MVP rules: wins, playoff qualification, gold medals, upset wins, and undefeated runs when those fields exist on matches. " +
-          "Scheduled-only rows score 0 until results are added to the schedule JSON.",
+          "WakiPoints v3: full scoring table (see site scoring page). Categories apply when schedule rows include winners, optional scores/seeds/stage flags, and pipeline markers. " +
+          "Captain applies ×1.5 to that player’s base WakiPoints on the roster total.",
       };
     },
   );
