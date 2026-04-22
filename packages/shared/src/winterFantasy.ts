@@ -382,3 +382,69 @@ export function scoreWinterFantasyRoster(rows: WinterFantasyRosterRow[]): number
   }
   return Math.round(total * 100) / 100;
 }
+
+/**
+ * Total WakiPoints for one division roster — the same math the API uses for a saved lineup
+ * (per-player totals from the scoring table, then captain ×1.5 on one slot).
+ */
+export function winterFantasyRosterTotalFromPicks(
+  divisionMatches: WinterJsonMatch[],
+  picks: { playerName: string; isCaptain: boolean }[],
+): number {
+  const rows = picks.map((p) => ({
+    player_name: p.playerName,
+    points: scoreWinterPlayerFromMatches(p.playerName, divisionMatches).total,
+    is_captain: p.isCaptain,
+  }));
+  return scoreWinterFantasyRoster(rows);
+}
+
+export type MatchWinnerSide = "player_a" | "player_b";
+
+/** Replace one row by `match_id`, or append if missing (defensive). */
+export function replaceMatchWithOutcome(
+  divisionMatches: WinterJsonMatch[],
+  matchId: string,
+  updated: WinterJsonMatch,
+): WinterJsonMatch[] {
+  let hit = false;
+  const next = divisionMatches.map((m) => {
+    if (m.match_id !== matchId) return m;
+    hit = true;
+    return updated;
+  });
+  return hit ? next : [...divisionMatches, updated];
+}
+
+/**
+ * Force a completed match for projections. Upset bonus uses seeds only (same rules as live scoring).
+ */
+export function syntheticMatchWithWinner(m: WinterJsonMatch, winner: MatchWinnerSide): WinterJsonMatch {
+  const ws = winner === "player_a" ? m.player_a_seed : m.player_b_seed;
+  const ls = winner === "player_a" ? m.player_b_seed : m.player_a_seed;
+  const upset =
+    ws != null &&
+    ls != null &&
+    !Number.isNaN(Number(ws)) &&
+    !Number.isNaN(Number(ls)) &&
+    Number(ws) > Number(ls);
+  return {
+    ...m,
+    winner,
+    ...(upset ? { upset_win: true as const } : {}),
+  };
+}
+
+/** Earliest undecided match in this division that lists `playerName` on either side. */
+export function nextUndecidedMatchForPlayer(
+  divisionMatches: WinterJsonMatch[],
+  playerName: string,
+): WinterJsonMatch | null {
+  const sorted = [...divisionMatches].sort((a, b) => a.event_date.localeCompare(b.event_date));
+  for (const m of sorted) {
+    if (winnerDisplayName(m)) continue;
+    if (m.player_a !== playerName && m.player_b !== playerName) continue;
+    return m;
+  }
+  return null;
+}

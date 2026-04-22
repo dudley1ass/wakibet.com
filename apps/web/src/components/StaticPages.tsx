@@ -316,6 +316,10 @@ export function ScoringTablePage() {
         Rules version <strong>{r.version}</strong>. Rows without the needed fields in schedule data simply award 0 for
         that category. Streaks / perfect run / triple-play are computed from results in the division slice.
       </p>
+      <p className="scoring-foot">
+        Dashboard <strong>What happens next</strong> uses this same table: we clone your next undecided match, force a
+        winner or loss, and re-run the shared WakiPoints engine — no duplicate point math outside this package.
+      </p>
     </StaticLayout>
   );
 }

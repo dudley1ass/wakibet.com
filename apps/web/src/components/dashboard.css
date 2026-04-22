@@ -290,6 +290,86 @@
   background: linear-gradient(135deg, rgba(50, 18, 18, 0.88), rgba(28, 14, 12, 0.9));
   border-color: rgba(248, 113, 113, 0.35);
 }
+.dash-section--whatif {
+  background: linear-gradient(145deg, rgba(30, 22, 50, 0.9), rgba(18, 12, 28, 0.92));
+  border-color: rgba(196, 181, 253, 0.35);
+}
+.dash-whatif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dash-whatif-card {
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(8, 6, 14, 0.55);
+}
+.dash-whatif--high {
+  border-color: rgba(251, 146, 60, 0.55);
+  box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.12);
+}
+.dash-whatif--risk,
+.dash-whatif--downside {
+  border-color: rgba(248, 113, 113, 0.35);
+}
+.dash-whatif-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.dash-whatif-emoji {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.dash-whatif-head {
+  flex: 1;
+  min-width: 0;
+}
+.dash-whatif-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: #fffbeb;
+  line-height: 1.25;
+}
+.dash-whatif-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #c4b5fd;
+  line-height: 1.45;
+}
+.dash-whatif-delta {
+  text-align: right;
+  flex-shrink: 0;
+}
+.dash-whatif-pts-pos {
+  display: block;
+  font-weight: 900;
+  font-size: 16px;
+  color: #86efac;
+}
+.dash-whatif-pts-neg {
+  display: block;
+  font-weight: 900;
+  font-size: 16px;
+  color: #fca5a5;
+}
+.dash-whatif-rankline {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fde68a;
+}
+.dash-whatif-foot {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #a8a29e;
+}
 .dash-section--tight { margin-top: 0; }
 .dash-section-title {
   margin: 0 0 6px;

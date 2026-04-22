@@ -80,6 +80,22 @@ type DashboardData = {
     note: string;
   };
   fantasy_pulse: FantasyPulse;
+  fantasy_what_if?: {
+    scenario_key: string;
+    kind: "win_next" | "lose_next";
+    player_name: string;
+    tournament_key: string;
+    tournament_name: string;
+    division_label: string;
+    match_summary: string;
+    opponent: string;
+    event_date: string;
+    roster_waki_delta: number;
+    season_waki_delta: number;
+    rank_before: number | null;
+    rank_after: number | null;
+    impact: "high" | "standard" | "risk";
+  }[];
 };
 
 type Props = {
@@ -96,6 +112,18 @@ function formatRankChange(delta: number | null): string {
 function pickStatusLabel(status: "alive" | "waiting"): string {
   if (status === "waiting") return "Waiting for points";
   return "Alive";
+}
+
+function formatRankJump(before: number | null, after: number | null): string {
+  if (before == null || after == null) return "Rank TBD";
+  if (before === after) return `Stay ~#${before}`;
+  if (before > after) return `#${before} → #${after}`;
+  return `#${before} → #${after}`;
+}
+
+function whatIfTitle(kind: "win_next" | "lose_next", player: string): string {
+  if (kind === "win_next") return `If ${player} wins next match`;
+  return `If ${player} loses next match`;
 }
 
 function nextMatchSummary(data: DashboardData): string | null {
@@ -218,6 +246,54 @@ export default function Dashboard({ user, onLogout }: Props) {
                       <span className="dash-pick-pts">{row.points_on_roster} pts</span>
                       <span className={`dash-pick-status dash-pick-status--${row.status}`}>{pickStatusLabel(row.status)}</span>
                     </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* What happens next — projections (same WakiPoints engine as /scoring-table) */}
+          <section className="dash-section dash-section--whatif" aria-labelledby="dash-whatif-title">
+            <h2 id="dash-whatif-title" className="dash-section-title">
+              What happens next
+            </h2>
+            <p className="dash-section-lead">
+              Hypothetical next results for your picks — deltas are recomputed with the{" "}
+              <strong>same WakiPoints engine</strong> as the scoring table (captain 1.5× included). We show up to five
+              highest-magnitude scenarios.
+            </p>
+            {(preview.fantasy_what_if ?? []).length === 0 ? (
+              <p className="dash-empty">
+                No undecided next matches found for your roster players in loaded schedules — check back after the draw posts upcoming rows.
+              </p>
+            ) : (
+              <ul className="dash-whatif-list">
+                {(preview.fantasy_what_if ?? []).map((s) => (
+                  <li
+                    key={s.scenario_key}
+                    className={`dash-whatif-card dash-whatif--${s.impact}${s.kind === "lose_next" ? " dash-whatif--downside" : ""}`}
+                  >
+                    <div className="dash-whatif-top">
+                      <span className="dash-whatif-emoji" aria-hidden>
+                        {s.impact === "high" ? "🔥" : s.impact === "risk" ? "⚠️" : "📈"}
+                      </span>
+                      <div className="dash-whatif-head">
+                        <div className="dash-whatif-title">{whatIfTitle(s.kind, s.player_name)}</div>
+                        <div className="dash-whatif-meta">
+                          {s.tournament_name} · {s.division_label}
+                          <br />
+                          vs {s.opponent} · {s.event_date ? new Date(s.event_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : s.event_date}
+                        </div>
+                      </div>
+                      <div className="dash-whatif-delta">
+                        <span className={s.season_waki_delta >= 0 ? "dash-whatif-pts-pos" : "dash-whatif-pts-neg"}>
+                          {s.season_waki_delta >= 0 ? "+" : ""}
+                          {s.season_waki_delta} WakiPoints
+                        </span>
+                        <span className="dash-whatif-rankline">{formatRankJump(s.rank_before, s.rank_after)}</span>
+                      </div>
+                    </div>
+                    <div className="dash-whatif-foot">{s.match_summary}</div>
                   </li>
                 ))}
               </ul>

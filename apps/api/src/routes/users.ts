@@ -10,6 +10,7 @@ import {
   computeFantasyLeaderboard,
   type FantasyRosterDbRow,
 } from "../lib/fantasyPulse.js";
+import { buildWhatIfScenarios } from "../lib/fantasyScenarios.js";
 import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
   getTournamentData,
@@ -133,6 +134,24 @@ const DashboardResponse = z.object({
       }),
     ),
   }),
+  fantasy_what_if: z.array(
+    z.object({
+      scenario_key: z.string(),
+      kind: z.enum(["win_next", "lose_next"]),
+      player_name: z.string(),
+      tournament_key: z.enum(TOURNAMENT_KEYS),
+      tournament_name: z.string(),
+      division_label: z.string(),
+      match_summary: z.string(),
+      opponent: z.string(),
+      event_date: z.string(),
+      roster_waki_delta: z.number(),
+      season_waki_delta: z.number(),
+      rank_before: z.number().nullable(),
+      rank_after: z.number().nullable(),
+      impact: z.enum(["high", "standard", "risk"]),
+    }),
+  ),
 });
 
 const ErrorMessage = z.object({ message: z.string() });
@@ -307,6 +326,16 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         leaderboard,
       };
 
+      const fantasy_what_if = buildWhatIfScenarios(
+        payload.sub,
+        user.displayName,
+        total_fantasy_points,
+        winter_fantasy_rosters,
+        tournamentDataByKey,
+        leaderboardRanked,
+        5,
+      );
+
       return {
         profile: {
           display_name: user.displayName,
@@ -327,6 +356,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         winter_fantasy_rosters,
         fantasy_season,
         fantasy_pulse,
+        fantasy_what_if,
       };
     },
   );
