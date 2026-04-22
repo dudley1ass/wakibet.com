@@ -183,27 +183,59 @@
 .wf-cap { font-size: 12px; color: #fde68a; white-space: nowrap; }
 .wf-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
 .wf-wakicash-bar {
-  margin: 12px 0 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: rgba(12, 10, 10, 0.55);
-  font-size: 13px;
-  color: #fce7bf;
-  line-height: 1.45;
+  margin: 14px 0 14px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  background: linear-gradient(145deg, rgba(16, 40, 32, 0.92), rgba(10, 14, 12, 0.88));
+  color: #ecfdf5;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
-.wf-wakicash-bar strong {
-  color: #fde68a;
+.wf-wakicash-head {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  margin-bottom: 8px;
+}
+.wf-wakicash-big {
+  display: block;
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 900;
+  color: #fffbeb;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.wf-wakicash-big span {
+  color: #a7f3d0;
+  font-weight: 800;
+  font-size: 0.55em;
+  vertical-align: middle;
+  margin: 0 0.12em;
+}
+.wf-wakicash-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #d1fae5;
+  opacity: 0.95;
 }
 .wf-wakicash-ok {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
   color: #86efac;
 }
 .wf-wakicash-warn {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #fcd34d;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fde68a;
+}
+.wf-pick-row .wf-select {
+  font-size: 15px;
+  font-weight: 600;
 }
 .wf-btn { margin-top: 0; }
 .wf-score { margin-top: 12px; }
@@ -359,10 +391,44 @@ a.rost-dash-link {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(251, 191, 36, 0.22);
+}
+.rost-card-head-main {
+  flex: 1;
+  min-width: min(100%, 200px);
+}
+.rost-card-head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.rost-wc-total {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  background: rgba(10, 28, 22, 0.65);
+}
+.rost-wc-total-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  margin-bottom: 4px;
+}
+.rost-wc-total-val {
+  font-size: clamp(22px, 4.5vw, 30px);
+  font-weight: 900;
+  color: #fffbeb;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 .rost-tournament {
   font-size: 18px;
@@ -464,7 +530,7 @@ a.rost-dash-link {
   min-width: 0;
 }
 .rost-wc {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   color: #6ee7b7;
   white-space: nowrap;
@@ -501,7 +567,7 @@ a.rost-dash-link {
 /* MVP dashboard blueprint: KPI → picks → hits → leaderboard + trend → actions */
 .dash-kpi-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
 }
@@ -516,10 +582,6 @@ a.rost-dash-link {
 .dash-kpi-card--points {
   border-color: rgba(252, 211, 77, 0.65);
   background: linear-gradient(160deg, rgba(120, 30, 22, 0.95), rgba(40, 12, 10, 0.95));
-}
-.dash-kpi-card--wakicash {
-  border-color: rgba(52, 211, 153, 0.45);
-  background: linear-gradient(160deg, rgba(20, 50, 40, 0.92), rgba(12, 28, 22, 0.92));
 }
 .dash-kpi-kicker {
   font-size: 11px;

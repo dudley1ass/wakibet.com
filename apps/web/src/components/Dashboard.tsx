@@ -219,23 +219,6 @@ export default function Dashboard({ user, onLogout }: Props) {
                 Of {pulse.rank_players_count} {pulse.rank_players_count === 1 ? "Player" : "Players"}
               </div>
             </div>
-            <div className="dash-kpi-card dash-kpi-card--wakicash">
-              <div className="dash-kpi-kicker">WakiCash</div>
-              <div className="dash-kpi-value">
-                {(() => {
-                  const ws = preview.fantasy_season.waki_cash_spent_total;
-                  const wb = preview.fantasy_season.waki_cash_budget_total;
-                  if (ws === 0 && wb === 0) return "—";
-                  if (wb === 0) return `${ws}`;
-                  return `${ws} / ${wb}`;
-                })()}
-              </div>
-              <div className="dash-kpi-label">
-                {preview.fantasy_season.waki_cash_budget_total === 0 && preview.fantasy_season.waki_cash_spent_total > 0
-                  ? "Spent (re-save lineups to 5 picks)"
-                  : "Spent / budget (100 per full lineup)"}
-              </div>
-            </div>
             <div className="dash-kpi-card dash-kpi-card--delta">
               <div className="dash-kpi-kicker">Movement</div>
               <div className="dash-kpi-value dash-kpi-delta">{formatRankChange(pulse.rank_change)}</div>

@@ -459,7 +459,13 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
           {resolvedDivisionKey && (
             <>
               <div className="wf-wakicash-bar">
-                <strong>WakiCash:</strong> {spendPreview} / {WAKICASH_BUDGET_PER_LINEUP} spent
+                <div className="wf-wakicash-head">WakiCash · this event</div>
+                <span className="wf-wakicash-big">
+                  {spendPreview}
+                  <span>/</span>
+                  {WAKICASH_BUDGET_PER_LINEUP}
+                </span>
+                <div className="wf-wakicash-sub">Spent for this tournament / division (100 max)</div>
                 {wakiLint.kind === "ok" ? (
                   <div className="wf-wakicash-ok">Lineup passes budget and roster rules.</div>
                 ) : wakiLint.kind === "err" ? (
@@ -481,7 +487,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
                       <option value="">Choose player…</option>
                       {players.map((p) => (
                         <option key={p.player_name} value={p.player_name}>
-                          {p.player_name} ({p.waki_cash} WC)
+                          {p.player_name} — {p.waki_cash} WC
                         </option>
                       ))}
                     </select>

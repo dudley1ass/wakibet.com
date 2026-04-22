@@ -104,13 +104,10 @@ function RosterCard({
   return (
     <article className="rost-card dash-card">
       <div className="rost-card-head">
-        <div>
+        <div className="rost-card-head-main">
           <div className="rost-tournament">{roster.tournament_name}</div>
           <div className="rost-meta">
             <span className="rost-badge">{roster.tournament_key}</span>
-            <span className="rost-badge" title="WakiCash spent on this lineup">
-              {roster.waki_cash_spent}/{roster.waki_cash_budget} WakiCash
-            </span>
             {!roster.waki_lineup_complete ? (
               <span className="rost-badge rost-badge--warn" title="Save 5 picks under Pick / Edit Teams">
                 {roster.picks.length} picks — needs 5
@@ -118,11 +115,19 @@ function RosterCard({
             ) : null}
           </div>
         </div>
-        {pts != null ? (
-          <div className="rost-pts" title="WakiPoints for this division roster">
-            {pts} <span className="rost-pts-label">WakiPoints</span>
+        <div className="rost-card-head-side">
+          <div className="rost-wc-total" title="WakiCash for this tournament / event">
+            <div className="rost-wc-total-label">WakiCash</div>
+            <div className="rost-wc-total-val">
+              {roster.waki_cash_spent} / 100
+            </div>
           </div>
-        ) : null}
+          {pts != null ? (
+            <div className="rost-pts" title="WakiPoints for this division roster">
+              {pts} <span className="rost-pts-label">WakiPoints</span>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="rost-event">
