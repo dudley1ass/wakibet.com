@@ -6,7 +6,7 @@ const MISSING_BASE_HELP =
   "In Render → your Static Site → Environment, add VITE_API_BASE = https://YOUR-API.onrender.com (no trailing slash), " +
   "then redeploy with Clear build cache.";
 
-const DEFAULT_FETCH_MS = 20_000;
+const DEFAULT_FETCH_MS = import.meta.env.PROD ? 60_000 : 20_000;
 
 let accessToken: string | null = null;
 
