@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiGet } from "../api";
 import type { SessionUser } from "../App";
 import WinterFantasySection from "./WinterFantasySection";
@@ -12,6 +12,22 @@ export type FantasyRosterRow = {
   skill_level: string;
   age_bracket: string;
   picks: { slot_index: number; player_name: string; is_captain: boolean }[];
+};
+
+type FantasyPulse = {
+  my_rank: number | null;
+  rank_players_count: number;
+  rank_change: number | null;
+  pick_rows: {
+    label: string;
+    player_name: string;
+    points_on_roster: number;
+    is_captain: boolean;
+    status: "alive" | "waiting";
+  }[];
+  recent_hits: { headline: string; points: number; occurred_at: string }[];
+  progress: { label: string; cumulative_points: number }[];
+  leaderboard: { rank: number; display_name: string; points: number; is_me: boolean }[];
 };
 
 type DashboardData = {
@@ -54,6 +70,8 @@ type DashboardData = {
     tournaments_with_schedule: number;
     total_fantasy_points: number;
     by_division: {
+      tournament_key: string;
+      tournament_name: string;
       division_key: string;
       event_type: string;
       skill_level: string;
@@ -62,6 +80,7 @@ type DashboardData = {
     }[];
     note: string;
   };
+  fantasy_pulse: FantasyPulse;
 };
 
 type Props = {
@@ -69,89 +88,29 @@ type Props = {
   onLogout: () => void;
 };
 
-function WinterSpringsHero({
-  rosters,
-  fantasySeason,
-}: {
-  rosters: FantasyRosterRow[];
-  fantasySeason: DashboardData["fantasy_season"];
-}) {
-  return (
-    <section className="dash-hero" aria-labelledby="dash-hero-title">
-      <div className="dash-hero-split">
-        <div className="dash-hero-col dash-hero-col--rosters">
-          <p className="dash-hero-kicker">Your event</p>
-          <h2 id="dash-hero-title" className="dash-hero-title">
-            Fantasy rosters
-          </h2>
-          <p className="dash-hero-sub">
-            Featured divisions only (see builder)
-          </p>
-          {rosters.length > 0 ? (
-            <div className="dash-hero-rosters">
-              {rosters.map((r) => (
-                <div className="dash-hero-division" key={r.division_key}>
-                  <div className="dash-hero-division-head">
-                    <span className="dash-hero-division-title">{r.event_type}</span>
-                    <span className="dash-hero-division-meta">
-                      {r.tournament_name} · {r.skill_level} · {r.age_bracket}
-                    </span>
-                  </div>
-                  <ul className="dash-hero-picks">
-                    {r.picks.map((p) => (
-                      <li key={`${r.division_key}-${p.slot_index}`}>
-                        <span className="dash-hero-slot">#{p.slot_index + 1}</span>
-                        <span className="dash-hero-name">{p.player_name}</span>
-                        {p.is_captain ? <span className="dash-hero-cap">Captain</span> : null}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="dash-hero-empty">
-              Save a roster in the builder below — only featured divisions appear here.
-            </p>
-          )}
-        </div>
+function formatRankChange(delta: number | null): string {
+  if (delta === null || delta === 0) return "—";
+  if (delta > 0) return `↑${delta}`;
+  return `↓${Math.abs(delta)}`;
+}
 
-        <div className="dash-hero-col dash-hero-col--points" aria-labelledby="dash-season-points-title">
-          <p className="dash-hero-kicker">Season fantasy (test)</p>
-          <h2 id="dash-season-points-title" className="dash-hero-title dash-hero-title--secondary">
-            WakiPoints accrued
-          </h2>
-          <p className="dash-hero-sub">
-            Rolling total across tournaments as we plug in schedules — targeting{" "}
-            <strong>{fantasySeason.tournaments_planned}</strong> events for a full system test.
-          </p>
-          <div className="dash-season-total" aria-live="polite">
-            {fantasySeason.total_fantasy_points}
-            <span className="dash-season-total-label">WakiPoints</span>
-          </div>
-          <p className="dash-season-meta">
-            Schedule live: <strong>{fantasySeason.tournaments_with_schedule}</strong> /{" "}
-            {fantasySeason.tournaments_planned} tournaments
-          </p>
-          {fantasySeason.by_division.length > 0 ? (
-            <ul className="dash-season-bydiv">
-              {fantasySeason.by_division.map((d) => (
-                <li key={d.division_key}>
-                  <span className="dash-season-div-name">
-                    {d.event_type} · {d.skill_level} / {d.age_bracket}
-                  </span>
-                  <span className="dash-season-div-pts">{d.roster_points} WakiPoints</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="dash-hero-empty">Save a featured-division roster to see per-division points here.</p>
-          )}
-          <p className="dash-season-note">{fantasySeason.note}</p>
-        </div>
-      </div>
-    </section>
+function pickStatusLabel(status: "alive" | "waiting"): string {
+  if (status === "waiting") return "Waiting for points";
+  return "Alive";
+}
+
+function nextMatchSummary(data: DashboardData): string | null {
+  const rows = data.tournament_schedules.flatMap((t) =>
+    t.my_upcoming_matches.map((m) => ({
+      ...m,
+      tournament_name: t.tournament_name,
+    })),
   );
+  rows.sort((a, b) => a.event_date.localeCompare(b.event_date));
+  const m = rows[0];
+  if (!m) return null;
+  const when = m.event_date ? new Date(m.event_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : m.event_date;
+  return `${m.tournament_name}: vs ${m.opponent} · ${when}`;
 }
 
 export default function Dashboard({ user, onLogout }: Props) {
@@ -177,6 +136,13 @@ export default function Dashboard({ user, onLogout }: Props) {
   }, [loadDashboard]);
 
   const joined = preview ? new Date(preview.profile.joined_at).toLocaleDateString() : "--";
+  const nextMatch = preview ? nextMatchSummary(preview) : null;
+  const pulse = preview?.fantasy_pulse;
+
+  const maxProgressPts = useMemo(() => {
+    if (!pulse?.progress.length) return 1;
+    return Math.max(...pulse.progress.map((p) => p.cumulative_points), 1);
+  }, [pulse?.progress]);
 
   return (
     <div className="dash-shell">
@@ -207,20 +173,169 @@ export default function Dashboard({ user, onLogout }: Props) {
         </p>
       )}
 
-      {preview && (
+      {preview && pulse && (
         <>
-          <WinterSpringsHero
-            rosters={preview.winter_fantasy_rosters}
-            fantasySeason={preview.fantasy_season}
-          />
+          {/* Section 1 — Primary KPI */}
+          <section className="dash-kpi-strip" aria-label="Your season standing">
+            <div className="dash-kpi-card dash-kpi-card--points">
+              <div className="dash-kpi-kicker">You</div>
+              <div className="dash-kpi-value">{preview.fantasy_season.total_fantasy_points}</div>
+              <div className="dash-kpi-label">WakiPoints</div>
+            </div>
+            <div className="dash-kpi-card dash-kpi-card--rank">
+              <div className="dash-kpi-kicker">Rank</div>
+              <div className="dash-kpi-value">{pulse.my_rank != null ? `#${pulse.my_rank}` : "—"}</div>
+              <div className="dash-kpi-label">
+                of {pulse.rank_players_count} {pulse.rank_players_count === 1 ? "player" : "players"}
+              </div>
+            </div>
+            <div className="dash-kpi-card dash-kpi-card--delta">
+              <div className="dash-kpi-kicker">Movement</div>
+              <div className="dash-kpi-value dash-kpi-delta">{formatRankChange(pulse.rank_change)}</div>
+              <div className="dash-kpi-label">vs last snapshot</div>
+            </div>
+          </section>
 
-          <div style={{ marginTop: 16 }}>
+          {/* Section 2 — Current picks performance */}
+          <section className="dash-section" aria-labelledby="dash-teams-title">
+            <h2 id="dash-teams-title" className="dash-section-title">
+              Your picks · performance
+            </h2>
+            <p className="dash-section-lead">Featured divisions only. Captain scores 1.5× on that player&apos;s raw WakiPoints.</p>
+            {pulse.pick_rows.length === 0 ? (
+              <p className="dash-empty">No saved rosters yet — jump to <strong>Pick teams</strong> below.</p>
+            ) : (
+              <ul className="dash-pick-list">
+                {pulse.pick_rows.map((row) => (
+                  <li key={`${row.label}-${row.player_name}`} className="dash-pick-row">
+                    <div className="dash-pick-main">
+                      <span className="dash-pick-team">
+                        {row.player_name}
+                        {row.is_captain ? <span className="dash-pick-cap">Captain</span> : null}
+                      </span>
+                      <span className="dash-pick-meta">{row.label}</span>
+                    </div>
+                    <div className="dash-pick-right">
+                      <span className="dash-pick-pts">{row.points_on_roster} pts</span>
+                      <span className={`dash-pick-status dash-pick-status--${row.status}`}>{pickStatusLabel(row.status)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Section 3 — Big hits */}
+          <section className="dash-section dash-section--hits" aria-labelledby="dash-hits-title">
+            <h2 id="dash-hits-title" className="dash-section-title">
+              Big hits
+            </h2>
+            <p className="dash-section-lead">Recent WakiPoints moments from your roster players.</p>
+            {pulse.recent_hits.length === 0 ? (
+              <p className="dash-empty">No scoring fireworks yet — results will land here as schedules fill in.</p>
+            ) : (
+              <ul className="dash-hit-list">
+                {pulse.recent_hits.map((h, i) => (
+                  <li key={`${h.headline}-${h.occurred_at}-${i}`} className="dash-hit-item">
+                    <span className="dash-hit-line">{h.headline}</span>
+                    <span className="dash-hit-when">{h.occurred_at}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <div className="dash-mid-grid">
+            {/* Section 4 — Leaderboard */}
+            <section className="dash-section dash-section--tight" aria-labelledby="dash-lb-title">
+              <h2 id="dash-lb-title" className="dash-section-title">
+                Leaderboard
+              </h2>
+              {pulse.leaderboard.length === 0 ? (
+                <p className="dash-empty">No one on the board yet.</p>
+              ) : (
+                <ol className="dash-lb-list">
+                  {pulse.leaderboard.map((row) => (
+                    <li
+                      key={`${row.rank}-${row.display_name}`}
+                      className={`dash-lb-row${row.is_me ? " dash-lb-row--me" : ""}`}
+                    >
+                      <span className="dash-lb-rank">#{row.rank}</span>
+                      <span className="dash-lb-name">{row.is_me ? "You" : row.display_name}</span>
+                      <span className="dash-lb-pts">{row.points} pts</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              {pulse.my_rank != null && pulse.my_rank > pulse.leaderboard.length ? (
+                <p className="dash-lb-foot">
+                  You&apos;re <strong>#{pulse.my_rank}</strong> overall — showing top {pulse.leaderboard.length}.
+                </p>
+              ) : null}
+            </section>
+
+            {/* Section 5 — Trend */}
+            <section className="dash-section dash-section--tight" aria-labelledby="dash-trend-title">
+              <h2 id="dash-trend-title" className="dash-section-title">
+                Season climb
+              </h2>
+              <p className="dash-section-lead">Cumulative WakiPoints as each tournament schedule joins the season.</p>
+              <div className="dash-trend-bars">
+                {pulse.progress.map((step) => (
+                  <div key={step.label} className="dash-trend-row">
+                    <div className="dash-trend-label">{step.label}</div>
+                    <div className="dash-trend-track">
+                      <div
+                        className="dash-trend-fill"
+                        style={{ width: `${Math.min(100, (step.cumulative_points / maxProgressPts) * 100)}%` }}
+                      />
+                    </div>
+                    <div className="dash-trend-val">{step.cumulative_points}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="dash-trend-note">Rank history charts when we store snapshots — for now, focus on points and place.</p>
+            </section>
+          </div>
+
+          {/* Section 6 — Actions */}
+          <section className="dash-section dash-actions" aria-labelledby="dash-actions-title">
+            <h2 id="dash-actions-title" className="dash-section-title">
+              What&apos;s next
+            </h2>
+            <div className="dash-action-row">
+              <a className="dash-main-btn dash-action-btn" href="#fantasy-builder">
+                Pick / edit teams
+              </a>
+              <a className="dash-ghost-btn dash-action-btn" href="/scoring-table">
+                Scoring table
+              </a>
+            </div>
+            {nextMatch ? (
+              <p className="dash-next-match">
+                <span className="dash-next-label">Next match</span>
+                {nextMatch}
+              </p>
+            ) : (
+              <p className="dash-next-match dash-next-match--muted">
+                Upcoming matches appear when your display name lines up with schedule players.
+              </p>
+            )}
+            {preview.open_contests.length > 0 ? (
+              <p className="dash-contests-tease">
+                Tournaments in play:{" "}
+                {preview.open_contests.slice(0, 3).map((c) => c.name).join(" · ")}
+              </p>
+            ) : null}
+          </section>
+
+          <div style={{ marginTop: 20 }}>
             <WinterFantasySection onRosterSaved={() => void loadDashboard()} />
           </div>
 
-          <div className="dash-grid" style={{ marginTop: 16 }}>
-            <section className="dash-card">
-              <div className="dash-label">Profile</div>
+          <details className="dash-account-fold">
+            <summary>Account</summary>
+            <div className="dash-account-grid">
               <div className="dash-row">
                 <span>Name</span>
                 <strong>{preview.profile.display_name}</strong>
@@ -239,29 +354,12 @@ export default function Dashboard({ user, onLogout }: Props) {
                 <span>Joined</span>
                 <strong>{joined}</strong>
               </div>
-            </section>
+            </div>
+          </details>
 
-            <section className="dash-card">
-              <div className="dash-label">Open contests</div>
-              {preview.open_contests.length ? (
-                preview.open_contests.map((c) => (
-                  <div className="dash-list-item" key={c.id}>
-                    <div>{c.name}</div>
-                    <small>{c.status}</small>
-                  </div>
-                ))
-              ) : (
-                <p className="dash-empty">No open contests yet.</p>
-              )}
-            </section>
-          </div>
+          <p className="dash-footnote">{preview.fantasy_season.note}</p>
         </>
       )}
-
-      <p className="dash-footnote">
-        Featured divisions only (5+ players or 4 with 6+ matches). Season total reflects all tournament schedules
-        currently loaded in the system.
-      </p>
     </div>
   );
 }

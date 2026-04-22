@@ -57,6 +57,51 @@ function winnerDisplayName(m: WinterJsonMatch): string | null {
   return null;
 }
 
+/** True when the schedule row has a resolved winner (fantasy scoring can apply). */
+export function winterJsonMatchHasWinner(m: WinterJsonMatch): boolean {
+  return winnerDisplayName(m) !== null;
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Fantasy credit for one player on a single match (only if they won that match).
+ * Used for “big hits” feeds and debugging; season totals aggregate these across matches.
+ */
+export function scoreWinterPlayerWinOnMatch(
+  playerName: string,
+  m: WinterJsonMatch,
+): WinterFantasyScoreBreakdown[] {
+  const isA = m.player_a === playerName;
+  if (!isA && m.player_b !== playerName) return [];
+  const w = winnerDisplayName(m);
+  if (w !== playerName) return [];
+
+  const r = WINTER_FANTASY_RULES;
+  const winsPts = r.winPoints;
+  const stageRaw = String(m.stage ?? m.bracket_stage ?? "").toLowerCase();
+  const playoffPts =
+    stageRaw.includes("playoff") ||
+    stageRaw.includes("quarter") ||
+    stageRaw.includes("semi") ||
+    stageRaw.includes("final")
+      ? r.playoffQualifyBonus
+      : 0;
+  const goldPts = m.medal_for_winner === "gold" ? r.goldMedalBonus : 0;
+  const upsetPts = m.is_upset === true || m.upset_win === true ? r.upsetWinBonus : 0;
+  const undefeatedPts =
+    m.undefeated_pool === true || m.undefeated_run === true ? r.undefeatedPoolBonus : 0;
+
+  const lines: WinterFantasyScoreBreakdown[] = [
+    { label: "Wins", points: round2(winsPts) },
+    { label: "Playoff qualification", points: round2(playoffPts) },
+    { label: "Gold medals", points: round2(goldPts) },
+    { label: "Upset wins", points: round2(upsetPts) },
+    { label: "Undefeated pool runs", points: round2(undefeatedPts) },
+  ];
+  return lines.filter((b) => b.points !== 0);
+}
+
 /**
  * Fantasy points for one player across matches (typically one division slice).
  */
@@ -64,7 +109,6 @@ export function scoreWinterPlayerFromMatches(
   playerName: string,
   matches: WinterJsonMatch[],
 ): { total: number; breakdown: WinterFantasyScoreBreakdown[] } {
-  const r = WINTER_FANTASY_RULES;
   let winsPts = 0;
   let playoffPts = 0;
   let goldPts = 0;
@@ -72,34 +116,16 @@ export function scoreWinterPlayerFromMatches(
   let undefeatedPts = 0;
 
   for (const m of matches) {
-    const isA = m.player_a === playerName;
-    if (!isA && m.player_b !== playerName) continue;
-
-    const w = winnerDisplayName(m);
-    if (w === playerName) {
-      winsPts += r.winPoints;
-      const stageRaw = String(m.stage ?? m.bracket_stage ?? "").toLowerCase();
-      if (
-        stageRaw.includes("playoff") ||
-        stageRaw.includes("quarter") ||
-        stageRaw.includes("semi") ||
-        stageRaw.includes("final")
-      ) {
-        playoffPts += r.playoffQualifyBonus;
-      }
-      if (m.medal_for_winner === "gold") {
-        goldPts += r.goldMedalBonus;
-      }
-      if (m.is_upset === true || m.upset_win === true) {
-        upsetPts += r.upsetWinBonus;
-      }
-      if (m.undefeated_pool === true || m.undefeated_run === true) {
-        undefeatedPts += r.undefeatedPoolBonus;
-      }
+    const lines = scoreWinterPlayerWinOnMatch(playerName, m);
+    for (const b of lines) {
+      if (b.label === "Wins") winsPts += b.points;
+      else if (b.label === "Playoff qualification") playoffPts += b.points;
+      else if (b.label === "Gold medals") goldPts += b.points;
+      else if (b.label === "Upset wins") upsetPts += b.points;
+      else if (b.label === "Undefeated pool runs") undefeatedPts += b.points;
     }
   }
 
-  const round2 = (n: number) => Math.round(n * 100) / 100;
   const breakdown: WinterFantasyScoreBreakdown[] = [
     { label: "Wins", points: round2(winsPts) },
     { label: "Playoff qualification", points: round2(playoffPts) },

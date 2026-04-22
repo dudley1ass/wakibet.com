@@ -197,7 +197,7 @@ export default function WinterFantasySection({ onRosterSaved }: WinterFantasyPro
   }
 
   return (
-    <section className="dash-card wf-section">
+    <section id="fantasy-builder" className="dash-card wf-section">
       <div className="dash-label">Tournament fantasy — featured divisions only</div>
       <p className="dash-sub wf-lead">
         Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}

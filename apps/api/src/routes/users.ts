@@ -3,6 +3,13 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../lib/jwt.js";
+import {
+  buildFantasyProgressStops,
+  buildFantasyRecentHits,
+  buildPickRows,
+  computeFantasyLeaderboard,
+  type FantasyRosterDbRow,
+} from "../lib/fantasyPulse.js";
 import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
   getTournamentData,
@@ -80,6 +87,8 @@ const DashboardResponse = z.object({
     total_fantasy_points: z.number(),
     by_division: z.array(
       z.object({
+        tournament_key: z.enum(TOURNAMENT_KEYS),
+        tournament_name: z.string(),
         division_key: z.string(),
         event_type: z.string(),
         skill_level: z.string(),
@@ -88,6 +97,41 @@ const DashboardResponse = z.object({
       }),
     ),
     note: z.string(),
+  }),
+  fantasy_pulse: z.object({
+    my_rank: z.number().nullable(),
+    rank_players_count: z.number().int(),
+    rank_change: z.number().nullable(),
+    pick_rows: z.array(
+      z.object({
+        label: z.string(),
+        player_name: z.string(),
+        points_on_roster: z.number(),
+        is_captain: z.boolean(),
+        status: z.enum(["alive", "waiting"]),
+      }),
+    ),
+    recent_hits: z.array(
+      z.object({
+        headline: z.string(),
+        points: z.number(),
+        occurred_at: z.string(),
+      }),
+    ),
+    progress: z.array(
+      z.object({
+        label: z.string(),
+        cumulative_points: z.number(),
+      }),
+    ),
+    leaderboard: z.array(
+      z.object({
+        rank: z.number(),
+        display_name: z.string(),
+        points: z.number(),
+        is_me: z.boolean(),
+      }),
+    ),
   }),
 });
 
@@ -126,11 +170,19 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         (typeof TOURNAMENT_KEYS)[number],
         Awaited<ReturnType<typeof getTournamentData>>
       >;
-      const fantasyRows = await prisma.winterFantasyRoster.findMany({
-        where: { userId: payload.sub },
-        include: { picks: { orderBy: { slotIndex: "asc" } } },
-        orderBy: { updatedAt: "desc" },
-      });
+      const [fantasyRows, allFantasyRows] = await Promise.all([
+        prisma.winterFantasyRoster.findMany({
+          where: { userId: payload.sub },
+          include: { picks: { orderBy: { slotIndex: "asc" } } },
+          orderBy: { updatedAt: "desc" },
+        }),
+        prisma.winterFantasyRoster.findMany({
+          include: {
+            picks: { orderBy: { slotIndex: "asc" } },
+            user: { select: { displayName: true } },
+          },
+        }),
+      ]);
       const featuredRows = fantasyRows.filter((r) => {
         const parsedStored = parseStoredDivisionKey(r.divisionKey);
         if (!parsedStored) return false;
@@ -159,6 +211,8 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       }).filter((row): row is NonNullable<typeof row> => Boolean(row));
 
       const by_division = winter_fantasy_rosters.map((roster) => ({
+        tournament_key: roster.tournament_key,
+        tournament_name: roster.tournament_name,
         division_key: roster.division_key,
         event_type: roster.event_type,
         skill_level: roster.skill_level,
@@ -214,6 +268,45 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           "Season test: points roll up across available tournament schedules. Points follow match results in the schedule JSON (wins, margin, medals, advancement).",
       };
 
+      const leaderboardRanked = computeFantasyLeaderboard(
+        allFantasyRows as FantasyRosterDbRow[],
+        tournamentDataByKey,
+      );
+      const rank_players_count = leaderboardRanked.length;
+      const myLb = leaderboardRanked.find((r) => r.user_id === payload.sub);
+      const my_rank = myLb?.rank ?? null;
+
+      const leaderboard = leaderboardRanked.slice(0, 12).map((r) => ({
+        rank: r.rank,
+        display_name: r.display_name,
+        points: r.points,
+        is_me: r.user_id === payload.sub,
+      }));
+
+      const pick_rows = buildPickRows(winter_fantasy_rosters, tournamentDataByKey);
+
+      const recent_hits = buildFantasyRecentHits(
+        winter_fantasy_rosters.map((r) => ({
+          tournament_key: r.tournament_key,
+          division_key: r.division_key,
+          picks: r.picks.map((p) => ({ player_name: p.player_name })),
+        })),
+        tournamentDataByKey,
+        8,
+      );
+
+      const progress = buildFantasyProgressStops(by_division, TOURNAMENT_KEYS);
+
+      const fantasy_pulse = {
+        my_rank,
+        rank_players_count,
+        rank_change: null as number | null,
+        pick_rows,
+        recent_hits,
+        progress,
+        leaderboard,
+      };
+
       return {
         profile: {
           display_name: user.displayName,
@@ -233,6 +326,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         tournament_schedules,
         winter_fantasy_rosters,
         fantasy_season,
+        fantasy_pulse,
       };
     },
   );
