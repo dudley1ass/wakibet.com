@@ -70,13 +70,9 @@ type Props = {
 };
 
 function WinterSpringsHero({
-  tournamentName,
-  matchCount,
   rosters,
   fantasySeason,
 }: {
-  tournamentName: string;
-  matchCount: number;
   rosters: FantasyRosterRow[];
   fantasySeason: DashboardData["fantasy_season"];
 }) {
@@ -86,10 +82,10 @@ function WinterSpringsHero({
         <div className="dash-hero-col dash-hero-col--rosters">
           <p className="dash-hero-kicker">Your event</p>
           <h2 id="dash-hero-title" className="dash-hero-title">
-            {tournamentName}
+            Fantasy rosters
           </h2>
           <p className="dash-hero-sub">
-            Test schedule: {matchCount.toLocaleString()} generated matches · Featured divisions only (see builder)
+            Featured divisions only (see builder)
           </p>
           {rosters.length > 0 ? (
             <div className="dash-hero-rosters">
@@ -160,7 +156,6 @@ function WinterSpringsHero({
 
 export default function Dashboard({ user, onLogout }: Props) {
   const [preview, setPreview] = useState<DashboardData | null>(null);
-  const [selectedScheduleTournament, setSelectedScheduleTournament] = useState<string>("winter_springs");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -170,11 +165,6 @@ export default function Dashboard({ user, onLogout }: Props) {
       setLoading(true);
       const data = await apiGet<DashboardData>("/api/v1/users/me/dashboard");
       setPreview(data);
-      setSelectedScheduleTournament((prev) => {
-        const exists = data.tournament_schedules.some((t) => t.tournament_key === prev);
-        if (exists) return prev;
-        return data.tournament_schedules[0]?.tournament_key ?? "winter_springs";
-      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load dashboard.");
     } finally {
@@ -187,9 +177,6 @@ export default function Dashboard({ user, onLogout }: Props) {
   }, [loadDashboard]);
 
   const joined = preview ? new Date(preview.profile.joined_at).toLocaleDateString() : "--";
-  const selectedSchedule = preview?.tournament_schedules.find(
-    (t) => t.tournament_key === selectedScheduleTournament,
-  );
 
   return (
     <div className="dash-shell">
@@ -221,8 +208,6 @@ export default function Dashboard({ user, onLogout }: Props) {
       {preview && (
         <>
           <WinterSpringsHero
-            tournamentName={selectedSchedule?.tournament_name ?? preview.tournament_schedules[0]?.tournament_name ?? "Tournament"}
-            matchCount={selectedSchedule?.generated_matches ?? 0}
             rosters={preview.winter_fantasy_rosters}
             fantasySeason={preview.fantasy_season}
           />
@@ -265,57 +250,6 @@ export default function Dashboard({ user, onLogout }: Props) {
                 ))
               ) : (
                 <p className="dash-empty">No open contests yet.</p>
-              )}
-            </section>
-
-            <section className="dash-card dash-span-2">
-              <div className="dash-label">Tournament schedule matches</div>
-              <div className="dash-row" style={{ marginTop: 8 }}>
-                <span>Tournament</span>
-                <select
-                  className="wf-select"
-                  value={selectedScheduleTournament}
-                  onChange={(e) => setSelectedScheduleTournament(e.target.value)}
-                  disabled={loading || preview.tournament_schedules.length === 0}
-                >
-                  {preview.tournament_schedules.map((t) => (
-                    <option key={t.tournament_key} value={t.tournament_key}>
-                      {t.tournament_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="dash-sub">Names on the schedule must match your profile display name.</div>
-              {selectedSchedule && selectedSchedule.my_upcoming_matches.length ? (
-                <table className="dash-table">
-                  <thead>
-                    <tr>
-                      <th>Match</th>
-                      <th>Event</th>
-                      <th>Division</th>
-                      <th>Date</th>
-                      <th>Opponent</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedSchedule.my_upcoming_matches.map((m) => (
-                      <tr key={`${m.match_id}-${m.event_type}-${m.skill_level}-${m.age_bracket}`}>
-                        <td>{m.match_id}</td>
-                        <td>{m.event_type}</td>
-                        <td>
-                          {m.skill_level} / {m.age_bracket}
-                        </td>
-                        <td>{m.event_date}</td>
-                        <td>{m.opponent}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="dash-empty">
-                  No matches mapped to this account yet. Use your tournament full name as your profile display name
-                  to link the test schedule.
-                </p>
               )}
             </section>
           </div>

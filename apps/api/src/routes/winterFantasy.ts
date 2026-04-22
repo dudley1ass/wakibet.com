@@ -23,6 +23,7 @@ import {
 } from "../lib/winterSpringsData.js";
 
 const ErrorMessage = z.object({ message: z.string() });
+const ROSTER_EDIT_LOCK_MS = 60 * 60 * 1000;
 
 async function userIdFromBearer(authHeader: string | undefined): Promise<string | null> {
   if (!authHeader?.startsWith("Bearer ")) return null;
@@ -32,6 +33,34 @@ async function userIdFromBearer(authHeader: string | undefined): Promise<string 
   } catch {
     return null;
   }
+}
+
+function parseMatchStartMs(match: Record<string, unknown>): number | null {
+  const candidates = [
+    match.match_start_at,
+    match.match_start_time,
+    match.start_time,
+    match.start_at,
+  ];
+  for (const c of candidates) {
+    if (typeof c !== "string" || !c.trim()) continue;
+    const ms = Date.parse(c);
+    if (Number.isFinite(ms)) return ms;
+  }
+  if (typeof match.event_date === "string" && /\d:\d/.test(match.event_date)) {
+    const ms = Date.parse(match.event_date);
+    if (Number.isFinite(ms)) return ms;
+  }
+  return null;
+}
+
+function isRosterEditLocked(matches: unknown[]): boolean {
+  const starts = matches
+    .map((m) => parseMatchStartMs((m ?? {}) as Record<string, unknown>))
+    .filter((ms): ms is number => ms != null);
+  if (starts.length === 0) return false;
+  const firstStart = Math.min(...starts);
+  return Date.now() >= firstStart - ROSTER_EDIT_LOCK_MS;
 }
 
 const DivisionKeyQuery = z.object({
@@ -275,7 +304,13 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
             "This division is not open for fantasy. Featured divisions only: 5+ players, or 4 players with at least 6 schedule matches.",
         } as const);
       }
-      const pool = new Set(uniquePlayersInMatches(filterMatchesForDivision(data.matches, division_key)));
+      const divisionMatches = filterMatchesForDivision(data.matches, division_key);
+      if (isRosterEditLocked(divisionMatches)) {
+        return reply
+          .code(400)
+          .send({ message: "Roster changes are locked 1 hour before scheduled match start." } as const);
+      }
+      const pool = new Set(uniquePlayersInMatches(divisionMatches));
       for (const n of names) {
         if (!pool.has(n)) {
           return reply.code(400).send({ message: `Player is not in this division: ${n}` } as const);
