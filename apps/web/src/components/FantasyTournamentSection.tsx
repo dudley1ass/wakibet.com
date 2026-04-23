@@ -164,6 +164,19 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     return s;
   }, [slots]);
 
+  const budgetPerEvent = lineup?.wakicash_budget ?? 100;
+  const hasEventOverBudget = useMemo(() => {
+    return slots.some((sl) => {
+      if (!sl) return false;
+      const slotSpend = sl.picks.reduce((sum, name) => {
+        const n = name.trim();
+        if (!n) return sum;
+        return sum + Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
+      }, 0);
+      return slotSpend > budgetPerEvent;
+    });
+  }, [slots, budgetPerEvent]);
+
   async function attachEventToSlot(slotIndex: number, event_key: string) {
     const ev = selectableEvents.find((e) => e.event_key === event_key);
     if (!ev) return;
@@ -341,6 +354,9 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
       {metaErr ? <p className="dash-error">{metaErr}</p> : null}
       {actionErr ? <p className="dash-error">{actionErr}</p> : null}
+      {hasEventOverBudget ? (
+        <p className="dash-error">An event is over budget. You cannot exceed 100 WakiCash for an event.</p>
+      ) : null}
       {actionOk ? <p style={{ color: "#166534", marginTop: 8 }}>{actionOk}</p> : null}
 
       <div className="wf-row" style={{ marginTop: pageLayout ? 12 : 8 }}>
@@ -382,6 +398,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                 return sum + Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
               }, 0) ?? 0;
             const slotAvailable = Math.max(0, budget - slotSpend);
+            const slotOverBudget = slotSpend > budget;
             return (
               <div key={slotIndex} className="dash-card" style={{ marginBottom: 12, padding: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -410,6 +427,11 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                   </strong>
                   {sl ? <span>used: {slotSpend} WC</span> : null}
                 </div>
+                {slotOverBudget ? (
+                  <p className="dash-error" style={{ marginTop: 6 }}>
+                    Event slot {slotIndex + 1} is over budget ({slotSpend} / {budget} WakiCash).
+                  </p>
+                ) : null}
                 {!sl ? (
                   <div className="wf-row" style={{ marginTop: 8 }}>
                     <label className="wf-label" htmlFor={`ft-ev-${slotIndex}`}>
@@ -482,7 +504,12 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
       {!loading && eventsMeta ? (
         <div className="wf-actions">
-          <button type="button" className="dash-main-btn wf-btn" disabled={busy} onClick={() => void handleSave()}>
+          <button
+            type="button"
+            className="dash-main-btn wf-btn"
+            disabled={busy || hasEventOverBudget}
+            onClick={() => void handleSave()}
+          >
             {busy ? "Working…" : "Save Tournament Lineup"}
           </button>
         </div>

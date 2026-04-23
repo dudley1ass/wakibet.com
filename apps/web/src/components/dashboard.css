@@ -182,57 +182,6 @@
 .wf-slot { font-size: 12px; font-weight: 700; color: #fbbf24; min-width: 52px; }
 .wf-cap { font-size: 12px; color: #fde68a; white-space: nowrap; }
 .wf-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
-.wf-wakicash-bar {
-  margin: 14px 0 14px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  border: 1px solid rgba(52, 211, 153, 0.45);
-  background: linear-gradient(145deg, rgba(16, 40, 32, 0.92), rgba(10, 14, 12, 0.88));
-  color: #ecfdf5;
-  line-height: 1.35;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-.wf-wakicash-head {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6ee7b7;
-  margin-bottom: 8px;
-}
-.wf-wakicash-big {
-  display: block;
-  font-size: clamp(28px, 6vw, 40px);
-  font-weight: 900;
-  color: #fffbeb;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-.wf-wakicash-big span {
-  color: #a7f3d0;
-  font-weight: 800;
-  font-size: 0.55em;
-  vertical-align: middle;
-  margin: 0 0.12em;
-}
-.wf-wakicash-sub {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #d1fae5;
-  opacity: 0.95;
-}
-.wf-wakicash-ok {
-  margin-top: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #86efac;
-}
-.wf-wakicash-warn {
-  margin-top: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fde68a;
-}
 .wf-pick-row .wf-select {
   font-size: 15px;
   font-weight: 600;

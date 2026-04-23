@@ -238,7 +238,11 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         prisma.tournamentEventCatalog.findMany(),
       ]);
       const catMap = new Map(catalogAll.map((c) => [c.eventKey, c]));
-      const myTourneyTournamentKeys = new Set(myFantasyTourneys.map((l) => l.tournamentKey));
+      const myTourneyTournamentKeys = new Set(
+        myFantasyTourneys
+          .filter((l) => l.eventPicks.length > 0)
+          .map((l) => l.tournamentKey),
+      );
 
       /** Include saved lineups even when schedule JSON is missing or the stored key does not resolve (so My Rosters never “loses” a save). */
       const featuredRows = fantasyRows.filter((r) => {
