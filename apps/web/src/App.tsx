@@ -5,7 +5,7 @@ import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
 import PickTeamsPage from "./components/PickTeamsPage";
 import RostersPage from "./components/RostersPage";
-import AppFloatingCorner from "./components/AppFloatingCorner";
+import HostPersonaPanel from "./components/HostPersonaPanel";
 import { DashboardDataProvider } from "./context/DashboardDataContext";
 import {
   ContactPage,
@@ -170,12 +170,23 @@ function App() {
   }
 
   const dashboardFetchEnabled = Boolean(session && !booting);
+  const activityPageAside = dashboardFetchEnabled && path !== "/";
 
   return (
     <DashboardDataProvider enabled={dashboardFetchEnabled}>
       <div className="app-shell">
-        {dashboardFetchEnabled ? <AppFloatingCorner user={session!} path={path} /> : null}
-        <div className="app-main">{main}</div>
+        <div className={`app-main${activityPageAside ? " app-main--with-aside" : ""}`}>
+          {activityPageAside ? (
+            <div className="app-page-with-aside">
+              <div className="app-page-body">{main}</div>
+              <aside className="app-page-aside" aria-label="Activity feed">
+                <HostPersonaPanel user={session!} path={path} layout="aside" />
+              </aside>
+            </div>
+          ) : (
+            main
+          )}
+        </div>
         <SiteFooter />
       </div>
     </DashboardDataProvider>

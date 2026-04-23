@@ -16,7 +16,8 @@ import "./host-persona.css";
 type Props = {
   user: SessionUser;
   path: string;
-  layout: "inline" | "floating";
+  /** `inline` = beside KPIs on dashboard; `aside` = sticky column beside page body (pick-teams, static pages, etc.). */
+  layout: "inline" | "aside";
 };
 
 function toLive(m: FeedMessage): FeedMessageLive {
@@ -138,10 +139,10 @@ export default function HostPersonaPanel({ user, path, layout }: Props) {
     };
   }, [open, user, path, preview, pulse]);
 
-  const rootClass = layout === "inline" ? "hp-root hp-root--inline" : "hp-root";
+  const rootClass = "hp-root hp-root--column";
 
   return (
-    <div className={rootClass} aria-label="Activity feed">
+    <div className={rootClass} data-hp-layout={layout} aria-label="Activity feed">
       <button type="button" className="hp-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <span className="hp-avatar" aria-hidden>
           ☺

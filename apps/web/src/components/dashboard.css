@@ -670,6 +670,9 @@ a.rost-dash-link {
   min-width: min(100%, 200px);
   max-width: 400px;
   margin-left: auto;
+  position: sticky;
+  top: 12px;
+  align-self: flex-start;
 }
 
 .dash-section {

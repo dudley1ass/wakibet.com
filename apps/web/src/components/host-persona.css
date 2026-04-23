@@ -18,15 +18,15 @@
   min-width: 0;
 }
 
-.hp-root--inline {
+.hp-root--column {
   align-items: stretch;
 }
 
-.hp-root--inline .hp-toggle {
+.hp-root--column .hp-toggle {
   align-self: flex-end;
 }
 
-.hp-root--inline .hp-panel {
+.hp-root--column .hp-panel {
   max-width: none;
   width: 100%;
 }
@@ -153,7 +153,7 @@
 }
 
 @media (max-width: 640px) {
-  .hp-root--inline .hp-feed {
+  .hp-root--column .hp-feed {
     max-height: min(36vh, 220px);
   }
 }

@@ -33,6 +33,45 @@ body {
   padding: 16px;
 }
 
+/* Signed-in pages (not home): main column + sticky activity aside — same idea as dashboard KPI + feed row */
+.app-main.app-main--with-aside {
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+}
+
+.app-page-with-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  gap: 20px 24px;
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  align-items: start;
+}
+
+.app-page-body {
+  min-width: 0;
+}
+
+.app-page-aside {
+  position: sticky;
+  top: 12px;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .app-page-with-aside {
+    grid-template-columns: 1fr;
+  }
+
+  .app-page-aside {
+    position: static;
+    width: 100%;
+    max-width: 28rem;
+    margin-inline: auto;
+  }
+}
+
 .site-footer {
   background: linear-gradient(180deg, #14110f 0%, #0f0b0b 100%);
   color: #f9fafb;
