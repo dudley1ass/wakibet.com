@@ -12,6 +12,8 @@ import {
   type FantasyRosterDbRow,
 } from "../lib/fantasyPulse.js";
 import { buildWhatIfScenarios } from "../lib/fantasyScenarios.js";
+import { FANTASY_SEASON_V1 } from "../lib/fantasySeasonRules.js";
+import { syncTournamentEventCatalog } from "../lib/fantasyTournamentCatalog.js";
 import { fantasyRosterTotalPoints } from "../lib/winterFantasyRosterScore.js";
 import {
   filterMatchesForDivision,
@@ -20,7 +22,9 @@ import {
   listTournamentOptions,
   parseStoredDivisionKey,
   parseDivisionKey,
+  toStoredDivisionKey,
   TOURNAMENT_KEYS,
+  type TournamentKey,
 } from "../lib/winterSpringsData.js";
 
 const SEASON_TOURNAMENTS_PLANNED = TOURNAMENT_KEYS.length;
@@ -197,7 +201,17 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         (typeof TOURNAMENT_KEYS)[number],
         Awaited<ReturnType<typeof getTournamentData>>
       >;
-      const [fantasyRows, allFantasyRows] = await Promise.all([
+      for (const k of TOURNAMENT_KEYS) {
+        const d = tournamentDataByKey[k];
+        if (d) await syncTournamentEventCatalog(prisma, k, d);
+      }
+      const [
+        fantasyRows,
+        allFantasyRows,
+        myFantasyTourneys,
+        allFantasyTourneys,
+        catalogAll,
+      ] = await Promise.all([
         prisma.winterFantasyRoster.findMany({
           where: { userId: payload.sub },
           include: { picks: { orderBy: { slotIndex: "asc" } } },
@@ -209,18 +223,35 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
             user: { select: { displayName: true } },
           },
         }),
+        prisma.fantasyTournamentLineup.findMany({
+          where: { userId: payload.sub, seasonKey: "" },
+          include: {
+            eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
+          },
+        }),
+        prisma.fantasyTournamentLineup.findMany({
+          include: {
+            user: { select: { displayName: true } },
+            eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
+          },
+        }),
+        prisma.tournamentEventCatalog.findMany(),
       ]);
+      const catMap = new Map(catalogAll.map((c) => [c.eventKey, c]));
+      const myTourneyTournamentKeys = new Set(myFantasyTourneys.map((l) => l.tournamentKey));
+
       /** Include saved lineups even when schedule JSON is missing or the stored key does not resolve (so My Rosters never “loses” a save). */
       const featuredRows = fantasyRows.filter((r) => {
         const parsedStored = parseStoredDivisionKey(r.divisionKey);
         if (!parsedStored) return false;
+        if (myTourneyTournamentKeys.has(parsedStored.tournament_key)) return false;
         const data = tournamentDataByKey[parsedStored.tournament_key];
         if (!data || !data.matches?.length) return true;
         const ms = filterMatchesForDivision(data.matches, parsedStored.division_key);
         if (ms.length === 0) return true;
         return isDivisionFeaturedFromMatches(data.matches, parsedStored.division_key);
       });
-      const winter_fantasy_rosters = featuredRows.map((r) => {
+      const winter_fantasy_rosters_from_winter = featuredRows.map((r) => {
         const parsedStored = parseStoredDivisionKey(r.divisionKey);
         if (!parsedStored) return null;
         const parsed = parseDivisionKey(parsedStored.division_key);
@@ -248,31 +279,98 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         };
       }).filter((row): row is NonNullable<typeof row> => Boolean(row));
 
-      const by_division = winter_fantasy_rosters.map((roster) => ({
-        tournament_key: roster.tournament_key,
-        tournament_name: roster.tournament_name,
-        division_key: roster.division_key,
-        event_type: roster.event_type,
-        skill_level: roster.skill_level,
-        age_bracket: roster.age_bracket,
-        roster_points: tournamentDataByKey[roster.tournament_key]
-          ? Math.round(
-              fantasyRosterTotalPoints(
-                tournamentDataByKey[roster.tournament_key]?.matches ?? [],
-                roster.division_key,
-                roster.picks.map((p) => ({
-                  playerName: p.player_name,
-                  isCaptain: p.is_captain,
-                })),
-              ) * 100,
-            ) / 100
-          : 0,
-      }));
+      const winter_fantasy_rosters_from_tourney = myFantasyTourneys.flatMap((lineup) => {
+        const tk = lineup.tournamentKey as TournamentKey;
+        const tournamentData = tournamentDataByKey[tk];
+        return lineup.eventPicks.map((ep) => {
+          const parsed = parseDivisionKey(ep.scheduleDivisionKey);
+          const cat = catMap.get(ep.eventKey);
+          const skill = parsed?.skill_level ?? cat?.skillLevel ?? "";
+          const wakiMult = Number(cat?.wakicashMultiplier ?? 1);
+          const wpsMult = Number(cat?.wakipointsMultiplier ?? 1);
+          const picks = ep.slots.map((p) => ({
+            slot_index: p.slotIndex,
+            player_name: p.playerName,
+            is_captain: p.isCaptain,
+            waki_cash: Math.ceil(playerWakiCashCost(skill, p.playerName) * wakiMult),
+          }));
+          const waki_cash_spent = picks.reduce((s, p) => s + p.waki_cash, 0);
+          return {
+            tournament_key: tk,
+            tournament_name: tournamentData?.summary.tournament_name ?? tk,
+            division_key: ep.scheduleDivisionKey,
+            event_type: parsed?.event_type ?? "",
+            skill_level: skill,
+            age_bracket: parsed?.age_bracket ?? "",
+            waki_cash_spent,
+            waki_cash_budget: lineup.wakicashBudget,
+            waki_lineup_complete: ep.slots.length === WINTER_FANTASY_ROSTER_SIZE,
+            picks,
+            wakipoints_multiplier: wpsMult,
+          };
+        });
+      });
+
+      const winter_fantasy_rosters = [
+        ...winter_fantasy_rosters_from_winter,
+        ...winter_fantasy_rosters_from_tourney.map(
+          ({ wakipoints_multiplier: _m, ...rest }) => rest as (typeof winter_fantasy_rosters_from_winter)[number],
+        ),
+      ];
+
+      const by_division = [
+        ...winter_fantasy_rosters_from_winter.map((roster) => ({
+          tournament_key: roster.tournament_key,
+          tournament_name: roster.tournament_name,
+          division_key: roster.division_key,
+          event_type: roster.event_type,
+          skill_level: roster.skill_level,
+          age_bracket: roster.age_bracket,
+          roster_points: tournamentDataByKey[roster.tournament_key]
+            ? Math.round(
+                fantasyRosterTotalPoints(
+                  tournamentDataByKey[roster.tournament_key]?.matches ?? [],
+                  roster.division_key,
+                  roster.picks.map((p) => ({
+                    playerName: p.player_name,
+                    isCaptain: p.is_captain,
+                  })),
+                ) * 100,
+              ) / 100
+            : 0,
+        })),
+        ...winter_fantasy_rosters_from_tourney.map((roster) => ({
+          tournament_key: roster.tournament_key,
+          tournament_name: roster.tournament_name,
+          division_key: roster.division_key,
+          event_type: roster.event_type,
+          skill_level: roster.skill_level,
+          age_bracket: roster.age_bracket,
+          roster_points: tournamentDataByKey[roster.tournament_key]
+            ? Math.round(
+                fantasyRosterTotalPoints(
+                  tournamentDataByKey[roster.tournament_key]?.matches ?? [],
+                  roster.division_key,
+                  roster.picks.map((p) => ({
+                    playerName: p.player_name,
+                    isCaptain: p.is_captain,
+                  })),
+                ) *
+                  roster.wakipoints_multiplier *
+                  100,
+              ) / 100
+            : 0,
+        })),
+      ];
       const total_fantasy_points =
         Math.round(by_division.reduce((s, d) => s + d.roster_points, 0) * 100) / 100;
-      const waki_cash_spent_total = winter_fantasy_rosters.reduce((s, r) => s + r.waki_cash_spent, 0);
+      const waki_cash_spent_total =
+        winter_fantasy_rosters_from_winter.reduce((s, r) => s + r.waki_cash_spent, 0) +
+        myFantasyTourneys.reduce((s, l) => s + l.wakicashSpent, 0);
       const waki_cash_budget_total =
-        winter_fantasy_rosters.filter((r) => r.waki_lineup_complete).length * WAKICASH_BUDGET_PER_LINEUP;
+        winter_fantasy_rosters_from_winter.filter((r) => r.waki_lineup_complete).length *
+          WAKICASH_BUDGET_PER_LINEUP +
+        myFantasyTourneys.length * WAKICASH_BUDGET_PER_LINEUP;
       const tournamentsWithSchedule = TOURNAMENT_KEYS.filter((k) => Boolean(tournamentDataByKey[k])).length;
       const tournamentOptions = listTournamentOptions();
       const tournament_schedules = TOURNAMENT_KEYS.map((k) => {
@@ -308,11 +406,36 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         waki_cash_budget_total,
         by_division,
         note:
-          "WakiPoints v3 rolls up across loaded tournament schedules. Engine uses winners, optional scores/seeds/stage text, medals, upset flags, and streak / division meta when data supports them. Each featured lineup uses 100 WakiCash (skill-based prices; captain 1.5× on WakiPoints).",
+          `WakiPoints v3 rolls up across loaded tournament schedules. Multi-event tournament lineups (when saved) replace legacy winter rosters for that tournament on this dashboard; tier A/B/C adjusts WakiCash and WakiPoints per event. Captain 1.5× per event. ${FANTASY_SEASON_V1.tieBreakerNote}`,
       };
 
+      const winterRowsForLeaderboard = allFantasyRows.filter((r) => {
+        const p = parseStoredDivisionKey(r.divisionKey);
+        if (!p) return false;
+        return !allFantasyTourneys.some((l) => l.userId === r.userId && l.tournamentKey === p.tournament_key);
+      });
+      const tourneyRowsForLeaderboard: FantasyRosterDbRow[] = allFantasyTourneys.flatMap((L) =>
+        L.eventPicks
+          .filter((ep) => ep.slots.length === WINTER_FANTASY_ROSTER_SIZE)
+          .map((ep) => {
+            const tk = L.tournamentKey as TournamentKey;
+            const cat = catMap.get(ep.eventKey);
+            return {
+              userId: L.userId,
+              divisionKey: toStoredDivisionKey(tk, ep.scheduleDivisionKey),
+              user: L.user,
+              picks: ep.slots.map((s) => ({
+                slotIndex: s.slotIndex,
+                playerName: s.playerName,
+                isCaptain: s.isCaptain,
+              })),
+              wakipointsMultiplier: Number(cat?.wakipointsMultiplier ?? 1),
+            };
+          }),
+      );
+
       const leaderboardRanked = computeFantasyLeaderboard(
-        allFantasyRows as FantasyRosterDbRow[],
+        [...winterRowsForLeaderboard, ...tourneyRowsForLeaderboard] as FantasyRosterDbRow[],
         tournamentDataByKey,
       );
       const rank_players_count = leaderboardRanked.length;
@@ -354,7 +477,14 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         payload.sub,
         user.displayName,
         total_fantasy_points,
-        winter_fantasy_rosters,
+        [
+          ...winter_fantasy_rosters_from_winter,
+          ...winter_fantasy_rosters_from_tourney.map(({ picks, wakipoints_multiplier, ...r }) => ({
+            ...r,
+            picks,
+            wakipoints_multiplier,
+          })),
+        ],
         tournamentDataByKey,
         leaderboardRanked,
         5,

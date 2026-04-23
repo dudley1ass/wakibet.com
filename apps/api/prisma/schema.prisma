@@ -30,7 +30,10 @@ model User {
   contestEntries         ContestEntry[]
   sessions               Session[]
   notifications          Notification[]
-  winterFantasyRosters   WinterFantasyRoster[]
+  winterFantasyRosters       WinterFantasyRoster[]
+  fantasyTournamentLineups FantasyTournamentLineup[]
+  wfRosters                WfRoster[]
+  wfSeasonScores           WfSeasonScore[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -65,6 +68,354 @@ model WinterFantasyPick {
 
   @@unique([rosterId, slotIndex])
   @@index([rosterId])
+}
+
+/** Season / multi-event fantasy: one submission per user per tournament (see docs/fantasy-tournament-lineups-spec.md). */
+model FantasyTournamentLineup {
+  id             String                       @id @default(cuid())
+  userId         String
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournamentKey  String
+  seasonKey      String                       @default("")
+  wakicashBudget Int                          @default(100)
+  wakicashSpent  Int                          @default(0)
+  status         String                       @default("active")
+  eventPicks     FantasyTournamentEventPick[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tournamentKey, seasonKey])
+  @@index([userId])
+}
+
+model FantasyTournamentEventPick {
+  id                   String                           @id @default(cuid())
+  lineupId             String
+  lineup               FantasyTournamentLineup          @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  slotIndex            Int
+  eventKey             String
+  eventLabelRaw        String
+  eventLabelDisplay    String?
+  format               String                           @default("unknown")
+  scheduleDivisionKey  String
+  tierCodeAtSave       String?
+  firstMatchStartsAt   DateTime?
+  lockedAt             DateTime?
+  slots                FantasyTournamentEventPickSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([lineupId, eventKey])
+  @@unique([lineupId, slotIndex])
+  @@index([lineupId])
+}
+
+model FantasyTournamentEventPickSlot {
+  id          String                   @id @default(cuid())
+  eventPickId String
+  eventPick   FantasyTournamentEventPick @relation(fields: [eventPickId], references: [id], onDelete: Cascade)
+  slotIndex   Int
+  playerName  String
+  isCaptain   Boolean                  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@unique([eventPickId, slotIndex])
+  @@index([eventPickId])
+}
+
+/** Cached schedule bucket metadata for fantasy tournament picker + locks + tiers. */
+model TournamentEventCatalog {
+  id                   String    @id @default(cuid())
+  tournamentKey        String
+  eventKey             String
+  scheduleDivisionKey  String
+  eventType            String
+  skillLevel           String
+  ageBracket           String
+  labelRaw             String
+  labelDisplay         String?
+  format               String    @default("unknown")
+  tierCode             String    @default("B")
+  wakicashMultiplier   Decimal   @default(1) @db.Decimal(10, 4)
+  wakipointsMultiplier Decimal   @default(1) @db.Decimal(10, 4)
+  isSelectable         Boolean   @default(true)
+  matchCount           Int
+  entityCount          Int
+  firstMatchStartsAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tournamentKey, eventKey])
+  @@index([tournamentKey])
+}
+
+// ============ WAKI BRACKET FANTASY (normalized; phases 1–3) ============
+// Prefix Wf* avoids clashing with DFS models: Tournament, Player, Match, Lineup.
+
+model WfTournament {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  name       String
+  source     String   @default("manual")
+  location   String?
+  startDate  DateTime @db.Date
+  endDate    DateTime @db.Date
+  seasonYear Int
+  status     String   @default("upcoming")
+
+  events  WfTournamentEvent[]
+  rosters WfRoster[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([seasonYear])
+  @@index([status])
+}
+
+model WfTournamentEvent {
+  id                 String    @id @default(cuid())
+  tournamentId       String
+  tournament         WfTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  rawLabel           String
+  normalizedKey      String
+  eventType          String
+  skillLabel         String?
+  ageBracket         String?
+  tier               String    @default("B")
+  featured           Boolean   @default(false)
+  lockAt             DateTime?
+  matchCountEstimate Int?
+  teamCount          Int?
+  status             String    @default("upcoming")
+
+  entries            WfPersonEventEntry[]
+  teams              WfDoublesTeam[]
+  fantasyPrices      WfFantasyPrice[]
+  rosterSelections   WfRosterSelection[]
+  bracketMatches     WfBracketMatch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tournamentId, normalizedKey])
+  @@index([tournamentId])
+}
+
+/// Scraped / import identity for bracket fantasy (separate from DFS `Player`).
+model WfPerson {
+  id       String  @id @default(cuid())
+  fullName String
+  gender   String?
+  age      Int?
+  city     String?
+  state    String?
+
+  eventEntries     WfPersonEventEntry[]
+  teamsAsPlayer1   WfDoublesTeam[]      @relation("WfDoublesTeamPlayer1")
+  teamsAsPlayer2   WfDoublesTeam[]      @relation("WfDoublesTeamPlayer2")
+  fantasyPrices    WfFantasyPrice[]
+  rosterSelections WfRosterSelection[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fullName])
+}
+
+model WfPersonEventEntry {
+  id                String           @id @default(cuid())
+  tournamentEventId String
+  tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
+  personId          String
+  person            WfPerson         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  partnerNameRaw    String?
+  teamId            String?
+  team              WfDoublesTeam?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  sourceStatus      String           @default("registered")
+  seed              Int?
+
+  bracketAsEntry1       WfBracketMatch[] @relation("WfBracketMatchEntry1")
+  bracketAsEntry2       WfBracketMatch[] @relation("WfBracketMatchEntry2")
+  bracketWinnerAsPlayer WfBracketMatch[] @relation("WfBracketMatchWinnerEntry")
+
+  createdAt DateTime @default(now())
+
+  @@unique([tournamentEventId, personId])
+  @@index([tournamentEventId])
+  @@index([teamId])
+}
+
+model WfDoublesTeam {
+  id                String           @id @default(cuid())
+  tournamentEventId String
+  tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
+  teamKey           String
+  player1Id         String
+  player1           WfPerson         @relation("WfDoublesTeamPlayer1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2Id         String?
+  player2           WfPerson?        @relation("WfDoublesTeamPlayer2", fields: [player2Id], references: [id], onDelete: SetNull)
+  displayName       String
+
+  entries            WfPersonEventEntry[]
+  fantasyPrices      WfFantasyPrice[]
+  rosterSelections   WfRosterSelection[]
+  bracketAsTeam1     WfBracketMatch[]    @relation("WfBracketMatchTeam1")
+  bracketAsTeam2     WfBracketMatch[]    @relation("WfBracketMatchTeam2")
+  bracketWinnerTeams WfBracketMatch[]    @relation("WfBracketMatchWinnerTeam")
+
+  createdAt DateTime @default(now())
+
+  @@unique([tournamentEventId, teamKey])
+  @@unique([tournamentEventId, player1Id, player2Id])
+  @@index([tournamentEventId])
+}
+
+/// Singles: `teamId` null. Doubles: `personId` null. Enforce in app / DB CHECK in migration.
+model WfFantasyPrice {
+  id                String           @id @default(cuid())
+  tournamentEventId String
+  tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
+  personId          String?
+  person            WfPerson?        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  teamId            String?
+  team              WfDoublesTeam?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  baseCost          Int
+  adjustmentCost    Int              @default(0)
+  finalCost         Int
+
+  createdAt DateTime @default(now())
+
+  @@index([tournamentEventId])
+  @@index([personId])
+  @@index([teamId])
+}
+
+/// One roster shell per user per `WfTournament` (parallel to string-key `FantasyTournamentLineup` until merged).
+model WfRoster {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournamentId      String
+  tournament          WfTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  budgetTotal         Int      @default(100)
+  budgetUsed          Int      @default(0)
+  maxEventSelections  Int      @default(5)
+  submittedAt         DateTime?
+
+  selections  WfRosterSelection[]
+  cachedScore WfRosterScore?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tournamentId])
+  @@index([userId])
+  @@index([tournamentId])
+}
+
+model WfRosterSelection {
+  id                String           @id @default(cuid())
+  rosterId          String
+  roster            WfRoster         @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  tournamentEventId String
+  tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
+  personId          String?
+  person            WfPerson?        @relation(fields: [personId], references: [id], onDelete: SetNull)
+  teamId            String?
+  team              WfDoublesTeam?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  costPaid          Int
+  isCaptain         Boolean          @default(false)
+  lockedAt          DateTime?
+
+  scoringEvents WfScoringEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rosterId, tournamentEventId])
+  @@index([rosterId])
+}
+
+model WfBracketMatch {
+  id                String           @id @default(cuid())
+  tournamentEventId String
+  tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
+  roundLabel        String
+
+  team1Id String?
+  team1   WfDoublesTeam? @relation("WfBracketMatchTeam1", fields: [team1Id], references: [id], onDelete: SetNull)
+  team2Id String?
+  team2   WfDoublesTeam? @relation("WfBracketMatchTeam2", fields: [team2Id], references: [id], onDelete: SetNull)
+
+  player1EntryId String?
+  player1Entry   WfPersonEventEntry? @relation("WfBracketMatchEntry1", fields: [player1EntryId], references: [id], onDelete: SetNull)
+  player2EntryId String?
+  player2Entry   WfPersonEventEntry? @relation("WfBracketMatchEntry2", fields: [player2EntryId], references: [id], onDelete: SetNull)
+
+  winnerTeamId String?
+  winnerTeam   WfDoublesTeam? @relation("WfBracketMatchWinnerTeam", fields: [winnerTeamId], references: [id], onDelete: SetNull)
+
+  winnerPlayerEntryId String?
+  winnerPlayerEntry     WfPersonEventEntry? @relation("WfBracketMatchWinnerEntry", fields: [winnerPlayerEntryId], references: [id], onDelete: SetNull)
+
+  scoreText   String?
+  status      String    @default("scheduled")
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  scoringEvents WfScoringEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tournamentEventId])
+  @@index([status])
+}
+
+model WfScoringEvent {
+  id                 String            @id @default(cuid())
+  rosterSelectionId  String
+  rosterSelection    WfRosterSelection @relation(fields: [rosterSelectionId], references: [id], onDelete: Cascade)
+  bracketMatchId     String?
+  bracketMatch       WfBracketMatch?   @relation(fields: [bracketMatchId], references: [id], onDelete: SetNull)
+  eventCode          String
+  points             Int
+  description        String
+
+  createdAt DateTime @default(now())
+
+  @@index([rosterSelectionId])
+  @@index([bracketMatchId])
+}
+
+model WfRosterScore {
+  id                String   @id @default(cuid())
+  rosterId          String   @unique
+  roster            WfRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  tournamentPoints  Int      @default(0)
+  rankInTournament  Int?
+
+  updatedAt DateTime @updatedAt
+}
+
+model WfSeasonScore {
+  id                  String @id @default(cuid())
+  userId              String
+  user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seasonYear          Int
+  totalPoints         Int    @default(0)
+  tournamentsEntered Int   @default(0)
+  currentRank         Int?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, seasonYear])
+  @@index([seasonYear])
 }
 
 model Session {

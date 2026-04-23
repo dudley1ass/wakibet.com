@@ -34,7 +34,9 @@ function recomputeRank(board: LeaderRow[], userId: string, newPoints: number): n
   next.sort((a, b) => {
     const d = b.points - a.points;
     if (d !== 0) return d;
-    return a.display_name.localeCompare(b.display_name);
+    const dn = a.display_name.localeCompare(b.display_name, undefined, { sensitivity: "base" });
+    if (dn !== 0) return dn;
+    return a.user_id.localeCompare(b.user_id);
   });
   let rank = 0;
   for (let i = 0; i < next.length; i++) {
@@ -70,6 +72,8 @@ export function buildWhatIfScenarios(
     skill_level: string;
     age_bracket: string;
     picks: { player_name: string; is_captain: boolean }[];
+    /** Optional tier multiplier (fantasy tournament events). */
+    wakipoints_multiplier?: number;
   }[],
   tournamentDataByKey: Record<TournamentKey, WinterData | null | undefined>,
   leaderboardRows: { user_id: string; display_name: string; points: number; rank: number }[],
@@ -101,7 +105,9 @@ export function buildWhatIfScenarios(
       isCaptain: p.is_captain,
     }));
 
-    const baseRoster = winterFantasyRosterTotalFromPicks(divMatches, picksDb);
+    const mult = roster.wakipoints_multiplier ?? 1;
+    const baseRoster =
+      Math.round(winterFantasyRosterTotalFromPicks(divMatches, picksDb) * mult * 100) / 100;
     const divLabel = `${roster.event_type} / ${roster.skill_level} · ${roster.age_bracket}`;
 
     for (const pick of roster.picks) {
@@ -120,7 +126,8 @@ export function buildWhatIfScenarios(
       ) => {
         const syn = syntheticMatchWithWinner(next, side);
         const aug = replaceMatchWithOutcome(divMatches, next.match_id, syn);
-        const rosterAfter = winterFantasyRosterTotalFromPicks(aug, picksDb);
+        const rosterAfter =
+          Math.round(winterFantasyRosterTotalFromPicks(aug, picksDb) * mult * 100) / 100;
         const rosterDelta = Math.round((rosterAfter - baseRoster) * 100) / 100;
         if (rosterDelta === 0) return;
 

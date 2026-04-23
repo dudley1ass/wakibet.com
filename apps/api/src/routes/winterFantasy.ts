@@ -23,9 +23,9 @@ import {
   toStoredDivisionKey,
   uniquePlayersInMatches,
 } from "../lib/winterSpringsData.js";
+import { ROSTER_EDIT_LOCK_MS } from "../lib/fantasyConstants.js";
 
 const ErrorMessage = z.object({ message: z.string() });
-const ROSTER_EDIT_LOCK_MS = 60 * 60 * 1000;
 
 async function userIdFromBearer(authHeader: string | undefined): Promise<string | null> {
   if (!authHeader?.startsWith("Bearer ")) return null;

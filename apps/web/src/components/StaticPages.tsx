@@ -323,3 +323,70 @@ export function ScoringTablePage() {
     </StaticLayout>
   );
 }
+
+export function FantasyRulesPage() {
+  return (
+    <StaticLayout title="How fantasy works (v1)">
+      <p>
+        WakiBet fantasy is <strong>season-long WakiPoints</strong>: you pick players who earn points from real
+        schedule results. These rules are what the app enforces today.
+      </p>
+
+      <h3>WakiCash</h3>
+      <ul>
+        <li>
+          <strong>Tournament fantasy:</strong> you get <strong>100 WakiCash per tournament</strong> to spend across
+          up to <strong>five events</strong> in that tournament. Stronger events (tier A) cost a bit more; weaker ones
+          (tier C) cost less.
+        </li>
+        <li>
+          <strong>Division fantasy (classic):</strong> still 100 WakiCash per featured division lineup.
+        </li>
+        <li>Prices scale with skill band and a stable hash so every pool has stars and sleepers.</li>
+      </ul>
+
+      <h3>What you pick (tournament mode)</h3>
+      <ul>
+        <li>Up to <strong>five different events</strong> per tournament — <strong>fewer is allowed</strong>; empty slots
+          are fine.</li>
+        <li>Each saved event needs <strong>five different players</strong> from that event’s schedule and{" "}
+          <strong>one captain</strong> (captain scores 1.5× on that event).</li>
+        <li>
+          The <strong>same player cannot appear twice</strong> in one tournament lineup, even across two events.
+        </li>
+        <li>Doubles brackets still use <strong>individual player names</strong> from the draw (no separate “team” pick
+          yet).</li>
+      </ul>
+
+      <h3>Locks</h3>
+      <ul>
+        <li>Each <strong>event locks on its own</strong> one hour before its first listed match time.</li>
+        <li>After lock, that event’s lineup cannot change; <strong>other events in the same tournament</strong> can
+          still be edited until they lock.</li>
+        <li>Times come from the tournament schedule we import; if a start time moves, the lock window moves with it
+          until you are locked.</li>
+      </ul>
+
+      <h3>Which events you can play</h3>
+      <ul>
+        <li>Only <strong>featured-quality</strong> brackets appear in the picker (enough players and matches).</li>
+        <li>Events can be tier <strong>A / B / C</strong> for price and WakiPoints weighting.</li>
+      </ul>
+
+      <h3>Season score & ties</h3>
+      <ul>
+        <li>Your season total is the <strong>sum of WakiPoints</strong> from all your lineups on loaded schedules.</li>
+        <li>Skip a tournament → <strong>0 points</strong> for that stop (no penalty row).</li>
+        <li>
+          <strong>Tie-breakers:</strong> higher points first; if tied, alphabetical display name; if still tied,
+          internal account order. Same points can share the same rank.
+        </li>
+      </ul>
+
+      <p className="scoring-foot">
+        For scoring line items, see <a href="/scoring-table">Scoring table</a>. For builders, the full machine-readable
+        policy is in the repo file <code>docs/fantasy-rules-v1.md</code>.
+      </p>
+    </StaticLayout>
+  );
+}

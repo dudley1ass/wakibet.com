@@ -7,6 +7,7 @@ import PickTeamsPage from "./components/PickTeamsPage";
 import RostersPage from "./components/RostersPage";
 import {
   ContactPage,
+  FantasyRulesPage,
   PrivacyPage,
   ResponsiblePlayPage,
   ScoringTablePage,
@@ -117,6 +118,17 @@ function App() {
       <div className="app-shell">
         <div className="app-main">
           <ScoringTablePage />
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (path === "/fantasy-rules") {
+    return (
+      <div className="app-shell">
+        <div className="app-main">
+          <FantasyRulesPage />
         </div>
         <SiteFooter />
       </div>

@@ -339,6 +339,10 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
         <a href="/scoring-table" className="wf-scoring-link">
           full scoring table
         </a>
+        {" · "}
+        <a href="/fantasy-rules" className="wf-scoring-link">
+          how fantasy works
+        </a>
         .
       </p>
 

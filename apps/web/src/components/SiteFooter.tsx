@@ -25,6 +25,7 @@ export default function SiteFooter() {
           <a href="/terms">Terms of Use</a>
           <a href="/privacy">Privacy Policy</a>
           <a href="/scoring-table">Scoring Table</a>
+          <a href="/fantasy-rules">How fantasy works</a>
           <a href="/rosters">My Rosters</a>
           <a href="/pick-teams">Pick / Edit Teams</a>
           <a href="/contact">Contact</a>

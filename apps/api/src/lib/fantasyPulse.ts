@@ -20,6 +20,8 @@ export type FantasyRosterDbRow = {
   divisionKey: string;
   user: { displayName: string };
   picks: PickRow[];
+  /** Phase 2: tier weight on catalog rows (default 1). */
+  wakipointsMultiplier?: number;
 };
 
 function headlineForBreakdownLabel(label: string, pts: number): string {
@@ -121,13 +123,16 @@ export function computeFantasyLeaderboard(
     const data = tournamentDataByKey[parsedStored.tournament_key];
     if (!data?.matches) continue;
     if (!isDivisionFeaturedFromMatches(data.matches, parsedStored.division_key)) continue;
+    const mult = r.wakipointsMultiplier ?? 1;
     const pts =
       Math.round(
         fantasyRosterTotalPoints(
           data.matches,
           parsedStored.division_key,
           r.picks.map((p) => ({ playerName: p.playerName, isCaptain: p.isCaptain })),
-        ) * 100,
+        ) *
+          mult *
+          100,
       ) / 100;
     const cur = map.get(r.userId) ?? { display_name: r.user.displayName, points: 0 };
     cur.points = Math.round((cur.points + pts) * 100) / 100;
@@ -137,7 +142,9 @@ export function computeFantasyLeaderboard(
   const sorted = [...map.entries()].sort((a, b) => {
     const dp = b[1].points - a[1].points;
     if (dp !== 0) return dp;
-    return a[1].display_name.localeCompare(b[1].display_name);
+    const dn = a[1].display_name.localeCompare(b[1].display_name, undefined, { sensitivity: "base" });
+    if (dn !== 0) return dn;
+    return a[0].localeCompare(b[0]);
   });
 
   let rank = 0;
