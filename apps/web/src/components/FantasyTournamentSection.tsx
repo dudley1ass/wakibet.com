@@ -381,7 +381,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                 if (!n) return sum;
                 return sum + Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
               }, 0) ?? 0;
-            const slotAvailable = Math.max(0, budget - (totalSpendPreview - slotSpend));
+            const slotAvailable = Math.max(0, budget - slotSpend);
             return (
               <div key={slotIndex} className="dash-card" style={{ marginBottom: 12, padding: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -394,15 +394,22 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                     </button>
                   ) : null}
                 </div>
-                <p className="dash-sub wf-meta" style={{ marginTop: 6 }}>
-                  WakiCash available for this event: <strong>{slotAvailable}</strong>
-                  {sl ? (
-                    <>
-                      {" "}
-                      · used in this event: <strong>{slotSpend}</strong>
-                    </>
-                  ) : null}
-                </p>
+                <div
+                  className="dash-sub wf-meta"
+                  style={{
+                    marginTop: 8,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    gap: 12,
+                  }}
+                >
+                  <span>WakiCash left in this event</span>
+                  <strong style={{ fontSize: "1.1rem", fontWeight: 800 }}>
+                    {slotAvailable} WC
+                  </strong>
+                  {sl ? <span>used: {slotSpend} WC</span> : null}
+                </div>
                 {!sl ? (
                   <div className="wf-row" style={{ marginTop: 8 }}>
                     <label className="wf-label" htmlFor={`ft-ev-${slotIndex}`}>

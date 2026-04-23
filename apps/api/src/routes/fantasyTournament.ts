@@ -396,7 +396,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         }
         if (!cat.isSelectable) {
           return reply.code(400).send({
-            message: "This event is not selectable for fantasy (small field / non-featured).",
+            message: "This event is not selectable for fantasy. Events must have at least 6 teams/players to be eligible.",
           } as const);
         }
         const divMatches = filterMatchesForDivision(data.matches, cat.scheduleDivisionKey);

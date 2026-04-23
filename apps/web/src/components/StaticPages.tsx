@@ -369,7 +369,7 @@ export function FantasyRulesPage() {
 
       <h3>Which events you can play</h3>
       <ul>
-        <li>Only <strong>featured-quality</strong> brackets appear in the picker (enough players and matches).</li>
+        <li>Only events with at least <strong>6 teams/players</strong> appear in the picker.</li>
         <li>Events can be tier <strong>A / B / C</strong> for price and WakiPoints weighting.</li>
       </ul>
 

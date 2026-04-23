@@ -186,7 +186,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
         return reply.code(400).send({
           message:
-            "This division is not open for fantasy. We only use featured divisions: 5+ players, or 4 players with at least 6 schedule matches.",
+            "This division is not open for fantasy. Events must have at least 6 teams/players to be eligible.",
         } as const);
       }
       const parsed = parseDivisionKey(division_key);
@@ -319,7 +319,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
         return reply.code(400).send({
           message:
-            "This division is not open for fantasy. Featured divisions only: 5+ players, or 4 players with at least 6 schedule matches.",
+            "This division is not open for fantasy. Events must have at least 6 teams/players to be eligible.",
         } as const);
       }
       const divisionMatches = filterMatchesForDivision(data.matches, division_key);
@@ -433,7 +433,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       if (!isDivisionFeaturedFromMatches(data.matches, division_key)) {
         return reply.code(400).send({
           message:
-            "This division is not open for fantasy. Featured divisions only: 5+ players, or 4 players with at least 6 schedule matches.",
+            "This division is not open for fantasy. Events must have at least 6 teams/players to be eligible.",
         } as const);
       }
       const divMatches = filterMatchesForDivision(data.matches, division_key) as WinterJsonMatch[];

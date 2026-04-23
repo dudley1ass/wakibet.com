@@ -313,27 +313,6 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
 
   return (
     <section className={sectionClass}>
-      {pageLayout ? (
-        <div className="wf-page-hero">
-          <div className="wf-page-hero-kicker">Lineup builder</div>
-          <h2 className="wf-page-title">Pick / Edit Teams</h2>
-          <p className="wf-page-lead">
-            Choose a tournament, then narrow by <strong>event</strong>, <strong>skill level</strong>, and{" "}
-            <strong>age group</strong>. Only featured divisions (full enough schedules) are listed. Build with{" "}
-            <strong>{WAKICASH_BUDGET_PER_LINEUP} WakiCash</strong> — five players, one captain, prices scale with
-            division skill (stars cost more; sleepers stay cheap).
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="dash-label">Division lineup builder</div>
-          <p className="dash-sub wf-lead">
-            Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
-            <strong>6+</strong> generated matches. Pick {rosterSize} players per division under{" "}
-            <strong>{WAKICASH_BUDGET_PER_LINEUP} WakiCash</strong> (max two 32+ players, at least one 16 or less).
-          </p>
-        </>
-      )}
       <p className="dash-sub wf-lead" style={{ marginTop: pageLayout ? 8 : 6 }}>
         WakiPoints rules:{" "}
         <a href="/scoring-table" className="wf-scoring-link">
