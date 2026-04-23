@@ -141,7 +141,8 @@ export default function HostPersonaPanel({ user, path, layout }: Props) {
       alive = false;
       clearAll();
     };
-  }, [open, user, path, preview, pulse]);
+    // Primitives + preview/pulse — avoids restarting the pump if a parent re-wraps `user`.
+  }, [open, user.user_id, user.display_name, user.email, path, preview, pulse]);
 
   const rootClass = "hp-root hp-root--column";
 

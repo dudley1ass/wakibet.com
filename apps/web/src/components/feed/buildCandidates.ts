@@ -6,6 +6,8 @@ import type { FeedMessage, FeedMessageType, FeedPriority, MessageSource } from "
 import type { FeedEngineContext } from "./context";
 import {
   HOT_STREAK_LINES,
+  IDLE_WHILE_LOADING_LINES,
+  IDLE_WHILE_QUIET_LINES,
   LOCK_LINES,
   OPEN_SLOT_LINES,
   PICK_PRAISE_LINES,
@@ -227,6 +229,17 @@ export function buildCandidateMessages(ctx: FeedEngineContext): FeedMessage[] {
         { dedupeKey: "nav-hint-offhub" },
       ),
     );
+  }
+
+  /* No dedupeKey: otherwise a single “loading” key blocks forever while preview stays null. */
+  if (out.length === 0) {
+    if (ctx.preview == null) {
+      out.push(baseMsg("SYSTEM_HINT", pick(IDLE_WHILE_LOADING_LINES), "medium", "system"));
+    } else {
+      out.push(
+        baseMsg("SYSTEM_HINT", pick(IDLE_WHILE_QUIET_LINES(ctx.firstName)), "medium", "system"),
+      );
+    }
   }
 
   return out;

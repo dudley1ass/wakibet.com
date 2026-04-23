@@ -51,6 +51,21 @@ export const SYSTEM_HINT_LINES = [
   "Scoring table is the source of truth for every line in What Happens Next.",
 ];
 
+/** Shown when dashboard JSON is not ready yet — keeps the ticker from looking broken. */
+export const IDLE_WHILE_LOADING_LINES = [
+  "Pulling your winter fantasy snapshot… almost there.",
+  "Syncing ranks and lineups with the server — one moment.",
+  "Loading your pulse card — hang tight.",
+];
+
+/** Shown when data is loaded but no trigger fired (quiet board, finished lineups, etc.). */
+export const IDLE_WHILE_QUIET_LINES = (firstName: string) => [
+  `${firstName}, the board is quiet — next headlines land when results post.`,
+  `No urgent signals right now — ${firstName}, you’re caught up until the next match.`,
+  `${firstName}, lineups look set; this feed will light up again on rank and result swings.`,
+  "Fantasy pulse is steady — check Pick / Edit Teams before lock if you want one more tweak.",
+];
+
 export function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;
 }
