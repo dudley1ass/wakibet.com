@@ -1,8 +1,10 @@
 import {
   nextUndecidedMatchForPlayer,
   replaceMatchWithOutcome,
+  scoreWinterPlayerFromMatches,
   syntheticMatchWithWinner,
   winterFantasyRosterTotalFromPicks,
+  WINTER_FANTASY_RULES,
   type MatchWinnerSide,
   type WinterJsonMatch,
 } from "@wakibet/shared";
@@ -20,6 +22,11 @@ export type WhatIfScenario = {
   event_date: string;
   /** WakiPoints change for this division roster only (captain rules applied via engine). */
   roster_waki_delta: number;
+  /**
+   * Change for the scenario headline player only (same match can move other rostered players too).
+   * Use this for "If {name} wins/loses" display; see roster_waki_delta for full lineup net.
+   */
+  scenario_player_delta: number;
   /** Same as roster delta for this user (only one division touched per scenario). */
   season_waki_delta: number;
   rank_before: number | null;
@@ -119,6 +126,8 @@ export function buildWhatIfScenarios(
       const winSide: MatchWinnerSide = next.player_a === nm ? "player_a" : "player_b";
       const loseSide: MatchWinnerSide = winSide === "player_a" ? "player_b" : "player_a";
 
+      const pickCfg = picksDb.find((p) => p.playerName === nm);
+
       const pushScenario = (
         kind: "win_next" | "lose_next",
         side: MatchWinnerSide,
@@ -129,7 +138,16 @@ export function buildWhatIfScenarios(
         const rosterAfter =
           Math.round(winterFantasyRosterTotalFromPicks(aug, picksDb) * mult * 100) / 100;
         const rosterDelta = Math.round((rosterAfter - baseRoster) * 100) / 100;
-        if (rosterDelta === 0) return;
+
+        let scenarioPlayerDelta = 0;
+        if (pickCfg) {
+          const beforeP = scoreWinterPlayerFromMatches(nm, divMatches).total;
+          const afterP = scoreWinterPlayerFromMatches(nm, aug).total;
+          const cap = pickCfg.isCaptain ? WINTER_FANTASY_RULES.captainMultiplier : 1;
+          scenarioPlayerDelta = Math.round((afterP * cap - beforeP * cap) * mult * 100) / 100;
+        }
+
+        if (Math.abs(rosterDelta) < 1e-9 && Math.abs(scenarioPlayerDelta) < 1e-9) return;
 
         const seasonDelta = rosterDelta;
         const newSeason = Math.round((currentSeasonPoints + seasonDelta) * 100) / 100;
@@ -147,6 +165,7 @@ export function buildWhatIfScenarios(
           opponent: opp,
           event_date: next.event_date,
           roster_waki_delta: rosterDelta,
+          scenario_player_delta: scenarioPlayerDelta,
           season_waki_delta: seasonDelta,
           rank_before: rankBefore,
           rank_after: ra,
@@ -159,6 +178,10 @@ export function buildWhatIfScenarios(
     }
   }
 
-  out.sort((a, b) => Math.abs(b.season_waki_delta) - Math.abs(a.season_waki_delta));
+  out.sort((a, b) => {
+    const ma = Math.max(Math.abs(a.roster_waki_delta), Math.abs(a.scenario_player_delta));
+    const mb = Math.max(Math.abs(b.roster_waki_delta), Math.abs(b.scenario_player_delta));
+    return mb - ma;
+  });
   return out.slice(0, maxScenarios);
 }

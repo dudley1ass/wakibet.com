@@ -158,6 +158,7 @@ const DashboardResponse = z.object({
       opponent: z.string(),
       event_date: z.string(),
       roster_waki_delta: z.number(),
+      scenario_player_delta: z.number(),
       season_waki_delta: z.number(),
       rank_before: z.number().nullable(),
       rank_after: z.number().nullable(),
