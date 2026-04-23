@@ -313,26 +313,11 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
 
   return (
     <section className={sectionClass}>
-      <p className="dash-sub wf-lead" style={{ marginTop: pageLayout ? 8 : 6 }}>
-        WakiPoints rules:{" "}
-        <a href="/scoring-table" className="wf-scoring-link">
-          full scoring table
-        </a>
-        {" · "}
-        <a href="/fantasy-rules" className="wf-scoring-link">
-          how fantasy works
-        </a>
-        .
-      </p>
-
       {loadingMeta && <p className="dash-empty">Loading divisions…</p>}
       {metaErr && <p className="dash-error">{metaErr}</p>}
 
       {meta && !loadingMeta && (
         <>
-          <div className="dash-sub wf-meta">
-            {meta.tournament_name} · rules v{meta.scoring_version}
-          </div>
           <div className="wf-row">
             <label className="wf-label" htmlFor="wf-tournament">
               Tournament
