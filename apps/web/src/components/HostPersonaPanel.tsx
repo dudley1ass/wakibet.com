@@ -124,8 +124,12 @@ export default function HostPersonaPanel({ user, path, layout }: Props) {
 
       const tid = window.setTimeout(() => {
         if (!alive) return;
-        const next = pullNext();
-        if (next) pushOne(next);
+        try {
+          const next = pullNext();
+          if (next) pushOne(next);
+        } catch {
+          /* keep pump alive if feed context ever throws on partial data */
+        }
         schedulePump();
       }, delay);
       timersRef.current.push(tid);

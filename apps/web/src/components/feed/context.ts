@@ -70,8 +70,9 @@ export function buildFeedContext(
   preview: DashboardData | null,
   pulse: Pulse | null,
 ): FeedEngineContext {
-  const openSlotCount =
-    preview?.winter_fantasy_rosters.filter((r) => !r.waki_lineup_complete || r.picks.length < 5).length ?? 0;
+  const openSlotCount = (preview?.winter_fantasy_rosters ?? []).filter(
+    (r) => !r.waki_lineup_complete || (r.picks?.length ?? 0) < 5,
+  ).length;
 
   let nextMatchMinutes: number | null = null;
   let nextMatchLabel: string | null = null;
@@ -79,8 +80,8 @@ export function buildFeedContext(
   let lockBucket: 30 | 10 | 2 | null = null;
 
   if (preview) {
-    const upcoming = preview.tournament_schedules.flatMap((t) =>
-      t.my_upcoming_matches.map((m) => ({
+    const upcoming = (preview.tournament_schedules ?? []).flatMap((t) =>
+      (t.my_upcoming_matches ?? []).map((m) => ({
         ...m,
         tournament_name: t.tournament_name,
       })),
@@ -140,7 +141,7 @@ export function buildFeedContext(
     rank: pulse?.my_rank ?? null,
     rankPlayers: pulse?.rank_players_count ?? 0,
     rankDelta: pulse?.rank_change ?? null,
-    seasonPoints: preview?.fantasy_season.total_fantasy_points ?? 0,
+    seasonPoints: preview?.fantasy_season?.total_fantasy_points ?? 0,
     nextMatchMinutes,
     nextMatchLabel,
     nextMatchId,
