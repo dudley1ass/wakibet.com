@@ -418,35 +418,6 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         }
       }
 
-      const allNames = new Set<string>();
-      for (const ex of existingPicks) {
-        if (!isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) continue;
-        for (const s of ex.slots) {
-          const k = normName(s.playerName);
-          if (allNames.has(k)) {
-            return reply.code(400).send({
-              message: "Duplicate player across tournament lineup is not allowed.",
-            } as const);
-          }
-          allNames.add(k);
-        }
-      }
-      for (const inc of incoming) {
-        const ex = existingPicks.find((x) => x.eventKey === inc.event_key);
-        if (ex && isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
-          continue;
-        }
-        for (const p of inc.picks) {
-          const k = normName(p.player_name);
-          if (allNames.has(k)) {
-            return reply.code(400).send({
-              message: "Duplicate player across tournament lineup is not allowed.",
-            } as const);
-          }
-          allNames.add(k);
-        }
-      }
-
       let totalSpend = 0;
       for (const inc of incoming) {
         const cat = catalogByKey.get(inc.event_key)!;

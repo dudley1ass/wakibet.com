@@ -1,9 +1,11 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { playerWakiCashCost, WAKICASH_BUDGET_PER_LINEUP, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import {
   filterMatchesForDivision,
   isFeaturedWinterDivision,
   listDivisionsFromMatches,
   parseDivisionKey,
+  uniquePlayersInMatches,
   type TournamentKey,
   type WinterData,
   type WinterMatch,
@@ -48,6 +50,19 @@ export type TierAssignment = {
   isSelectable: boolean;
 };
 
+function isEventLineupFeasible(params: {
+  skillLevel: string;
+  wakicashMultiplier: number;
+  players: string[];
+}): boolean {
+  if (params.players.length < WINTER_FANTASY_ROSTER_SIZE) return false;
+  const costs = params.players
+    .map((name) => Math.ceil(playerWakiCashCost(params.skillLevel, name) * params.wakicashMultiplier))
+    .sort((a, b) => a - b);
+  const cheapestFive = costs.slice(0, WINTER_FANTASY_ROSTER_SIZE).reduce((s, c) => s + c, 0);
+  return cheapestFive <= WAKICASH_BUDGET_PER_LINEUP;
+}
+
 /**
  * Phase 2: tier + multipliers + selectable flag from division shape (featured gate matches winter fantasy).
  */
@@ -91,8 +106,15 @@ export async function syncTournamentEventCatalog(
     const fmt: EventFormatSlug = inferFormatFromEventType(d.event_type);
     const eventKey = buildEventKeyV1(tournamentKey, d.event_type, d.skill_level, d.age_bracket, fmt);
     const divMatches = filterMatchesForDivision(data.matches, d.division_key);
+    const eventPlayers = uniquePlayersInMatches(divMatches);
     const firstAt = firstMatchStartsAt(divMatches);
     const tier = assignTierForDivision(d);
+    const feasible = isEventLineupFeasible({
+      skillLevel: d.skill_level,
+      wakicashMultiplier: tier.wakicashMultiplier,
+      players: eventPlayers,
+    });
+    const isSelectable = tier.isSelectable && feasible;
     const labelDisplay = titleish(d);
 
     await prisma.tournamentEventCatalog.upsert({
@@ -110,7 +132,7 @@ export async function syncTournamentEventCatalog(
         tierCode: tier.tierCode,
         wakicashMultiplier: new Prisma.Decimal(tier.wakicashMultiplier),
         wakipointsMultiplier: new Prisma.Decimal(tier.wakipointsMultiplier),
-        isSelectable: tier.isSelectable,
+        isSelectable,
         matchCount: d.match_count,
         entityCount: d.player_count,
         firstMatchStartsAt: firstAt,
@@ -126,7 +148,7 @@ export async function syncTournamentEventCatalog(
         tierCode: tier.tierCode,
         wakicashMultiplier: new Prisma.Decimal(tier.wakicashMultiplier),
         wakipointsMultiplier: new Prisma.Decimal(tier.wakipointsMultiplier),
-        isSelectable: tier.isSelectable,
+        isSelectable,
         matchCount: d.match_count,
         entityCount: d.player_count,
         firstMatchStartsAt: firstAt,

@@ -27,6 +27,40 @@ function normalizePathname(p: string): string {
   return lower;
 }
 
+function isTransientBootError(e: unknown): boolean {
+  if (!(e instanceof Error)) return false;
+  const m = e.message.toLowerCase();
+  return (
+    m.includes("timed out") ||
+    m.includes("network") ||
+    m.includes("failed to fetch") ||
+    m.includes("fetch") ||
+    m.includes("503") ||
+    m.includes("502") ||
+    m.includes("504")
+  );
+}
+
+async function loadSessionWithRetry(): Promise<SessionUser> {
+  const delaysMs = [0, 800, 1500];
+  let lastErr: unknown = null;
+  for (let i = 0; i < delaysMs.length; i++) {
+    const delay = delaysMs[i]!;
+    if (delay > 0) {
+      await new Promise((r) => setTimeout(r, delay));
+    }
+    try {
+      return await apiGet<SessionUser>("/api/v1/auth/me");
+    } catch (e) {
+      lastErr = e;
+      if (!isTransientBootError(e) || i === delaysMs.length - 1) {
+        throw e;
+      }
+    }
+  }
+  throw lastErr ?? new Error("Could not load session.");
+}
+
 function App() {
   const path = normalizePathname(window.location.pathname);
   const [session, setSession] = useState<SessionUser | null>(null);
@@ -39,7 +73,7 @@ function App() {
       return;
     }
     setAccessToken(token);
-    apiGet<SessionUser>("/api/v1/auth/me")
+    loadSessionWithRetry()
       .then((me) =>
         setSession({
           user_id: me.user_id,

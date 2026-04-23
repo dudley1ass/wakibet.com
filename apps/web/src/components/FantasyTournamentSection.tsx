@@ -252,7 +252,6 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       picks: { player_name: string; is_captain: boolean }[];
     }[] = [];
 
-    const usedNames = new Set<string>();
     for (let s = 0; s < 5; s++) {
       const sl = slots[s];
       if (!sl) continue;
@@ -268,14 +267,6 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       if (sl.captainSlot === null) {
         setActionErr(`Event slot ${s + 1}: choose a captain.`);
         return;
-      }
-      for (const n of filled) {
-        const k = n.toLowerCase();
-        if (usedNames.has(k)) {
-          setActionErr("The same player cannot appear in two events in one tournament lineup.");
-          return;
-        }
-        usedNames.add(k);
       }
       const eventSpend = filled.reduce(
         (sum, player_name) =>
