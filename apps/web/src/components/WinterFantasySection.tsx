@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { playerWakiCashCost, validateWakiCashLineup, WAKICASH_BUDGET_PER_LINEUP } from "@wakibet/shared";
+import { playerWakiCashCost, validateWakiCashLineup } from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
 import "./dashboard.css";
 
@@ -116,28 +116,6 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
     );
     return row?.division_key ?? "";
   }, [divisions, eventType, skillLevel, ageBracket]);
-
-  const lineupWakiRows = useMemo(() => {
-    const rows: { player_name: string; is_captain: boolean; waki_cash: number }[] = [];
-    for (let i = 0; i < rosterSize; i++) {
-      const name = picks[i]?.trim();
-      if (!name) continue;
-      rows.push({
-        player_name: name,
-        is_captain: captainSlot === i,
-        waki_cash: playerWakiCashCost(skillLevel, name),
-      });
-    }
-    return rows;
-  }, [picks, rosterSize, skillLevel, captainSlot]);
-
-  const spendPreview = useMemo(() => lineupWakiRows.reduce((s, r) => s + r.waki_cash, 0), [lineupWakiRows]);
-
-  const wakiLint = useMemo(() => {
-    if (lineupWakiRows.length !== rosterSize) return { kind: "partial" as const };
-    const v = validateWakiCashLineup(lineupWakiRows);
-    return v.ok ? { kind: "ok" as const } : { kind: "err" as const, message: v.message };
-  }, [lineupWakiRows, rosterSize]);
 
   const loadDivisions = useCallback(async (nextTournamentKey: string) => {
     setMetaErr(null);

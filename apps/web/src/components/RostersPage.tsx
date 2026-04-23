@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiGet } from "../api";
 import type { SessionUser } from "../App";
 import type { DashboardData, FantasyRosterRow } from "./Dashboard";
@@ -31,6 +31,30 @@ export default function RostersPage({ user }: Props) {
   }, [load]);
 
   const rosters = data?.winter_fantasy_rosters ?? [];
+  const [tournamentFilter, setTournamentFilter] = useState<string>("__all__");
+
+  const tournamentOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of rosters) {
+      if (!map.has(r.tournament_key)) map.set(r.tournament_key, r.tournament_name);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [rosters]);
+
+  const filteredRosters = useMemo(() => {
+    if (tournamentFilter === "__all__") return rosters;
+    return rosters.filter((r) => r.tournament_key === tournamentFilter);
+  }, [rosters, tournamentFilter]);
+
+  useEffect(() => {
+    if (
+      tournamentFilter !== "__all__" &&
+      tournamentOptions.length > 0 &&
+      !tournamentOptions.some(([k]) => k === tournamentFilter)
+    ) {
+      setTournamentFilter("__all__");
+    }
+  }, [tournamentFilter, tournamentOptions]);
 
   return (
     <div className="rost-shell">
@@ -42,6 +66,24 @@ export default function RostersPage({ user }: Props) {
           </p>
         </div>
         <div className="rost-actions">
+          {rosters.length > 0 ? (
+            <label className="rost-filter">
+              <span className="rost-filter-label">Tournament</span>
+              <select
+                className="wf-select rost-filter-select"
+                value={tournamentFilter}
+                onChange={(e) => setTournamentFilter(e.target.value)}
+                disabled={loading}
+              >
+                <option value="__all__">All tournaments</option>
+                {tournamentOptions.map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <button type="button" className="dash-ghost-btn" onClick={() => void load()} disabled={loading}>
             {loading ? "Refreshing…" : "Refresh"}
           </button>
@@ -75,9 +117,15 @@ export default function RostersPage({ user }: Props) {
         </div>
       )}
 
-      {data && rosters.length > 0 && (
+      {data && rosters.length > 0 && filteredRosters.length === 0 && (
+        <p className="dash-sub" style={{ marginTop: 8 }}>
+          No rosters for this tournament. Choose another or <strong>All tournaments</strong>.
+        </p>
+      )}
+
+      {data && filteredRosters.length > 0 && (
         <ul className="rost-list">
-          {rosters.map((r) => (
+          {filteredRosters.map((r) => (
             <li key={`${r.tournament_key}-${r.division_key}`}>
               <RosterCard roster={r} pointsByDivision={data.fantasy_season.by_division} />
             </li>
@@ -116,15 +164,10 @@ function RosterCard({
           </div>
         </div>
         <div className="rost-card-head-side">
-          <div className="rost-wc-total" title="WakiCash for this tournament / event">
-            <div className="rost-wc-total-label">WakiCash</div>
-            <div className="rost-wc-total-val">
-              {roster.waki_cash_spent} / 100
-            </div>
-          </div>
           {pts != null ? (
             <div className="rost-pts" title="WakiPoints for this division roster">
-              {pts} <span className="rost-pts-label">WakiPoints</span>
+              {pts}
+              <span className="rost-pts-label">WakiPoints</span>
             </div>
           ) : null}
         </div>
@@ -144,9 +187,6 @@ function RosterCard({
             <li key={p.slot_index} className="rost-pick-row">
               <span className="rost-slot">#{p.slot_index + 1}</span>
               <span className="rost-name">{p.player_name}</span>
-              <span className="rost-wc" title="WakiCash for this player in this division">
-                {p.waki_cash ?? "—"} WC
-              </span>
               {p.is_captain ? <span className="rost-cap">Captain</span> : null}
             </li>
           ))}

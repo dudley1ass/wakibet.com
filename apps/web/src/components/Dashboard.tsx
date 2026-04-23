@@ -1,6 +1,7 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiGet } from "../api";
+﻿import { useMemo } from "react";
+import { WINTER_FANTASY_RULES } from "@wakibet/shared";
 import type { SessionUser } from "../App";
+import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import "./dashboard.css";
 
 export type FantasyRosterRow = {
@@ -108,12 +109,6 @@ type Props = {
   onLogout: () => void;
 };
 
-function formatRankChange(delta: number | null): string {
-  if (delta === null || delta === 0) return "—";
-  if (delta > 0) return `↑${delta}`;
-  return `↓${Math.abs(delta)}`;
-}
-
 function formatRankJump(before: number | null, after: number | null): string {
   if (before == null || after == null) return "Rank TBD";
   if (before === after) return `Stay ~#${before}`;
@@ -122,8 +117,34 @@ function formatRankJump(before: number | null, after: number | null): string {
 }
 
 function whatIfTitle(kind: "win_next" | "lose_next", player: string): string {
-  if (kind === "win_next") return `If ${player} Wins Next Match`;
-  return `If ${player} Loses Next Match`;
+  if (kind === "win_next") return `If ${player} wins next match`;
+  return `If ${player} loses next match`;
+}
+
+function whatIfDeltaCaption(
+  kind: "win_next" | "lose_next",
+  rosterDelta: number,
+): string {
+  const r = WINTER_FANTASY_RULES;
+  const d = rosterDelta;
+  if (kind === "win_next") {
+    const capWin = r.matchWinPoints * r.captainMultiplier;
+    const plainWin = r.matchWinPoints;
+    if (Math.abs(d - capWin) < 0.02) {
+      return `From the scoring table (v${r.version}): match win +${r.matchWinPoints} on a captain pick ×${r.captainMultiplier} captain bonus = +${capWin} WakiPoints.`;
+    }
+    if (Math.abs(d - plainWin) < 0.02) {
+      return `From the scoring table (v${r.version}): match win +${r.matchWinPoints} on a non-captain slot.`;
+    }
+    return `From the same engine as /scoring-table — stacked lines (margin, upset, playoffs, etc.) when the schedule row has the data.`;
+  }
+  if (d < -0.005) {
+    return `From the scoring table loss path (v${r.version}) — e.g. favorite upset penalty when seeds and upset flags qualify.`;
+  }
+  if (d > 0.005) {
+    return `Rare: a projected “loss” still nudges totals up because other roster rows or meta bonuses (streaks, same-day, etc.) shift when this match is resolved — still the same table engine.`;
+  }
+  return `Same WakiPoints engine as the scoring table; this scenario barely moves your total once the row is decided.`;
 }
 
 function nextMatchSummary(data: DashboardData): string | null {
@@ -141,26 +162,7 @@ function nextMatchSummary(data: DashboardData): string | null {
 }
 
 export default function Dashboard({ user, onLogout }: Props) {
-  const [preview, setPreview] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadDashboard = useCallback(async () => {
-    setError(null);
-    try {
-      setLoading(true);
-      const data = await apiGet<DashboardData>("/api/v1/users/me/dashboard");
-      setPreview(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load dashboard.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadDashboard();
-  }, [loadDashboard]);
+  const { preview, loading, error, reload: loadDashboard } = useDashboardDataRequired();
 
   const joined = preview ? new Date(preview.profile.joined_at).toLocaleDateString() : "--";
   const nextMatch = preview ? nextMatchSummary(preview) : null;
@@ -205,36 +207,15 @@ export default function Dashboard({ user, onLogout }: Props) {
 
       {preview && pulse && (
         <>
-          {/* Section 1 — Primary KPI */}
-          <section className="dash-kpi-strip" aria-label="Your Season Standing">
-            <div className="dash-kpi-card dash-kpi-card--points">
-              <div className="dash-kpi-kicker">You</div>
-              <div className="dash-kpi-value">{preview.fantasy_season.total_fantasy_points}</div>
-              <div className="dash-kpi-label">WakiPoints</div>
-            </div>
-            <div className="dash-kpi-card dash-kpi-card--rank">
-              <div className="dash-kpi-kicker">Rank</div>
-              <div className="dash-kpi-value">{pulse.my_rank != null ? `#${pulse.my_rank}` : "—"}</div>
-              <div className="dash-kpi-label">
-                Of {pulse.rank_players_count} {pulse.rank_players_count === 1 ? "Player" : "Players"}
-              </div>
-            </div>
-            <div className="dash-kpi-card dash-kpi-card--delta">
-              <div className="dash-kpi-kicker">Movement</div>
-              <div className="dash-kpi-value dash-kpi-delta">{formatRankChange(pulse.rank_change)}</div>
-              <div className="dash-kpi-label">vs Last Snapshot</div>
-            </div>
-          </section>
-
           {/* What happens next — projections (same WakiPoints engine as /scoring-table) */}
           <section className="dash-section dash-section--whatif" aria-labelledby="dash-whatif-title">
             <h2 id="dash-whatif-title" className="dash-section-title">
               What Happens Next
             </h2>
-            <p className="dash-section-lead">
-              Hypothetical next results for your picks — deltas are recomputed with the{" "}
-              <strong>same WakiPoints engine</strong> as the scoring table (captain 1.5× included). We show up to five
-              highest-magnitude scenarios.
+            <p className="dash-section-lead dash-section-lead--compact">
+              Quick projections from the same engine as the{" "}
+              <a href="/scoring-table">scoring table</a> — up to five scenarios. The number is your{" "}
+              <strong>season WakiPoints change</strong> if that result posts (captain 1.5× already in the engine).
             </p>
             {(preview.fantasy_what_if ?? []).length === 0 ? (
               <p className="dash-empty">
@@ -242,7 +223,9 @@ export default function Dashboard({ user, onLogout }: Props) {
               </p>
             ) : (
               <ul className="dash-whatif-list">
-                {(preview.fantasy_what_if ?? []).map((s) => (
+                {(preview.fantasy_what_if ?? []).map((s) => {
+                  const delta = s.roster_waki_delta;
+                  return (
                   <li
                     key={s.scenario_key}
                     className={`dash-whatif-card dash-whatif--${s.impact}${s.kind === "lose_next" ? " dash-whatif--downside" : ""}`}
@@ -252,7 +235,12 @@ export default function Dashboard({ user, onLogout }: Props) {
                         {s.impact === "high" ? "🔥" : s.impact === "risk" ? "⚠️" : "📈"}
                       </span>
                       <div className="dash-whatif-head">
-                        <div className="dash-whatif-title">{whatIfTitle(s.kind, s.player_name)}</div>
+                        <div className="dash-whatif-title-row">
+                          <span className={`dash-whatif-kind dash-whatif-kind--${s.kind === "win_next" ? "win" : "lose"}`}>
+                            {s.kind === "win_next" ? "Win" : "Loss"}
+                          </span>
+                          <div className="dash-whatif-title">{whatIfTitle(s.kind, s.player_name)}</div>
+                        </div>
                         <div className="dash-whatif-meta">
                           {s.tournament_name} · {s.division_label}
                           <br />
@@ -260,16 +248,19 @@ export default function Dashboard({ user, onLogout }: Props) {
                         </div>
                       </div>
                       <div className="dash-whatif-delta">
-                        <span className={s.season_waki_delta >= 0 ? "dash-whatif-pts-pos" : "dash-whatif-pts-neg"}>
-                          {s.season_waki_delta >= 0 ? "+" : ""}
-                          {s.season_waki_delta} WakiPoints
+                        <span className={delta >= 0 ? "dash-whatif-pts-pos" : "dash-whatif-pts-neg"}>
+                          {delta >= 0 ? "+" : ""}
+                          {delta} pts
                         </span>
+                        <span className="dash-whatif-delta-sub">season total Δ</span>
                         <span className="dash-whatif-rankline">{formatRankJump(s.rank_before, s.rank_after)}</span>
                       </div>
                     </div>
                     <div className="dash-whatif-foot">{s.match_summary}</div>
+                    <p className="dash-whatif-caption">{whatIfDeltaCaption(s.kind, delta)}</p>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </section>

@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
 import PickTeamsPage from "./components/PickTeamsPage";
 import RostersPage from "./components/RostersPage";
+import AppFloatingCorner from "./components/AppFloatingCorner";
+import { DashboardDataProvider } from "./context/DashboardDataContext";
 import {
   ContactPage,
   FantasyRulesPage,
@@ -107,154 +109,76 @@ function App() {
     setSession(null);
   }
 
+  let main: ReactNode;
+
   if (path === "/terms") {
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <TermsPage />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-  if (path === "/privacy") {
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <PrivacyPage />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-  if (path === "/responsible-play") {
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <ResponsiblePlayPage />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-  if (path === "/contact") {
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <ContactPage />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-  if (path === "/scoring-table") {
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <ScoringTablePage />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-
-  if (path === "/fantasy-rules") {
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <FantasyRulesPage />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-
-  if (path === "/rosters") {
+    main = <TermsPage />;
+  } else if (path === "/privacy") {
+    main = <PrivacyPage />;
+  } else if (path === "/responsible-play") {
+    main = <ResponsiblePlayPage />;
+  } else if (path === "/contact") {
+    main = <ContactPage />;
+  } else if (path === "/scoring-table") {
+    main = <ScoringTablePage />;
+  } else if (path === "/fantasy-rules") {
+    main = <FantasyRulesPage />;
+  } else if (path === "/rosters") {
     if (booting) {
-      return (
-        <div className="app-shell">
-          <div className="app-main" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-            Loading…
-          </div>
-          <SiteFooter />
-        </div>
-      );
-    }
-    if (!session) {
-      return (
-        <div className="app-shell">
-          <div className="app-main">
-            <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your rosters.</p>
-            <LoginPage onAuthSuccess={handleAuthSuccess} />
-          </div>
-          <SiteFooter />
-        </div>
-      );
-    }
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <RostersPage user={session} />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-
-  if (path === "/pick-teams") {
-    if (booting) {
-      return (
-        <div className="app-shell">
-          <div className="app-main" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-            Loading…
-          </div>
-          <SiteFooter />
-        </div>
-      );
-    }
-    if (!session) {
-      return (
-        <div className="app-shell">
-          <div className="app-main">
-            <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to pick and edit your teams.</p>
-            <LoginPage onAuthSuccess={handleAuthSuccess} />
-          </div>
-          <SiteFooter />
-        </div>
-      );
-    }
-    return (
-      <div className="app-shell">
-        <div className="app-main">
-          <PickTeamsPage user={session} />
-        </div>
-        <SiteFooter />
-      </div>
-    );
-  }
-
-  if (booting) {
-    return (
-      <div className="app-shell">
-        <div className="app-main" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+      main = (
+        <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
           Loading…
-        </div>
-        <SiteFooter />
-      </div>
+        </p>
+      );
+    } else if (!session) {
+      main = (
+        <>
+          <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your rosters.</p>
+          <LoginPage onAuthSuccess={handleAuthSuccess} />
+        </>
+      );
+    } else {
+      main = <RostersPage user={session} />;
+    }
+  } else if (path === "/pick-teams") {
+    if (booting) {
+      main = (
+        <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+          Loading…
+        </p>
+      );
+    } else if (!session) {
+      main = (
+        <>
+          <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to pick and edit your teams.</p>
+          <LoginPage onAuthSuccess={handleAuthSuccess} />
+        </>
+      );
+    } else {
+      main = <PickTeamsPage user={session} />;
+    }
+  } else if (booting) {
+    main = (
+      <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+        Loading…
+      </p>
     );
+  } else if (!session) {
+    main = <LoginPage onAuthSuccess={handleAuthSuccess} />;
+  } else {
+    main = <Dashboard user={session} onLogout={handleLogout} />;
   }
+
+  const dashboardFetchEnabled = Boolean(session && !booting);
 
   return (
-    <div className="app-shell">
-      <div className="app-main">
-        {!session ? (
-          <LoginPage onAuthSuccess={handleAuthSuccess} />
-        ) : (
-          <Dashboard user={session} onLogout={handleLogout} />
-        )}
+    <DashboardDataProvider enabled={dashboardFetchEnabled}>
+      <div className="app-shell">
+        {dashboardFetchEnabled ? <AppFloatingCorner user={session!} path={path} /> : null}
+        <div className="app-main">{main}</div>
+        <SiteFooter />
       </div>
-      <SiteFooter />
-    </div>
+    </DashboardDataProvider>
   );
 }
 

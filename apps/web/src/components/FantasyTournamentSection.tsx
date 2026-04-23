@@ -64,6 +64,22 @@ function emptyPicks(): string[] {
   return Array.from({ length: ROSTER_SIZE }, () => "");
 }
 
+function normPlayerName(n: string): string {
+  return n.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function hypeLineForPick(name: string): string {
+  const n = name.trim();
+  if (!n) return "";
+  const i = Math.abs(n.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % 3;
+  const lines = [
+    `Great pick — ${n} is hot right now.`,
+    `Nice — ${n} gives this event real upside.`,
+    `${n}? Solid choice for this bracket.`,
+  ];
+  return lines[i] ?? lines[0]!;
+}
+
 type SlotDraft = {
   event_key: string;
   schedule_division_key: string;
@@ -176,6 +192,78 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       return slotSpend > budgetPerEvent;
     });
   }, [slots, budgetPerEvent]);
+
+  const coach = useMemo(() => {
+    if (metaErr) return { tone: "error" as const, title: "Heads up", lines: [metaErr] };
+    if (actionErr) return { tone: "error" as const, title: "Fix this first", lines: [actionErr] };
+    if (hasEventOverBudget) {
+      return {
+        tone: "error" as const,
+        title: "WakiCash",
+        lines: ["One of your events is over 100 WakiCash. Trim a pick or swap for a cheaper player."],
+      };
+    }
+    for (let s = 0; s < 5; s++) {
+      const sl = slots[s];
+      if (!sl) continue;
+      const trimmed = sl.picks.map((x) => x.trim());
+      const filled = trimmed.filter(Boolean);
+      if (filled.length === 0) continue;
+      const keys = filled.map(normPlayerName);
+      if (new Set(keys).size < keys.length) {
+        const seen = new Set<string>();
+        let dup = "";
+        for (const n of filled) {
+          const k = normPlayerName(n);
+          if (seen.has(k)) {
+            dup = n;
+            break;
+          }
+          seen.add(k);
+        }
+        return {
+          tone: "error" as const,
+          title: "Same event",
+          lines: [
+            dup
+              ? `You have ${dup} twice in event slot ${s + 1}. That player is hidden in other slots here — pick someone else in one of those spots.`
+              : `You have a duplicate player in event slot ${s + 1}.`,
+          ],
+        };
+      }
+      if (trimmed.every((x) => x) && sl.captainSlot === null) {
+        return {
+          tone: "warn" as const,
+          title: "Almost there",
+          lines: [`Event slot ${s + 1} needs a captain — pick exactly one checkbox.`],
+        };
+      }
+    }
+    if (actionOk) return { tone: "success" as const, title: "All set", lines: [actionOk] };
+    let lastPick = "";
+    for (let s = 4; s >= 0; s--) {
+      const sl = slots[s];
+      if (!sl) continue;
+      for (let i = ROSTER_SIZE - 1; i >= 0; i--) {
+        const n = sl.picks[i]?.trim();
+        if (n) {
+          lastPick = n;
+          break;
+        }
+      }
+      if (lastPick) break;
+    }
+    if (lastPick) {
+      return { tone: "good" as const, title: "Coach", lines: [hypeLineForPick(lastPick)] };
+    }
+    return {
+      tone: "info" as const,
+      title: "Build your lineup",
+      lines: [
+        "Choose up to five events. Each event needs five different players and one captain. Same player can play multiple events — just not twice in the same event.",
+      ],
+    };
+  }, [metaErr, actionErr, hasEventOverBudget, actionOk, slots]);
 
   async function attachEventToSlot(slotIndex: number, event_key: string) {
     const ev = selectableEvents.find((e) => e.event_key === event_key);
@@ -313,28 +401,18 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
   const sectionClass = pageLayout ? "dash-card wf-section wf-section--page" : "dash-card wf-section";
 
-  return (
-    <section className={sectionClass}>
-      {pageLayout ? (
-        <div className="wf-page-hero">
-          <div className="wf-page-hero-kicker">Multi-event lineup</div>
-          <h2 className="wf-page-title">Tournament fantasy</h2>
-          <p className="wf-page-lead">
-            Up to five events per tournament, one fresh <strong>100 WakiCash</strong> pool per tournament, per-event
-            locks. Same scoring engine as division fantasy; tier A/B/C adjusts prices and WakiPoints.{" "}
-            <a href="/fantasy-rules">How fantasy works (rules)</a>
-          </p>
-        </div>
-      ) : (
-        <div className="dash-label">Tournament fantasy — multi-event</div>
-      )}
-
-      {metaErr ? <p className="dash-error">{metaErr}</p> : null}
-      {actionErr ? <p className="dash-error">{actionErr}</p> : null}
-      {hasEventOverBudget ? (
-        <p className="dash-error">An event is over budget. You cannot exceed 100 WakiCash for an event.</p>
+  const builderMain = (
+    <>
+      {!pageLayout ? (
+        <>
+          {metaErr ? <p className="dash-error">{metaErr}</p> : null}
+          {actionErr ? <p className="dash-error">{actionErr}</p> : null}
+          {hasEventOverBudget ? (
+            <p className="dash-error">An event is over budget. You cannot exceed 100 WakiCash for an event.</p>
+          ) : null}
+          {actionOk ? <p style={{ color: "#166534", marginTop: 8 }}>{actionOk}</p> : null}
+        </>
       ) : null}
-      {actionOk ? <p style={{ color: "#166534", marginTop: 8 }}>{actionOk}</p> : null}
 
       <div className="wf-row" style={{ marginTop: pageLayout ? 12 : 8 }}>
         <label className="wf-label" htmlFor="ft-tournament">
@@ -404,7 +482,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                   </strong>
                   {sl ? <span>used: {slotSpend} WC</span> : null}
                 </div>
-                {slotOverBudget ? (
+                {slotOverBudget && !pageLayout ? (
                   <p className="dash-error" style={{ marginTop: 6 }}>
                     Event slot {slotIndex + 1} is over budget ({slotSpend} / {budget} WakiCash).
                   </p>
@@ -438,38 +516,50 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                       <strong>{sl.label}</strong> · tier WakiCash ×{sl.wakicash_multiplier}
                     </p>
                     <div className="wf-picks" style={{ marginTop: 8 }}>
-                      {Array.from({ length: ROSTER_SIZE }, (_, i) => (
-                        <div key={i} className="wf-pick-row">
-                          <span className="wf-slot">Slot {i + 1}</span>
-                          <select
-                            className="wf-select wf-select-grow"
-                            value={sl.picks[i] ?? ""}
-                            disabled={busy}
-                            onChange={(e) => setPick(slotIndex, i, e.target.value)}
-                          >
-                            <option value="">Choose player…</option>
-                            {sl.players.map((p) => {
-                              const cost = Math.ceil(
-                                playerWakiCashCost(sl.skill_level, p.player_name) * sl.wakicash_multiplier,
-                              );
-                              return (
-                                <option key={p.player_name} value={p.player_name}>
-                                  {p.player_name} — {cost} WC
-                                </option>
-                              );
-                            })}
-                          </select>
-                          <label className="wf-cap">
-                            <input
-                              type="checkbox"
-                              checked={sl.captainSlot === i}
-                              onChange={() => toggleCaptain(slotIndex, i)}
+                      {Array.from({ length: ROSTER_SIZE }, (_, i) => {
+                        const currentPick = sl.picks[i] ?? "";
+                        const takenInEvent = new Set(
+                          sl.picks
+                            .map((n, j) => (j !== i && n.trim() ? normPlayerName(n) : null))
+                            .filter((x): x is string => Boolean(x)),
+                        );
+                        const playerOptions = sl.players.filter(
+                          (p) =>
+                            !takenInEvent.has(normPlayerName(p.player_name)) || p.player_name === currentPick,
+                        );
+                        return (
+                          <div key={i} className="wf-pick-row">
+                            <span className="wf-slot">Slot {i + 1}</span>
+                            <select
+                              className="wf-select wf-select-grow"
+                              value={sl.picks[i] ?? ""}
                               disabled={busy}
-                            />{" "}
-                            Captain (1.5×)
-                          </label>
-                        </div>
-                      ))}
+                              onChange={(e) => setPick(slotIndex, i, e.target.value)}
+                            >
+                              <option value="">Choose player…</option>
+                              {playerOptions.map((p) => {
+                                const cost = Math.ceil(
+                                  playerWakiCashCost(sl.skill_level, p.player_name) * sl.wakicash_multiplier,
+                                );
+                                return (
+                                  <option key={p.player_name} value={p.player_name}>
+                                    {p.player_name} — {cost} WC
+                                  </option>
+                                );
+                              })}
+                            </select>
+                            <label className="wf-cap">
+                              <input
+                                type="checkbox"
+                                checked={sl.captainSlot === i}
+                                onChange={() => toggleCaptain(slotIndex, i)}
+                                disabled={busy}
+                              />{" "}
+                              Captain (1.5×)
+                            </label>
+                          </div>
+                        );
+                      })}
                     </div>
                   </>
                 )}
@@ -491,6 +581,45 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           </button>
         </div>
       ) : null}
+    </>
+  );
+
+  const coachPanel = pageLayout ? (
+    <aside className={`ft-coach-panel ft-coach-panel--${coach.tone}`} aria-live="polite">
+      <div className="ft-coach-panel-kicker">Coach</div>
+      <h3 className="ft-coach-panel-title">{coach.title}</h3>
+      {coach.lines.map((line, idx) => (
+        <p key={idx} className="ft-coach-panel-line">
+          {line}
+        </p>
+      ))}
+    </aside>
+  ) : null;
+
+  return (
+    <section className={sectionClass}>
+      {pageLayout ? (
+        <div className="wf-page-hero">
+          <div className="wf-page-hero-kicker">Multi-event lineup</div>
+          <h2 className="wf-page-title">Tournament fantasy</h2>
+          <p className="wf-page-lead">
+            Up to five events per tournament, one fresh <strong>100 WakiCash</strong> pool per tournament, per-event
+            locks. Same scoring engine as division fantasy; tier A/B/C adjusts prices and WakiPoints.{" "}
+            <a href="/fantasy-rules">How fantasy works (rules)</a>
+          </p>
+        </div>
+      ) : (
+        <div className="dash-label">Tournament fantasy — multi-event</div>
+      )}
+
+      {pageLayout ? (
+        <div className="ft-builder-layout">
+          <div className="ft-builder-main">{builderMain}</div>
+          {coachPanel}
+        </div>
+      ) : (
+        builderMain
+      )}
     </section>
   );
 }

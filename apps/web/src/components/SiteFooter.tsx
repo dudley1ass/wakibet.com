@@ -21,26 +21,32 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <nav className="site-footer-links" aria-label="Footer links">
-          <a href="/terms">Terms of Use</a>
-          <a href="/privacy">Privacy Policy</a>
-          <a href="/scoring-table">Scoring Table</a>
-          <a href="/fantasy-rules">How fantasy works</a>
-          <a href="/rosters">My Rosters</a>
-          <a href="/pick-teams">Pick / Edit Teams</a>
-          <a href="/contact">Contact</a>
-          <a href="/responsible-play">Responsible Play</a>
-        </nav>
+        <div className="site-footer-right">
+          <nav className="site-footer-nav-wrap" aria-label="Footer links">
+            <div className="site-footer-links site-footer-links--legal">
+              <a href="/terms">Terms of Use</a>
+              <a href="/privacy">Privacy Policy</a>
+              <a href="/scoring-table">Scoring Table</a>
+              <a href="/fantasy-rules">How fantasy works</a>
+            </div>
+            <div className="site-footer-links site-footer-links--app">
+              <a href="/rosters">My Rosters</a>
+              <a href="/pick-teams">Pick / Edit Teams</a>
+              <a href="/contact">Contact</a>
+              <a href="/responsible-play">Responsible Play</a>
+            </div>
+          </nav>
 
-        {liveSocials.length > 0 && (
-          <div className="site-footer-socials" aria-label="Social links">
-            {liveSocials.map((s) => (
-              <a key={s.label} href={s.href} target="_blank" rel="noreferrer">
-                {s.label}
-              </a>
-            ))}
-          </div>
-        )}
+          {liveSocials.length > 0 && (
+            <div className="site-footer-socials" aria-label="Social links">
+              {liveSocials.map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noreferrer">
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </footer>
   );

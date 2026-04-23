@@ -1,4 +1,5 @@
 import type { SessionUser } from "../App";
+import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import FantasyTournamentSection from "./FantasyTournamentSection";
 import "./dashboard.css";
 
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export default function PickTeamsPage({ user, onRosterSaved }: Props) {
+  const { reload } = useDashboardDataRequired();
+
   return (
     <div className="pick-teams-shell">
       <header className="pick-teams-head">
@@ -21,7 +24,13 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
           Back to dashboard
         </a>
       </header>
-      <FantasyTournamentSection pageLayout onRosterSaved={onRosterSaved} />
+      <FantasyTournamentSection
+        pageLayout
+        onRosterSaved={async () => {
+          await onRosterSaved?.();
+          await reload();
+        }}
+      />
     </div>
   );
 }
