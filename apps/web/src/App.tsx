@@ -7,6 +7,7 @@ import SiteFooter from "./components/SiteFooter";
 import PickTeamsPage from "./components/PickTeamsPage";
 import RostersPage from "./components/RostersPage";
 import HostPersonaPanel from "./components/HostPersonaPanel";
+import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
 import { DashboardDataProvider } from "./context/DashboardDataContext";
 import {
   ContactPage,
@@ -113,6 +114,7 @@ function App() {
 
   return (
     <DashboardDataProvider enabled={dashboardFetchEnabled}>
+      <GoogleAnalyticsRouteListener />
       <AppShell
         session={session}
         booting={booting}
