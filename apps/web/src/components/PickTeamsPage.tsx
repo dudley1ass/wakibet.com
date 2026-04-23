@@ -1,5 +1,4 @@
 import type { SessionUser } from "../App";
-import WinterFantasySection from "./WinterFantasySection";
 import FantasyTournamentSection from "./FantasyTournamentSection";
 import "./dashboard.css";
 
@@ -23,7 +22,6 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
         </a>
       </header>
       <FantasyTournamentSection pageLayout onRosterSaved={onRosterSaved} />
-      <WinterFantasySection onRosterSaved={onRosterSaved} />
     </div>
   );
 }
