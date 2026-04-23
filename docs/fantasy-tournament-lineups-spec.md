@@ -281,11 +281,9 @@ Today: `WinterFantasyRoster` keyed by `userId + divisionKey` (string including t
 
 ---
 
-## 13. Open product decisions (resolve before Phase 1 coding)
+## 13. Product decisions (locked for v1)
 
-1. **Singles/doubles slot parity:** 5 players per event always vs 1 player for singles — pick one for MVP.
-2. **Captain:** per event vs per tournament (spec recommends **per event**).
-3. **`season_key`:** omit until you have multiple season files; use nullable or constant `2026`.
+Hard rules (lineup shape, locks, season ties, API enforcement) live in **`docs/fantasy-rules-v1.md`**. That file is authoritative for implementation; this document remains the architecture + phased plan.
 
 ---
 

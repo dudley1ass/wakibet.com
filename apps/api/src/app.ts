@@ -16,6 +16,7 @@ import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
 import { usersRoutes } from "./routes/users.js";
 import { winterFantasyRoutes } from "./routes/winterFantasy.js";
+import { fantasyTournamentRoutes } from "./routes/fantasyTournament.js";
 import { publicContactRoutes } from "./routes/publicContact.js";
 
 export async function buildApp() {
@@ -104,6 +105,7 @@ export async function buildApp() {
   await app.register(publicContactRoutes);
   await app.register(usersRoutes);
   await app.register(winterFantasyRoutes);
+  await app.register(fantasyTournamentRoutes, { prefix: "/api/v1/fantasy-tournament" });
 
   if (process.env.SENTRY_DSN) {
     app.addHook("onError", async (_request, _reply, error) => {

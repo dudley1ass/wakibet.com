@@ -1,5 +1,6 @@
 import csv
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
@@ -18,9 +19,19 @@ def slug(text: str) -> str:
 
 
 def main() -> None:
-    source_path = Path(r"C:\Users\robin\Downloads\Winter_Springs_Player_Data_Improved.xlsx")
-    out_dir = Path(r"d:\Winton Engineering\pickelball power\wakibet\apps\api\data")
+    api_root = Path(__file__).resolve().parent.parent
+    out_dir = api_root / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if len(sys.argv) > 1:
+        source_path = Path(sys.argv[1]).expanduser().resolve()
+    else:
+        source_path = Path.home() / "Downloads" / "Winter_Springs_Player_Data_Improved.xlsx"
+
+    if not source_path.is_file():
+        print(f"Input spreadsheet not found: {source_path}", file=sys.stderr)
+        print("Usage: python build_winter_springs_test_run.py <path-to-xlsx>", file=sys.stderr)
+        sys.exit(1)
 
     wb = load_workbook(source_path, data_only=True)
     ws = wb["Registrations"]

@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@9.15.4",
   "engines": {
-    "node": "20.x"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "turbo dev",
@@ -14,8 +14,10 @@
     "render-build-web": "pnpm run render:build:web",
     "render:start": "pnpm --filter @wakibet/api start",
     "db:generate": "pnpm --filter @wakibet/api exec prisma generate",
-    "db:migrate": "pnpm --filter @wakibet/api exec prisma migrate dev",
-    "db:push": "pnpm --filter @wakibet/api exec prisma db push",
+    "db:migrate": "pnpm --filter @wakibet/api run db:migrate",
+    "db:push": "pnpm --filter @wakibet/api run db:push",
+    "db:validate": "pnpm --filter @wakibet/api run db:validate",
+    "db:studio": "pnpm --filter @wakibet/api run db:studio",
     "generate:api-types": "pnpm --filter @wakibet/api run generate:api-types"
   },
   "devDependencies": {
