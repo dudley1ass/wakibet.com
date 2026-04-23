@@ -89,6 +89,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
   const [slots, setSlots] = useState<(SlotDraft | null)[]>([null, null, null, null, null]);
   const [busy, setBusy] = useState(false);
   const [actionErr, setActionErr] = useState<string | null>(null);
+  const [actionOk, setActionOk] = useState<string | null>(null);
 
   const selectableEvents = useMemo(
     () => (eventsMeta?.events ?? []).filter((e) => e.is_selectable && !e.is_locked),
@@ -230,6 +231,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
   async function handleSave() {
     setActionErr(null);
+    setActionOk(null);
     const budget = lineup?.wakicash_budget ?? 100;
     const payloadEvents: {
       slot_index: number;
@@ -282,6 +284,11 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       });
     }
 
+    if (payloadEvents.length === 0) {
+      setActionErr("Add at least one event with 5 picks before saving.");
+      return;
+    }
+
     let spend = 0;
     for (const pe of payloadEvents) {
       const sl = slots[pe.slot_index];
@@ -303,6 +310,9 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         events: payloadEvents,
       });
       setLineup(saved);
+      setActionOk(
+        `Saved Tournament Lineup with ${saved.events.length} event${saved.events.length === 1 ? "" : "s"}.`,
+      );
       await onRosterSaved?.();
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : "Save failed.");
@@ -331,6 +341,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
       {metaErr ? <p className="dash-error">{metaErr}</p> : null}
       {actionErr ? <p className="dash-error">{actionErr}</p> : null}
+      {actionOk ? <p style={{ color: "#166534", marginTop: 8 }}>{actionOk}</p> : null}
 
       <div className="wf-row" style={{ marginTop: pageLayout ? 12 : 8 }}>
         <label className="wf-label" htmlFor="ft-tournament">
@@ -363,6 +374,14 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         <div className="wf-cascade" style={{ marginTop: 12 }}>
           {[0, 1, 2, 3, 4].map((slotIndex) => {
             const sl = slots[slotIndex];
+            const budget = lineup?.wakicash_budget ?? 100;
+            const slotSpend =
+              sl?.picks.reduce((sum, name) => {
+                const n = name.trim();
+                if (!n) return sum;
+                return sum + Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
+              }, 0) ?? 0;
+            const slotAvailable = Math.max(0, budget - (totalSpendPreview - slotSpend));
             return (
               <div key={slotIndex} className="dash-card" style={{ marginBottom: 12, padding: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -375,6 +394,15 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                     </button>
                   ) : null}
                 </div>
+                <p className="dash-sub wf-meta" style={{ marginTop: 6 }}>
+                  WakiCash available for this event: <strong>{slotAvailable}</strong>
+                  {sl ? (
+                    <>
+                      {" "}
+                      · used in this event: <strong>{slotSpend}</strong>
+                    </>
+                  ) : null}
+                </p>
                 {!sl ? (
                   <div className="wf-row" style={{ marginTop: 8 }}>
                     <label className="wf-label" htmlFor={`ft-ev-${slotIndex}`}>
@@ -448,7 +476,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       {!loading && eventsMeta ? (
         <div className="wf-actions">
           <button type="button" className="dash-main-btn wf-btn" disabled={busy} onClick={() => void handleSave()}>
-            {busy ? "Working…" : "Save tournament lineup"}
+            {busy ? "Working…" : "Save Tournament Lineup"}
           </button>
         </div>
       ) : null}

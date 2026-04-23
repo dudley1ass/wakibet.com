@@ -384,8 +384,7 @@ export function FantasyRulesPage() {
       </ul>
 
       <p className="scoring-foot">
-        For scoring line items, see <a href="/scoring-table">Scoring table</a>. For builders, the full machine-readable
-        policy is in the repo file <code>docs/fantasy-rules-v1.md</code>.
+        For point details, see the <a href="/scoring-table">Scoring table</a>.
       </p>
     </StaticLayout>
   );

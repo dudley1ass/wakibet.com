@@ -326,7 +326,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
         </div>
       ) : (
         <>
-          <div className="dash-label">Tournament fantasy — featured divisions only</div>
+          <div className="dash-label">Division lineup builder</div>
           <p className="dash-sub wf-lead">
             Divisions offered here have at least <strong>5 players</strong>, or <strong>4 players</strong> with{" "}
             <strong>6+</strong> generated matches. Pick {rosterSize} players per division under{" "}

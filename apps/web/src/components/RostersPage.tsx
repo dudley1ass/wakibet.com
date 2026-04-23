@@ -38,7 +38,7 @@ export default function RostersPage({ user }: Props) {
         <div>
           <h1 className="rost-title">My rosters</h1>
           <p className="rost-sub">
-            <strong>{user.display_name || user.email}</strong> — featured divisions only
+            <strong>{user.display_name || user.email}</strong> — tournament and division lineups
           </p>
         </div>
         <div className="rost-actions">
@@ -66,8 +66,8 @@ export default function RostersPage({ user }: Props) {
         <div className="rost-empty dash-card">
           <p className="rost-empty-title">No saved rosters yet</p>
           <p className="rost-empty-body">
-            Build a lineup in a featured division (5+ players, or 4 with 6+ matches), then save. Your tournaments and
-            picks will show here.
+            Save either a division roster or a tournament event lineup (5 picks + captain in an event slot). Your picks
+            will appear here after save.
           </p>
           <a className="dash-main-btn" href="/pick-teams">
             Go to Pick / Edit Teams
