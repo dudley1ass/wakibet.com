@@ -441,22 +441,6 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
 
           {resolvedDivisionKey && (
             <>
-              <div className="wf-wakicash-bar">
-                <div className="wf-wakicash-head">WakiCash · this event</div>
-                <span className="wf-wakicash-big">
-                  {spendPreview}
-                  <span>/</span>
-                  {WAKICASH_BUDGET_PER_LINEUP}
-                </span>
-                <div className="wf-wakicash-sub">Spent for this tournament / division (100 max)</div>
-                {wakiLint.kind === "ok" ? (
-                  <div className="wf-wakicash-ok">Lineup passes budget and roster rules.</div>
-                ) : wakiLint.kind === "err" ? (
-                  <div className="wf-wakicash-warn">{wakiLint.message}</div>
-                ) : (
-                  <div className="wf-wakicash-warn">Fill all {rosterSize} slots to validate WakiCash rules.</div>
-                )}
-              </div>
               <div className="wf-picks">
                 {Array.from({ length: rosterSize }, (_, slot) => (
                   <div key={slot} className="wf-pick-row">
