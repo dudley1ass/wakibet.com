@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const SOCIALS = [
   { label: "TikTok", href: "#" },
   { label: "Facebook", href: "#" },
@@ -24,16 +26,16 @@ export default function SiteFooter() {
         <div className="site-footer-right">
           <nav className="site-footer-nav-wrap" aria-label="Footer links">
             <div className="site-footer-links site-footer-links--legal">
-              <a href="/terms">Terms of Use</a>
-              <a href="/privacy">Privacy Policy</a>
-              <a href="/scoring-table">Scoring Table</a>
-              <a href="/fantasy-rules">How fantasy works</a>
+              <Link to="/terms">Terms of Use</Link>
+              <Link to="/privacy">Privacy Policy</Link>
+              <Link to="/scoring-table">Scoring Table</Link>
+              <Link to="/fantasy-rules">How fantasy works</Link>
             </div>
             <div className="site-footer-links site-footer-links--app">
-              <a href="/rosters">My Rosters</a>
-              <a href="/pick-teams">Pick / Edit Teams</a>
-              <a href="/contact">Contact</a>
-              <a href="/responsible-play">Responsible Play</a>
+              <Link to="/rosters">My Rosters</Link>
+              <Link to="/pick-teams">Pick / Edit Teams</Link>
+              <Link to="/contact">Contact</Link>
+              <Link to="/responsible-play">Responsible Play</Link>
             </div>
           </nav>
 

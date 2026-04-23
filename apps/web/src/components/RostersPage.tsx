@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../api";
 import type { SessionUser } from "../App";
 import type { DashboardData, FantasyRosterRow } from "./Dashboard";
+import { dashboardQueryKeys, type DashboardRostersPayload } from "../lib/dashboardQuery";
 import "./dashboard.css";
 
 type Props = {
@@ -9,26 +11,18 @@ type Props = {
 };
 
 export default function RostersPage({ user }: Props) {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data,
+    isPending: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: dashboardQueryKeys.rosters(),
+    queryFn: () => apiGet<DashboardRostersPayload>("/api/v1/users/me/dashboard/rosters"),
+    staleTime: 30_000,
+  });
 
-  const load = useCallback(async () => {
-    setError(null);
-    try {
-      setLoading(true);
-      const d = await apiGet<DashboardData>("/api/v1/users/me/dashboard");
-      setData(d);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load rosters.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const error = queryError instanceof Error ? queryError.message : queryError ? "Could not load rosters." : null;
 
   const rosters = data?.winter_fantasy_rosters ?? [];
   const [tournamentFilter, setTournamentFilter] = useState<string>("__all__");
@@ -84,7 +78,7 @@ export default function RostersPage({ user }: Props) {
               </select>
             </label>
           ) : null}
-          <button type="button" className="dash-ghost-btn" onClick={() => void load()} disabled={loading}>
+          <button type="button" className="dash-ghost-btn" onClick={() => void refetch()} disabled={loading}>
             {loading ? "Refreshing…" : "Refresh"}
           </button>
           <a className="dash-ghost-btn" href="/pick-teams">

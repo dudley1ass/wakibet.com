@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
@@ -64,7 +65,6 @@ async function loadSessionWithRetry(): Promise<SessionUser> {
 }
 
 function App() {
-  const path = normalizePathname(window.location.pathname);
   const [session, setSession] = useState<SessionUser | null>(null);
   const [booting, setBooting] = useState(true);
 
@@ -109,87 +109,113 @@ function App() {
     setSession(null);
   }
 
-  let main: ReactNode;
-
-  if (path === "/terms") {
-    main = <TermsPage />;
-  } else if (path === "/privacy") {
-    main = <PrivacyPage />;
-  } else if (path === "/responsible-play") {
-    main = <ResponsiblePlayPage />;
-  } else if (path === "/contact") {
-    main = <ContactPage />;
-  } else if (path === "/scoring-table") {
-    main = <ScoringTablePage />;
-  } else if (path === "/fantasy-rules") {
-    main = <FantasyRulesPage />;
-  } else if (path === "/rosters") {
-    if (booting) {
-      main = (
-        <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-          Loading…
-        </p>
-      );
-    } else if (!session) {
-      main = (
-        <>
-          <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your rosters.</p>
-          <LoginPage onAuthSuccess={handleAuthSuccess} />
-        </>
-      );
-    } else {
-      main = <RostersPage user={session} />;
-    }
-  } else if (path === "/pick-teams") {
-    if (booting) {
-      main = (
-        <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-          Loading…
-        </p>
-      );
-    } else if (!session) {
-      main = (
-        <>
-          <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to pick and edit your teams.</p>
-          <LoginPage onAuthSuccess={handleAuthSuccess} />
-        </>
-      );
-    } else {
-      main = <PickTeamsPage user={session} />;
-    }
-  } else if (booting) {
-    main = (
-      <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-        Loading…
-      </p>
-    );
-  } else if (!session) {
-    main = <LoginPage onAuthSuccess={handleAuthSuccess} />;
-  } else {
-    main = <Dashboard user={session} onLogout={handleLogout} />;
-  }
-
   const dashboardFetchEnabled = Boolean(session && !booting);
-  const activityPageAside = dashboardFetchEnabled && path !== "/";
 
   return (
     <DashboardDataProvider enabled={dashboardFetchEnabled}>
-      <div className="app-shell">
-        <div className={`app-main${activityPageAside ? " app-main--with-aside" : ""}`}>
-          {activityPageAside ? (
-            <div className="app-page-with-aside">
-              <div className="app-page-body">{main}</div>
-              <aside className="app-page-aside" aria-label="Activity feed">
-                <HostPersonaPanel user={session!} path={path} layout="aside" />
-              </aside>
-            </div>
-          ) : (
-            main
-          )}
-        </div>
-        <SiteFooter />
-      </div>
+      <AppShell
+        session={session}
+        booting={booting}
+        onAuthSuccess={handleAuthSuccess}
+        onLogout={handleLogout}
+      />
     </DashboardDataProvider>
+  );
+}
+
+type ShellProps = {
+  session: SessionUser | null;
+  booting: boolean;
+  onAuthSuccess: (p: {
+    access_token: string;
+    user: { user_id: string; email: string; display_name: string; virtual_cents?: number };
+  }) => void;
+  onLogout: () => void;
+};
+
+function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
+  const location = useLocation();
+  const path = normalizePathname(location.pathname);
+  const activityPageAside = Boolean(session && !booting) && path !== "/";
+
+  let main: ReactNode;
+
+  main = (
+    <Routes>
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/responsible-play" element={<ResponsiblePlayPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/scoring-table" element={<ScoringTablePage />} />
+      <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
+      <Route
+        path="/rosters"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your rosters.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <RostersPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/pick-teams"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to pick and edit your teams.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <PickTeamsPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <LoginPage onAuthSuccess={onAuthSuccess} />
+          ) : (
+            <Dashboard user={session} onLogout={onLogout} />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+
+  return (
+    <div className="app-shell">
+      <div className={`app-main${activityPageAside ? " app-main--with-aside" : ""}`}>
+        {activityPageAside ? (
+          <div className="app-page-with-aside">
+            <div className="app-page-body">{main}</div>
+            <aside className="app-page-aside" aria-label="Activity feed">
+              <HostPersonaPanel user={session!} path={path} layout="aside" />
+            </aside>
+          </div>
+        ) : (
+          main
+        )}
+      </div>
+      <SiteFooter />
+    </div>
   );
 }
 

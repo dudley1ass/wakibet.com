@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { playerWakiCashCost, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
-import { verifyAccessToken } from "../lib/jwt.js";
+import { requireAuthUser } from "../lib/requireAuthUser.js";
 import {
   displayLabelForCatalogRow,
   syncTournamentEventCatalog,
@@ -20,15 +20,7 @@ import { ROSTER_EDIT_LOCK_MS } from "../lib/fantasyConstants.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 
-async function userIdFromBearer(authHeader: string | undefined): Promise<string | null> {
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  try {
-    const { sub } = verifyAccessToken(authHeader.slice(7));
-    return sub;
-  } catch {
-    return null;
-  }
-}
+const authPre = { preHandler: [requireAuthUser] };
 
 function isEventLocked(firstMatchStartsAt: Date | null, lockedAt: Date | null): boolean {
   if (lockedAt) return true;
@@ -108,6 +100,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
   typed.get(
     "/:tournament_key/events",
     {
+      ...authPre,
       schema: {
         tags: ["fantasy-tournament"],
         params: TourneyParams,
@@ -138,12 +131,6 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req, reply) => {
-      const uid = await userIdFromBearer(req.headers.authorization);
-      if (!uid) return reply.code(401).send({ message: "Missing or invalid bearer token." } as const);
-      const user = await prisma.user.findUnique({ where: { id: uid } });
-      if (!user || user.isBanned) {
-        return reply.code(401).send({ message: "Invalid or expired token." } as const);
-      }
       const { tournament_key: tournamentKey } = req.params;
       const data = await getTournamentData(tournamentKey);
       if (!data) {
@@ -178,6 +165,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
   typed.get(
     "/:tournament_key/lineup",
     {
+      ...authPre,
       schema: {
         tags: ["fantasy-tournament"],
         params: TourneyParams,
@@ -212,12 +200,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req, reply) => {
-      const uid = await userIdFromBearer(req.headers.authorization);
-      if (!uid) return reply.code(401).send({ message: "Missing or invalid bearer token." } as const);
-      const user = await prisma.user.findUnique({ where: { id: uid } });
-      if (!user || user.isBanned) {
-        return reply.code(401).send({ message: "Invalid or expired token." } as const);
-      }
+      const uid = req.authUser!.id;
       const { tournament_key: tournamentKey } = req.params;
       const seasonKey = req.query.season_key ?? "";
       const data = await getTournamentData(tournamentKey);
@@ -286,6 +269,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
   typed.put(
     "/:tournament_key/lineup",
     {
+      ...authPre,
       schema: {
         tags: ["fantasy-tournament"],
         params: TourneyParams,
@@ -323,12 +307,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req, reply) => {
-      const uid = await userIdFromBearer(req.headers.authorization);
-      if (!uid) return reply.code(401).send({ message: "Missing or invalid bearer token." } as const);
-      const user = await prisma.user.findUnique({ where: { id: uid } });
-      if (!user || user.isBanned) {
-        return reply.code(401).send({ message: "Invalid or expired token." } as const);
-      }
+      const uid = req.authUser!.id;
       const { tournament_key: tournamentKey } = req.params;
       const { season_key: seasonKey, events: incoming } = req.body;
 

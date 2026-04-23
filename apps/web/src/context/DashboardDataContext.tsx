@@ -2,15 +2,19 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useLayoutEffect,
   useMemo,
-  useRef,
-  useState,
   type ReactNode,
 } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { apiGet } from "../api";
 import type { DashboardData } from "../components/Dashboard";
+import {
+  dashboardQueryKeys,
+  mergeDashboardParts,
+  type DashboardInsightsPayload,
+  type DashboardRostersPayload,
+  type DashboardSummaryPayload,
+} from "../lib/dashboardQuery";
 
 type Ctx = {
   preview: DashboardData | null;
@@ -28,53 +32,59 @@ export function DashboardDataProvider({
   enabled: boolean;
   children: ReactNode;
 }) {
-  const [preview, setPreview] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const prevEnabled = useRef(false);
+  const queryClient = useQueryClient();
 
-  useLayoutEffect(() => {
-    if (enabled && !prevEnabled.current) {
-      setLoading(true);
-    }
-    if (!enabled) {
-      setLoading(false);
-    }
-    prevEnabled.current = enabled;
-  }, [enabled]);
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: dashboardQueryKeys.summary(),
+        queryFn: () => apiGet<DashboardSummaryPayload>("/api/v1/users/me/dashboard/summary"),
+        staleTime: 30_000,
+        enabled,
+      },
+      {
+        queryKey: dashboardQueryKeys.rosters(),
+        queryFn: () => apiGet<DashboardRostersPayload>("/api/v1/users/me/dashboard/rosters"),
+        staleTime: 30_000,
+        enabled,
+      },
+      {
+        queryKey: dashboardQueryKeys.insights(),
+        queryFn: () => apiGet<DashboardInsightsPayload>("/api/v1/users/me/dashboard/insights"),
+        staleTime: 30_000,
+        enabled,
+      },
+    ],
+  });
 
-  const loadDashboard = useCallback(async () => {
-    setError(null);
-    try {
-      setLoading(true);
-      const data = await apiGet<DashboardData>("/api/v1/users/me/dashboard");
-      setPreview(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load dashboard.");
-      setPreview(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loading = Boolean(enabled && results.some((q) => q.isPending));
 
-  useEffect(() => {
-    if (!enabled) {
-      setPreview(null);
-      setError(null);
-      setLoading(false);
-      return;
+  const error = useMemo(() => {
+    if (!enabled) return null;
+    for (const q of results) {
+      if (q.error instanceof Error) return q.error.message;
+      if (q.error) return "Failed to load dashboard.";
     }
-    void loadDashboard();
-  }, [enabled, loadDashboard]);
+    return null;
+  }, [enabled, results]);
+
+  const preview = useMemo(() => {
+    if (!enabled) return null;
+    return mergeDashboardParts(results[0]?.data, results[1]?.data, results[2]?.data);
+  }, [enabled, results[0]?.data, results[1]?.data, results[2]?.data]);
+
+  const reload = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: dashboardQueryKeys.all });
+  }, [queryClient]);
 
   const value = useMemo(
     () => ({
       preview,
       loading,
       error,
-      reload: loadDashboard,
+      reload,
     }),
-    [preview, loading, error, loadDashboard],
+    [preview, loading, error, reload],
   );
 
   return <DashboardDataContext.Provider value={value}>{children}</DashboardDataContext.Provider>;
