@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { playerWakiCashCost, validateWakiCashLineup, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import { playerWakiCashCost, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
 import "./dashboard.css";
 
@@ -277,14 +277,13 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         }
         usedNames.add(k);
       }
-      const wakiRows = filled.map((player_name, slot_index) => ({
-        player_name,
-        is_captain: sl.captainSlot === slot_index,
-        waki_cash: Math.ceil(playerWakiCashCost(sl.skill_level, player_name) * sl.wakicash_multiplier),
-      }));
-      const v = validateWakiCashLineup(wakiRows);
-      if (!v.ok) {
-        setActionErr(`Slot ${s + 1}: ${v.message}`);
+      const eventSpend = filled.reduce(
+        (sum, player_name) =>
+          sum + Math.ceil(playerWakiCashCost(sl.skill_level, player_name) * sl.wakicash_multiplier),
+        0,
+      );
+      if (eventSpend > budget) {
+        setActionErr(`Event slot ${s + 1} exceeds ${budget} WakiCash.`);
         return;
       }
       payloadEvents.push({
@@ -299,19 +298,6 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
     if (payloadEvents.length === 0) {
       setActionErr("Add at least one event with 5 picks before saving.");
-      return;
-    }
-
-    let spend = 0;
-    for (const pe of payloadEvents) {
-      const sl = slots[pe.slot_index];
-      if (!sl) continue;
-      for (const p of pe.picks) {
-        spend += Math.ceil(playerWakiCashCost(sl.skill_level, p.player_name) * sl.wakicash_multiplier);
-      }
-    }
-    if (spend > budget) {
-      setActionErr(`Total WakiCash ${spend} exceeds tournament budget ${budget}.`);
       return;
     }
 

@@ -62,6 +62,7 @@ function sameSlots(
 
 function validateEventPicksShape(
   picks: { player_name: string; is_captain?: boolean; waki_cash: number }[],
+  eventBudget: number,
 ): { ok: true } | { ok: false; message: string } {
   if (picks.length !== WINTER_FANTASY_ROSTER_SIZE) {
     return { ok: false, message: `Exactly ${WINTER_FANTASY_ROSTER_SIZE} picks per event.` };
@@ -74,13 +75,9 @@ function validateEventPicksShape(
   if (new Set(names.map(normName)).size !== names.length) {
     return { ok: false, message: "Duplicate players are not allowed within an event." };
   }
-  const elite = picks.filter((p) => p.waki_cash >= 32).length;
-  if (elite > 2) {
-    return { ok: false, message: "At most 2 players may cost 32+ WakiCash per event." };
-  }
-  const hasValue = picks.some((p) => p.waki_cash <= 16);
-  if (!hasValue) {
-    return { ok: false, message: "Include at least one player costing 16 WakiCash or less per event." };
+  const total = picks.reduce((s, p) => s + p.waki_cash, 0);
+  if (total > eventBudget) {
+    return { ok: false, message: `Event costs ${total} WakiCash; max is ${eventBudget}.` };
   }
   return { ok: true };
 }
@@ -408,7 +405,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           is_captain: Boolean(p.is_captain),
           waki_cash: Math.ceil(playerWakiCashCost(skill, p.player_name) * wakiMult),
         }));
-        const shape = validateEventPicksShape(priced);
+        const shape = validateEventPicksShape(priced, existing?.wakicashBudget ?? 100);
         if (!shape.ok) {
           return reply.code(400).send({ message: `${inc.event_key}: ${shape.message}` } as const);
         }
@@ -481,11 +478,6 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         },
         update: {},
       });
-      if (totalSpend > header.wakicashBudget) {
-        return reply.code(400).send({
-          message: `Roster costs ${totalSpend} WakiCash; max per tournament is ${header.wakicashBudget}.`,
-        } as const);
-      }
 
       const lineup = await prisma.$transaction(async (tx) => {
         const toDelete = existingPicks
