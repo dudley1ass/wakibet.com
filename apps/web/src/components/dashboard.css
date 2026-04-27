@@ -79,6 +79,38 @@
 .dash-footnote { margin-top: 12px; color: #fcd34d; font-size: 11px; }
 .dash-loading { margin-top: 20px; text-align: center; color: #fde68a; font-size: 14px; }
 
+.dash-prize-hero {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: linear-gradient(145deg, rgba(61, 17, 13, 0.85), rgba(29, 14, 10, 0.9));
+}
+.dash-prize-headline {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fde68a;
+}
+.dash-prize-sub {
+  margin: 6px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fcd34d;
+}
+.dash-prize-list {
+  margin: 0;
+  padding: 0 0 0 18px;
+  color: #fffbeb;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.dash-prize-foot {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #fcd34d;
+}
+
 .dash-hero {
   margin-top: 16px;
   border-radius: 16px;
