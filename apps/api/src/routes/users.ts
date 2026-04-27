@@ -3,9 +3,7 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { getCachedDashboardFull } from "../lib/dashboardMaterialize.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
-import {
-  TOURNAMENT_KEYS,
-} from "../lib/winterSpringsData.js";
+import { TOURNAMENT_KEYS } from "../sports/pickleball/lib/index.js";
 
 const FantasyRosterPick = z.object({
   slot_index: z.number().int(),

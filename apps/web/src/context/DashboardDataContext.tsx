@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { apiGet } from "../api";
-import type { DashboardData } from "../components/Dashboard";
+import type { DashboardData } from "../sports/pickleball";
 import {
   dashboardQueryKeys,
   mergeDashboardParts,

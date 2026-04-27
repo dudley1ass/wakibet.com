@@ -15,8 +15,7 @@ import { logger } from "./lib/logger.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
 import { usersRoutes } from "./routes/users.js";
-import { winterFantasyRoutes } from "./routes/winterFantasy.js";
-import { fantasyTournamentRoutes } from "./routes/fantasyTournament.js";
+import { fantasyTournamentRoutes, winterFantasyRoutes } from "./sports/pickleball/routes/index.js";
 import { publicContactRoutes } from "./routes/publicContact.js";
 
 export async function buildApp() {

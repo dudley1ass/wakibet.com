@@ -6,17 +6,15 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 import {
   displayLabelForCatalogRow,
-  syncTournamentEventCatalog,
-} from "../lib/fantasyTournamentCatalog.js";
-import {
   filterMatchesForDivision,
   getTournamentData,
   parseDivisionKey,
+  ROSTER_EDIT_LOCK_MS,
+  syncTournamentEventCatalog,
   TOURNAMENT_KEYS,
   uniquePlayersInMatches,
   type TournamentKey,
-} from "../lib/winterSpringsData.js";
-import { ROSTER_EDIT_LOCK_MS } from "../lib/fantasyConstants.js";
+} from "../sports/pickleball/lib/index.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 

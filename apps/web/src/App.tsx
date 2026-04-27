@@ -1,14 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
-import Dashboard from "./components/Dashboard";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
-import PickTeamsPage from "./components/PickTeamsPage";
-import RostersPage from "./components/RostersPage";
 import HostPersonaPanel from "./components/HostPersonaPanel";
 import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
-import { DashboardDataProvider } from "./context/DashboardDataContext";
+import { Dashboard, DashboardDataProvider, PickTeamsPage, RostersPage } from "./sports/pickleball";
 import {
   ContactPage,
   FantasyRulesPage,

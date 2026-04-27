@@ -1,4 +1,4 @@
-import type { DashboardData } from "../components/Dashboard";
+import type { DashboardData } from "../sports/pickleball";
 
 export type DashboardSummaryPayload = Pick<
   DashboardData,
