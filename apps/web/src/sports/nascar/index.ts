@@ -1,2 +1,1 @@
-// NASCAR frontend exports will be added here.
-export {};
+export { default as NascarHubPage } from "./components/NascarHubPage";
