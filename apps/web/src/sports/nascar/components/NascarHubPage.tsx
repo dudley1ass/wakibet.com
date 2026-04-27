@@ -1,16 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiGet } from "../../../api";
-import { NASCAR_LINEUP_MAX_ELITE, NASCAR_LINEUP_WAKICASH_BUDGET } from "../lib/nascarLineupRules";
+import {
+  NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD,
+  NASCAR_LINEUP_WAKICASH_BUDGET,
+  NASCAR_PREMIUM_WAKICASH_THRESHOLD,
+} from "../lib/nascarLineupRules";
 
 type DriversPayload = {
   budget_wakicash: number;
+  premium_wakicash_threshold?: number;
+  max_premium_drivers?: number;
   max_elite_drivers: number;
   drivers: {
     driver_key: string;
     display_name: string;
     team_name: string | null;
     car_number: string | null;
+    sponsor: string | null;
+    manufacturer: string | null;
     waki_cash_price: number;
     is_elite: boolean;
   }[];
@@ -33,9 +41,10 @@ export default function NascarHubPage() {
             NASCAR <span className="brand-jp">WakiBet</span>
           </h1>
           <p>
-            Pick <strong>5 drivers</strong> under <strong>{NASCAR_LINEUP_WAKICASH_BUDGET} WakiCash</strong>, max{" "}
-            <strong>{NASCAR_LINEUP_MAX_ELITE} elite</strong>, exactly one captain. Salaries below update when you load
-            the driver list.
+            Pick <strong>5 drivers</strong> under <strong>{NASCAR_LINEUP_WAKICASH_BUDGET} WakiCash</strong>, at most{" "}
+            <strong>{NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD}</strong> with salary over{" "}
+            <strong>{NASCAR_PREMIUM_WAKICASH_THRESHOLD}</strong>, exactly one captain. Salaries follow Cup points
+            standing (re-seed after standings change).
           </p>
         </div>
         <div className="dash-head-actions">
@@ -59,8 +68,8 @@ export default function NascarHubPage() {
           Driver pool (WakiCash)
         </h2>
         <p className="dash-section-lead">
-          Prices start at <strong>0</strong> until your roster file is imported. API:{" "}
-          <code className="dash-code">GET /api/v1/nascar/drivers</code>
+          Each driver has a weekly <strong>WakiCash</strong> salary; your lineup of five must stay at or under the
+          budget. API: <code className="dash-code">GET /api/v1/nascar/drivers</code>
         </p>
         {driversQ.isLoading ? (
           <p className="dash-empty">Loading drivers…</p>
@@ -74,18 +83,22 @@ export default function NascarHubPage() {
               <thead>
                 <tr>
                   <th scope="col">Driver</th>
-                  <th scope="col">Team</th>
                   <th scope="col">#</th>
+                  <th scope="col">Sponsor</th>
+                  <th scope="col">Make</th>
+                  <th scope="col">Team</th>
                   <th scope="col">WakiCash</th>
-                  <th scope="col">Elite</th>
+                  <th scope="col">{`>${NASCAR_PREMIUM_WAKICASH_THRESHOLD}`}</th>
                 </tr>
               </thead>
               <tbody>
                 {(driversQ.data?.drivers ?? []).map((d) => (
                   <tr key={d.driver_key}>
                     <td>{d.display_name}</td>
-                    <td>{d.team_name ?? "—"}</td>
                     <td>{d.car_number ?? "—"}</td>
+                    <td>{d.sponsor ?? "—"}</td>
+                    <td>{d.manufacturer ?? "—"}</td>
+                    <td>{d.team_name ?? "—"}</td>
                     <td>{d.waki_cash_price}</td>
                     <td>{d.is_elite ? "Yes" : "—"}</td>
                   </tr>

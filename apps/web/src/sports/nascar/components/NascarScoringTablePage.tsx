@@ -98,7 +98,7 @@ export default function NascarScoringTablePage() {
 
           <p className="scoring-foot">
             Rules version <strong>{NASCAR_SCORING_VERSION}</strong>. Driver <strong>WakiCash</strong> salaries are set
-            in admin; lineups must stay within budget and elite limits.
+            in admin; lineups must stay within budget and the cap on drivers priced over 30 WakiCash.
           </p>
         </div>
       </div>

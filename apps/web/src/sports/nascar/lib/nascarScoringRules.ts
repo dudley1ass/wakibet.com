@@ -65,7 +65,7 @@ export const NASCAR_EXAMPLE_SCORE = {
 export const NASCAR_LINEUP_RULES_ROWS: { label: string; pts: string }[] = [
   { label: "WakiCash budget (weekly)", pts: "100" },
   { label: "Drivers picked", pts: "5" },
-  { label: "Max elite drivers", pts: "2" },
+  { label: "Max drivers over 30 WakiCash", pts: "2" },
   { label: "Captain", pts: "1 required (1.5×)" },
   { label: "Tie-breakers", pts: "2 required" },
 ];

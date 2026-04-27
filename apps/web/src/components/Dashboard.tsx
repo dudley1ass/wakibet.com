@@ -1,6 +1,5 @@
 ﻿import type { SessionUser } from "../App";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
-import DashboardPrizeHero from "./dashboard/DashboardPrizeHero";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
 import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
 import HostPersonaPanel from "./HostPersonaPanel";
@@ -149,8 +148,6 @@ export default function Dashboard({ user, onLogout }: Props) {
 
       {preview && pulse && (
         <>
-          <DashboardPrizeHero />
-
           <DashboardMultiSportLayout preview={preview} pulse={pulse} />
 
           <section className="dash-activity-row" aria-label="Activity feed">

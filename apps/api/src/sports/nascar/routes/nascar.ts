@@ -4,10 +4,15 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { requireAuthUser } from "../../../lib/requireAuthUser.js";
 import { prisma } from "../../../lib/prisma.js";
 import {
-  NASCAR_LINEUP_MAX_ELITE,
+  NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD,
   NASCAR_LINEUP_SIZE,
   NASCAR_LINEUP_WAKICASH_BUDGET,
+  NASCAR_PREMIUM_WAKICASH_THRESHOLD,
 } from "../lib/nascarLineupRules.js";
+
+function isPremiumSalary(wakiCashPrice: number): boolean {
+  return wakiCashPrice > NASCAR_PREMIUM_WAKICASH_THRESHOLD;
+}
 
 const authPre = { preHandler: [requireAuthUser] };
 
@@ -15,6 +20,10 @@ const PickRowSchema = z.object({
   slot_index: z.number().int(),
   driver_key: z.string(),
   driver_name: z.string(),
+  car_number: z.string().nullable(),
+  sponsor: z.string().nullable(),
+  manufacturer: z.string().nullable(),
+  team_name: z.string().nullable(),
   is_captain: z.boolean(),
   waki_cash_price: z.number().int(),
   is_elite: z.boolean(),
@@ -40,6 +49,8 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         response: {
           200: z.object({
             budget_wakicash: z.number().int(),
+            premium_wakicash_threshold: z.number().int(),
+            max_premium_drivers: z.number().int(),
             max_elite_drivers: z.number().int(),
             drivers: z.array(
               z.object({
@@ -47,6 +58,8 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
                 display_name: z.string(),
                 team_name: z.string().nullable(),
                 car_number: z.string().nullable(),
+                sponsor: z.string().nullable(),
+                manufacturer: z.string().nullable(),
                 waki_cash_price: z.number().int(),
                 is_elite: z.boolean(),
               }),
@@ -64,20 +77,26 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           displayName: true,
           teamName: true,
           carNumber: true,
+          sponsor: true,
+          manufacturer: true,
           wakiCashPrice: true,
           isElite: true,
         },
       });
       return {
         budget_wakicash: NASCAR_LINEUP_WAKICASH_BUDGET,
-        max_elite_drivers: NASCAR_LINEUP_MAX_ELITE,
+        premium_wakicash_threshold: NASCAR_PREMIUM_WAKICASH_THRESHOLD,
+        max_premium_drivers: NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD,
+        max_elite_drivers: NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD,
         drivers: drivers.map((d) => ({
           driver_key: d.driverKey,
           display_name: d.displayName,
           team_name: d.teamName,
           car_number: d.carNumber,
+          sponsor: d.sponsor,
+          manufacturer: d.manufacturer,
           waki_cash_price: d.wakiCashPrice,
-          is_elite: d.isElite,
+          is_elite: isPremiumSalary(d.wakiCashPrice),
         })),
       };
     },
@@ -247,9 +266,13 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           slot_index: p.slotIndex,
           driver_key: p.driver.driverKey,
           driver_name: p.driver.displayName,
+          car_number: p.driver.carNumber,
+          sponsor: p.driver.sponsor,
+          manufacturer: p.driver.manufacturer,
+          team_name: p.driver.teamName,
           is_captain: p.isCaptain,
           waki_cash_price: p.driver.wakiCashPrice,
-          is_elite: p.driver.isElite,
+          is_elite: isPremiumSalary(p.driver.wakiCashPrice),
         })),
       };
     },
@@ -299,20 +322,20 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       const byKey = new Map(drivers.map((d) => [d.driverKey, d]));
 
       let salaryTotal = 0;
-      let eliteCount = 0;
+      let premiumOverThreshold = 0;
       for (const pick of picks) {
         const d = byKey.get(pick.driver_key)!;
         salaryTotal += d.wakiCashPrice;
-        if (d.isElite) eliteCount += 1;
+        if (isPremiumSalary(d.wakiCashPrice)) premiumOverThreshold += 1;
       }
       if (salaryTotal > NASCAR_LINEUP_WAKICASH_BUDGET) {
         return reply.code(400).send({
           message: `Lineup uses ${salaryTotal} WakiCash; weekly budget is ${NASCAR_LINEUP_WAKICASH_BUDGET}.`,
         } as const);
       }
-      if (eliteCount > NASCAR_LINEUP_MAX_ELITE) {
+      if (premiumOverThreshold > NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD) {
         return reply.code(400).send({
-          message: `At most ${NASCAR_LINEUP_MAX_ELITE} elite drivers per lineup (this lineup has ${eliteCount}).`,
+          message: `At most ${NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD} drivers may cost more than ${NASCAR_PREMIUM_WAKICASH_THRESHOLD} WakiCash (this lineup has ${premiumOverThreshold}).`,
         } as const);
       }
 
@@ -348,9 +371,13 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           slot_index: p.slotIndex,
           driver_key: p.driver.driverKey,
           driver_name: p.driver.displayName,
+          car_number: p.driver.carNumber,
+          sponsor: p.driver.sponsor,
+          manufacturer: p.driver.manufacturer,
+          team_name: p.driver.teamName,
           is_captain: p.isCaptain,
           waki_cash_price: p.driver.wakiCashPrice,
-          is_elite: p.driver.isElite,
+          is_elite: isPremiumSalary(p.driver.wakiCashPrice),
         })),
       };
     },

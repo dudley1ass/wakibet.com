@@ -9,6 +9,7 @@ import {
   type NascarLineupPayload,
   type NascarWeekRow,
 } from "../../sports/nascar/lib/dashboardNascar";
+import DashboardPrizeHero from "./DashboardPrizeHero";
 import SportCard from "./SportCard";
 import { countdownFromIso, firstPickleballLockIso } from "./countdown";
 
@@ -113,11 +114,13 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
 
   return (
     <>
-      <section className="dash-ms-section" aria-labelledby="dash-ms-hero-title">
+      <section className="dash-ms-section dash-ms-section--sports-top" aria-labelledby="dash-ms-hero-title">
         <h2 id="dash-ms-hero-title" className="dash-ms-section-title">
           Your sports
         </h2>
-        <p className="dash-ms-section-lead">Same layout per sport — separate scores and leaderboards.</p>
+        <p className="dash-ms-section-lead dash-ms-section-lead--tight">
+          Same layout per sport — separate scores and leaderboards.
+        </p>
         <div className="dash-sport-hero-row">
           <SportCard
             variant="pickleball"
@@ -147,71 +150,76 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
         )}
       </section>
 
-      <section className="dash-ms-section" aria-labelledby="dash-ms-contests-title">
-        <h2 id="dash-ms-contests-title" className="dash-ms-section-title">
-          Your active contests
-        </h2>
-        <ul className="dash-contest-list">
-          <li className="dash-contest-card dash-contest-card--pickleball">
-            <div className="dash-contest-card__icon" aria-hidden>
-              🏓
-            </div>
-            <div className="dash-contest-card__body">
-              <div className="dash-contest-card__sport">Pickleball</div>
-              <div className="dash-contest-card__event">{pbEvent}</div>
-              <div className="dash-contest-card__detail">
-                {incomplete > 0
-                  ? `${incomplete} division${incomplete === 1 ? "" : "s"} need picks`
-                  : "Lineups saved for loaded divisions"}
+      <div className="dash-prize-contests-split">
+        <div className="dash-prize-contests-split__prize">
+          <DashboardPrizeHero />
+        </div>
+        <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">
+          <h2 id="dash-ms-contests-title" className="dash-ms-section-title dash-ms-section-title--sm">
+            Your active contests
+          </h2>
+          <ul className="dash-contest-list dash-contest-list--compact">
+            <li className="dash-contest-card dash-contest-card--pickleball dash-contest-card--compact">
+              <div className="dash-contest-card__icon" aria-hidden>
+                🏓
               </div>
-            </div>
-            <div className="dash-contest-card__stats">
-              <div>
-                <span className="dash-contest-card__stat-label">Rank</span>
-                <span className="dash-contest-card__stat-val">{pulse.my_rank != null ? `#${pulse.my_rank}` : "—"}</span>
+              <div className="dash-contest-card__body">
+                <div className="dash-contest-card__sport">Pickleball</div>
+                <div className="dash-contest-card__event">{pbEvent}</div>
+                <div className="dash-contest-card__detail">
+                  {incomplete > 0
+                    ? `${incomplete} division${incomplete === 1 ? "" : "s"} need picks`
+                    : "Lineups saved for loaded divisions"}
+                </div>
               </div>
-              <div>
-                <span className="dash-contest-card__stat-label">Pts</span>
-                <span className="dash-contest-card__stat-val">{Math.round(preview.fantasy_season.total_fantasy_points)}</span>
+              <div className="dash-contest-card__stats">
+                <div>
+                  <span className="dash-contest-card__stat-label">Rank</span>
+                  <span className="dash-contest-card__stat-val">{pulse.my_rank != null ? `#${pulse.my_rank}` : "—"}</span>
+                </div>
+                <div>
+                  <span className="dash-contest-card__stat-label">Pts</span>
+                  <span className="dash-contest-card__stat-val">{Math.round(preview.fantasy_season.total_fantasy_points)}</span>
+                </div>
               </div>
-            </div>
-            <Link className="dash-contest-card__link" to="/pick-teams">
-              Open
-            </Link>
-          </li>
-          <li className="dash-contest-card dash-contest-card--nascar">
-            <div className="dash-contest-card__icon" aria-hidden>
-              🏁
-            </div>
-            <div className="dash-contest-card__body">
-              <div className="dash-contest-card__sport">NASCAR</div>
-              <div className="dash-contest-card__event">{focusWeek ? focusWeek.race_name : "Weekly picks"}</div>
-              <div className="dash-contest-card__detail">
-                {!nascarEnabled
-                  ? "Add weeks + drivers in admin to enable"
-                  : nascarComplete
-                    ? "Lineup submitted for this week"
-                    : "Build your 5-driver lineup (1 captain)"}
+              <Link className="dash-contest-card__link" to="/pick-teams">
+                Open
+              </Link>
+            </li>
+            <li className="dash-contest-card dash-contest-card--nascar dash-contest-card--compact">
+              <div className="dash-contest-card__icon" aria-hidden>
+                🏁
               </div>
-            </div>
-            <div className="dash-contest-card__stats">
-              <div>
-                <span className="dash-contest-card__stat-label">Rank</span>
-                <span className="dash-contest-card__stat-val">
-                  {seasonQ.isLoading ? "…" : nascarRank != null ? `#${nascarRank}` : "—"}
-                </span>
+              <div className="dash-contest-card__body">
+                <div className="dash-contest-card__sport">NASCAR</div>
+                <div className="dash-contest-card__event">{focusWeek ? focusWeek.race_name : "Weekly picks"}</div>
+                <div className="dash-contest-card__detail">
+                  {!nascarEnabled
+                    ? "Add weeks + drivers in admin to enable"
+                    : nascarComplete
+                      ? "Lineup submitted for this week"
+                      : "Build your 5-driver lineup (1 captain)"}
+                </div>
               </div>
-              <div>
-                <span className="dash-contest-card__stat-label">Pts</span>
-                <span className="dash-contest-card__stat-val">{seasonQ.isLoading ? "…" : Math.round(nascarPts)}</span>
+              <div className="dash-contest-card__stats">
+                <div>
+                  <span className="dash-contest-card__stat-label">Rank</span>
+                  <span className="dash-contest-card__stat-val">
+                    {seasonQ.isLoading ? "…" : nascarRank != null ? `#${nascarRank}` : "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="dash-contest-card__stat-label">Pts</span>
+                  <span className="dash-contest-card__stat-val">{seasonQ.isLoading ? "…" : Math.round(nascarPts)}</span>
+                </div>
               </div>
-            </div>
-            <Link className="dash-contest-card__link" to={nascarTo}>
-              Open
-            </Link>
-          </li>
-        </ul>
-      </section>
+              <Link className="dash-contest-card__link" to={nascarTo}>
+                Open
+              </Link>
+            </li>
+          </ul>
+        </section>
+      </div>
 
       <section className="dash-ms-section dash-ms-section--rank" aria-labelledby="dash-ms-rank-title">
         <h2 id="dash-ms-rank-title" className="dash-ms-section-title">

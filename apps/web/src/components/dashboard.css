@@ -79,31 +79,32 @@
 .dash-footnote { margin-top: 12px; color: #fcd34d; font-size: 11px; }
 .dash-loading { margin-top: 20px; text-align: center; color: #fde68a; font-size: 14px; }
 
-/* Rotating season prize hero */
+/* Rotating season prize hero (compact; sits beside active contests on wide screens) */
 .dash-prize-hero {
-  margin-top: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(252, 211, 77, 0.45);
+  margin-top: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(252, 211, 77, 0.4);
   background: linear-gradient(145deg, rgba(92, 36, 20, 0.98), rgba(38, 16, 10, 0.96), rgba(67, 20, 7, 0.94));
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
   overflow: hidden;
+  height: 100%;
 }
 .dash-prize-hero-inner {
-  padding: 22px 20px 18px;
+  padding: 12px 14px 10px;
   text-align: center;
-  max-width: 36rem;
+  max-width: 22rem;
   margin: 0 auto;
 }
 .dash-prize-hero-kicker {
-  margin: 0 0 12px;
-  font-size: 11px;
+  margin: 0 0 6px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #fbbf24;
 }
 .dash-prize-hero-stage {
-  min-height: 8.5rem;
+  min-height: 4.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -129,29 +130,29 @@
 }
 .dash-prize-hero-emoji {
   display: block;
-  font-size: clamp(2rem, 6vw, 2.75rem);
+  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
   line-height: 1;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .dash-prize-hero-headline {
-  margin: 0 0 8px;
-  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  margin: 0 0 4px;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
   font-weight: 900;
   color: #fffbeb;
   line-height: 1.15;
 }
 .dash-prize-hero-prize {
-  margin: 0 0 6px;
-  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  margin: 0 0 4px;
+  font-size: clamp(0.75rem, 2vw, 0.88rem);
   font-weight: 700;
   color: #fde68a;
   line-height: 1.35;
 }
 .dash-prize-hero-tag {
   margin: 0;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #fcd34d;
   opacity: 0.92;
@@ -159,13 +160,13 @@
 .dash-prize-hero-dots {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 16px;
-  padding-top: 4px;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 2px;
 }
 .dash-prize-hero-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   border: 1px solid rgba(251, 191, 36, 0.45);
   background: rgba(0, 0, 0, 0.25);
@@ -181,6 +182,26 @@
   background: linear-gradient(135deg, #f59e0b, #b45309);
   border-color: #fde68a;
   box-shadow: 0 0 0 2px rgba(253, 230, 138, 0.25);
+}
+
+.dash-prize-contests-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 12px;
+}
+.dash-prize-contests-split__prize {
+  min-width: 0;
+  display: flex;
+}
+.dash-prize-contests-split__prize .dash-prize-hero {
+  flex: 1;
+}
+@media (max-width: 840px) {
+  .dash-prize-contests-split {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dash-hero {
@@ -1276,6 +1297,36 @@ a.rost-dash-link {
   border: 1px solid rgba(251, 191, 36, 0.28);
   background: rgba(28, 18, 14, 0.82);
 }
+.dash-ms-section--sports-top {
+  margin-top: 8px;
+  padding: 12px 12px 14px;
+}
+.dash-ms-section--contests-compact {
+  margin-top: 0;
+  padding: 10px 10px 11px;
+}
+.dash-ms-section-lead--tight {
+  margin-bottom: 8px;
+  font-size: 10px;
+}
+.dash-ms-section-title--sm {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.dash-ms-section--sports-top .dash-sport-card {
+  padding: 11px 12px 10px;
+}
+.dash-ms-section--sports-top .dash-sport-card__icon {
+  font-size: 24px;
+}
+.dash-ms-section--sports-top .dash-sport-card__event {
+  font-size: 15px;
+}
+.dash-ms-section--sports-top .dash-sport-card__cta {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 11px;
+}
 .dash-ms-section--rank {
   background: rgba(18, 22, 20, 0.82);
   border-color: rgba(74, 222, 128, 0.22);
@@ -1418,6 +1469,9 @@ a.rost-dash-link {
   flex-direction: column;
   gap: 10px;
 }
+.dash-contest-list--compact {
+  gap: 7px;
+}
 .dash-contest-card {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
@@ -1427,6 +1481,38 @@ a.rost-dash-link {
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.2);
+}
+.dash-contest-card--compact {
+  padding: 7px 9px;
+  gap: 7px 9px;
+  border-radius: 10px;
+}
+.dash-contest-card--compact .dash-contest-card__icon {
+  font-size: 17px;
+}
+.dash-contest-card--compact .dash-contest-card__sport {
+  font-size: 9px;
+}
+.dash-contest-card--compact .dash-contest-card__event {
+  font-size: 12px;
+  margin-top: 1px;
+}
+.dash-contest-card--compact .dash-contest-card__detail {
+  margin-top: 2px;
+  font-size: 10px;
+}
+.dash-contest-card--compact .dash-contest-card__stats {
+  gap: 10px;
+}
+.dash-contest-card--compact .dash-contest-card__stat-label {
+  font-size: 8px;
+}
+.dash-contest-card--compact .dash-contest-card__stat-val {
+  font-size: 13px;
+}
+.dash-contest-card--compact .dash-contest-card__link {
+  padding: 5px 10px;
+  font-size: 11px;
 }
 @media (max-width: 640px) {
   .dash-contest-card {

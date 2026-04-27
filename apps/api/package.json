@@ -17,6 +17,7 @@
     "db:push": "dotenv -e ../../.env -e ../../.env.example -- prisma db push",
     "db:studio": "dotenv -e ../../.env -e ../../.env.example -- prisma studio",
     "db:validate": "dotenv -e ../../.env -e ../../.env.example -- prisma validate",
+    "db:seed:nascar": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/seed-nascar-cup-drivers.ts",
     "dump:openapi": "tsx scripts/dump-openapi.ts",
     "generate:api-types": "pnpm run dump:openapi && openapi-typescript ../../openapi.json -o ../../packages/shared/src/generated/api.d.ts"
   },

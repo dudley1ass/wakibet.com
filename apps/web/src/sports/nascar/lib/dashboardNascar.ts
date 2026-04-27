@@ -14,6 +14,10 @@ export type NascarLineupPayload = {
     slot_index: number;
     driver_key: string;
     driver_name: string;
+    car_number?: string | null;
+    sponsor?: string | null;
+    manufacturer?: string | null;
+    team_name?: string | null;
     is_captain: boolean;
     waki_cash_price: number;
     is_elite: boolean;

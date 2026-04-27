@@ -180,6 +180,8 @@ model NascarDriver {
   displayName   String
   teamName      String?
   carNumber     String?
+  sponsor       String?
+  manufacturer  String?
   isActive      Boolean @default(true)
   /// Weekly salary in WakiCash (0 until priced for the season).
   wakiCashPrice Int     @default(0)
