@@ -18,6 +18,8 @@
     "db:studio": "dotenv -e ../../.env -e ../../.env.example -- prisma studio",
     "db:validate": "dotenv -e ../../.env -e ../../.env.example -- prisma validate",
     "db:seed:nascar": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/seed-nascar-cup-drivers.ts",
+    "db:seed:nascar-week-wurth400": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/seed-nascar-week-wurth400-2026.ts",
+    "db:seed:nascar-all": "pnpm run db:seed:nascar && pnpm run db:seed:nascar-week-wurth400",
     "dump:openapi": "tsx scripts/dump-openapi.ts",
     "generate:api-types": "pnpm run dump:openapi && openapi-typescript ../../openapi.json -o ../../packages/shared/src/generated/api.d.ts"
   },
