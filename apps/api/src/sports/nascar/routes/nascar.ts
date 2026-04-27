@@ -68,6 +68,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
                 race_name: z.string(),
                 track: z.string(),
                 race_start_at: z.string(),
+                lock_at: z.string(),
                 status: z.enum(["upcoming", "locked", "closed"]),
               }),
             ),
@@ -92,10 +93,56 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
             race_name: w.raceName,
             track: w.trackName,
             race_start_at: w.raceStartAt.toISOString(),
+            lock_at: w.lockAt.toISOString(),
             status,
           };
         }),
       };
+    },
+  );
+
+  typed.get(
+    "/season-summary",
+    {
+      ...authPre,
+      schema: {
+        tags: ["nascar"],
+        querystring: WeekQuery,
+        response: {
+          200: z.object({
+            season_year: z.number().int(),
+            total_points: z.number(),
+            rank: z.number().nullable(),
+            weeks_played: z.number().int(),
+          }),
+        },
+      },
+    },
+    async (req) => {
+      const userId = req.authUser!.id;
+      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+
+      const lineups = await prisma.nascarWeeklyLineup.findMany({
+        where: { userId, week: { seasonYear } },
+        select: { totalPts: true },
+      });
+      const total_points = lineups.reduce((sum, row) => sum + row.totalPts, 0);
+      const weeks_played = lineups.length;
+
+      const grouped = await prisma.nascarWeeklyLineup.groupBy({
+        by: ["userId"],
+        where: { week: { seasonYear } },
+        _sum: { totalPts: true },
+      });
+      if (grouped.length === 0) {
+        return { season_year: seasonYear, total_points, rank: null, weeks_played };
+      }
+      const totals = grouped
+        .map((g) => ({ userId: g.userId, pts: g._sum.totalPts ?? 0 }))
+        .sort((a, b) => b.pts - a.pts || a.userId.localeCompare(b.userId));
+      const strictlyAhead = totals.filter((t) => t.pts > total_points + 1e-9).length;
+      const rank = strictlyAhead + 1;
+      return { season_year: seasonYear, total_points, rank, weeks_played };
     },
   );
 

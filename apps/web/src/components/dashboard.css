@@ -1012,6 +1012,280 @@ a.rost-dash-link {
 }
 .dash-account-grid { margin-top: 10px; }
 
+/* —— Multi-sport dashboard (Pickleball + NASCAR) —— */
+.dash-ms-section {
+  margin-top: 16px;
+  padding: 14px 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: rgba(28, 18, 14, 0.82);
+}
+.dash-ms-section--rank {
+  background: rgba(18, 22, 20, 0.82);
+  border-color: rgba(74, 222, 128, 0.22);
+}
+.dash-ms-section-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fde68a;
+  letter-spacing: 0.02em;
+}
+.dash-ms-section-lead {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: #fcd34d;
+  line-height: 1.45;
+  max-width: 52rem;
+}
+.dash-ms-error {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: #fca5a5;
+}
+
+.dash-sport-hero-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.dash-sport-card {
+  flex: 1 1 280px;
+  min-width: min(280px, 88vw);
+  scroll-snap-align: start;
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dash-sport-card--pickleball {
+  background: linear-gradient(155deg, rgba(20, 60, 40, 0.95), rgba(10, 28, 18, 0.98));
+  border-color: rgba(74, 222, 128, 0.35);
+}
+.dash-sport-card--nascar {
+  background: linear-gradient(155deg, rgba(28, 12, 12, 0.98), rgba(12, 8, 10, 0.98));
+  border-color: rgba(248, 113, 113, 0.38);
+}
+.dash-sport-card__top {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.dash-sport-card__icon {
+  font-size: 28px;
+  line-height: 1;
+}
+.dash-sport-card__sport {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.85);
+  margin-bottom: 2px;
+}
+.dash-sport-card__event {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fffbeb;
+  line-height: 1.2;
+}
+.dash-sport-card__sub {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #d1fae5;
+  line-height: 1.4;
+}
+.dash-sport-card--nascar .dash-sport-card__sub {
+  color: #fecaca;
+}
+.dash-sport-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-sport-card__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dash-sport-card__pill--pickleball {
+  background: rgba(22, 101, 52, 0.55);
+  color: #bbf7d0;
+  border: 1px solid rgba(74, 222, 128, 0.45);
+}
+.dash-sport-card__pill--nascar {
+  background: rgba(127, 29, 29, 0.55);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+}
+.dash-sport-card__cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-height: 38px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fffbeb;
+  background: rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.dash-sport-card__cta:hover {
+  border-color: rgba(253, 230, 138, 0.55);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.dash-contest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dash-contest-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 10px 12px;
+  align-items: center;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+@media (max-width: 640px) {
+  .dash-contest-card {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+  }
+  .dash-contest-card__stats {
+    grid-column: 2;
+  }
+  .dash-contest-card__link {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    text-align: center;
+  }
+}
+.dash-contest-card--pickleball {
+  border-color: rgba(74, 222, 128, 0.28);
+}
+.dash-contest-card--nascar {
+  border-color: rgba(248, 113, 113, 0.28);
+}
+.dash-contest-card__icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.dash-contest-card__sport {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fcd34d;
+}
+.dash-contest-card__event {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fffbeb;
+  margin-top: 2px;
+}
+.dash-contest-card__detail {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #fde68a;
+  opacity: 0.9;
+}
+.dash-contest-card__stats {
+  display: flex;
+  gap: 14px;
+  text-align: right;
+}
+.dash-contest-card__stat-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fcd34d;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.dash-contest-card__stat-val {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fffbeb;
+}
+.dash-contest-card__link {
+  font-size: 12px;
+  font-weight: 800;
+  color: #fde68a;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  white-space: nowrap;
+}
+.dash-contest-card__link:hover {
+  border-color: #fde68a;
+}
+
+.dash-season-rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dash-season-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 13px;
+}
+.dash-season-rank-row--pickleball {
+  border-color: rgba(74, 222, 128, 0.22);
+}
+.dash-season-rank-row--nascar {
+  border-color: rgba(248, 113, 113, 0.22);
+}
+.dash-season-rank-ico {
+  font-size: 18px;
+}
+.dash-season-rank-sport {
+  font-weight: 800;
+  color: #fde68a;
+  min-width: 6.5rem;
+}
+.dash-season-rank-val {
+  margin-left: auto;
+  font-weight: 700;
+  color: #fffbeb;
+}
+
 @media (max-width: 820px) {
   .dash-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dash-mid-grid { grid-template-columns: 1fr; }

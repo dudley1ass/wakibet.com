@@ -2,6 +2,7 @@
 import { WINTER_FANTASY_RULES } from "@wakibet/shared";
 import type { SessionUser } from "../App";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
+import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
 import HostPersonaPanel from "./HostPersonaPanel";
 import "./dashboard.css";
 
@@ -239,6 +240,8 @@ export default function Dashboard({ user, onLogout }: Props) {
               <div className="dash-kpi-label">Limited WakiBet Founders Hat</div>
             </div>
           </section>
+
+          <DashboardMultiSportLayout preview={preview} pulse={pulse} />
 
           <section className="dash-kpi-host-row" aria-label="Your season standing and host">
             <div className="dash-kpi-strip dash-kpi-strip--compact" aria-label="Your Season Standing">
