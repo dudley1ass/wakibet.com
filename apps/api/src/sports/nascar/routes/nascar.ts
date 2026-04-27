@@ -140,7 +140,6 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
   typed.get(
     "/weeks",
     {
-      ...authPre,
       schema: {
         tags: ["nascar"],
         querystring: WeekQuery,

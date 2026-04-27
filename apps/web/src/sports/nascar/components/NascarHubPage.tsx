@@ -40,7 +40,6 @@ export default function NascarHubPage({ user }: Props) {
   const weeksQ = useQuery<NascarWeeksPayload>({
     queryKey: ["nascar", "weeks", seasonYear] as const,
     queryFn: () => apiGet<NascarWeeksPayload>(`/api/v1/nascar/weeks?season_year=${seasonYear}`),
-    enabled: Boolean(user),
   });
 
   const weeks = weeksQ.data?.weeks ?? [];
@@ -51,7 +50,7 @@ export default function NascarHubPage({ user }: Props) {
   }, [weekKeyParam, weeks]);
 
   useEffect(() => {
-    if (!user || weeks.length === 0) return;
+    if (weeks.length === 0) return;
     if (!weekKeyParam || !weeks.some((w) => w.week_key === weekKeyParam)) {
       const def = nascarFocusWeek(weeks)?.week_key ?? weeks[0]!.week_key;
       setParams(
@@ -63,7 +62,7 @@ export default function NascarHubPage({ user }: Props) {
         { replace: true },
       );
     }
-  }, [user, weeks, weekKeyParam, setParams]);
+  }, [weeks, weekKeyParam, setParams]);
 
   const onSelectWeek = useCallback(
     (weekKey: string) => {

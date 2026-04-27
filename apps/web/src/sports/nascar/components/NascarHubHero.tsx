@@ -53,14 +53,7 @@ export default function NascarHubHero({
             one captain — same shape as pickleball, different sport.
           </p>
 
-          {!user ? (
-            <p className="nascar-hub-hero__signin">
-              <Link className="dash-main-btn" to="/">
-                Sign in from the dashboard
-              </Link>{" "}
-              <span className="nascar-hub-hero__signin-note">to load races and save your lineup.</span>
-            </p>
-          ) : weeksLoading ? (
+          {weeksLoading ? (
             <p className="nascar-hub-hero__status">Loading schedule…</p>
           ) : weeksError ? (
             <p className="nascar-hub-hero__status nascar-hub-hero__status--error">Could not load the race schedule.</p>
@@ -94,11 +87,20 @@ export default function NascarHubHero({
                   </span>
                 </div>
               ) : null}
-              <p className="nascar-hub-hero__cta-hint">
-                <a href="#nascar-lineup-builder" className="nascar-hub-hero__anchor">
-                  Choose drivers below
-                </a>
-              </p>
+              {!user ? (
+                <p className="nascar-hub-hero__signin">
+                  <Link className="dash-main-btn" to="/">
+                    Sign in from the dashboard
+                  </Link>{" "}
+                  <span className="nascar-hub-hero__signin-note">to save a lineup for this race.</span>
+                </p>
+              ) : (
+                <p className="nascar-hub-hero__cta-hint">
+                  <a href="#nascar-lineup-builder" className="nascar-hub-hero__anchor">
+                    Choose drivers below
+                  </a>
+                </p>
+              )}
             </>
           )}
         </div>
