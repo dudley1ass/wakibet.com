@@ -1,7 +1,7 @@
 ﻿import type { SessionUser } from "../App";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
-import DashboardNascarScoring from "./dashboard/DashboardNascarScoring";
+import DashboardNascarPointsTeaser from "./dashboard/DashboardNascarPointsTeaser";
 import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
 import HostPersonaPanel from "./HostPersonaPanel";
 import "./dashboard.css";
@@ -198,7 +198,7 @@ export default function Dashboard({ user, onLogout }: Props) {
             )}
           </section>
 
-          <DashboardNascarScoring />
+          <DashboardNascarPointsTeaser />
 
           <details className="dash-account-fold">
             <summary>Account</summary>

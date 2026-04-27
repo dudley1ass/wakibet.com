@@ -3,9 +3,22 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { requireAuthUser } from "../../../lib/requireAuthUser.js";
 import { prisma } from "../../../lib/prisma.js";
+import {
+  NASCAR_LINEUP_MAX_ELITE,
+  NASCAR_LINEUP_SIZE,
+  NASCAR_LINEUP_WAKICASH_BUDGET,
+} from "../lib/nascarLineupRules.js";
 
 const authPre = { preHandler: [requireAuthUser] };
-const LINEUP_SIZE = 5;
+
+const PickRowSchema = z.object({
+  slot_index: z.number().int(),
+  driver_key: z.string(),
+  driver_name: z.string(),
+  is_captain: z.boolean(),
+  waki_cash_price: z.number().int(),
+  is_elite: z.boolean(),
+});
 
 export const nascarRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -14,8 +27,61 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
   const LineupQuery = z.object({ week_key: z.string().min(1) });
   const PutLineupBody = z.object({
     week_key: z.string().min(1),
-    picks: z.array(z.object({ driver_key: z.string().min(1), is_captain: z.boolean().optional() })).length(LINEUP_SIZE),
+    picks: z
+      .array(z.object({ driver_key: z.string().min(1), is_captain: z.boolean().optional() }))
+      .length(NASCAR_LINEUP_SIZE),
   });
+
+  typed.get(
+    "/drivers",
+    {
+      schema: {
+        tags: ["nascar"],
+        response: {
+          200: z.object({
+            budget_wakicash: z.number().int(),
+            max_elite_drivers: z.number().int(),
+            drivers: z.array(
+              z.object({
+                driver_key: z.string(),
+                display_name: z.string(),
+                team_name: z.string().nullable(),
+                car_number: z.string().nullable(),
+                waki_cash_price: z.number().int(),
+                is_elite: z.boolean(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    async () => {
+      const drivers = await prisma.nascarDriver.findMany({
+        where: { isActive: true },
+        orderBy: { displayName: "asc" },
+        select: {
+          driverKey: true,
+          displayName: true,
+          teamName: true,
+          carNumber: true,
+          wakiCashPrice: true,
+          isElite: true,
+        },
+      });
+      return {
+        budget_wakicash: NASCAR_LINEUP_WAKICASH_BUDGET,
+        max_elite_drivers: NASCAR_LINEUP_MAX_ELITE,
+        drivers: drivers.map((d) => ({
+          driver_key: d.driverKey,
+          display_name: d.displayName,
+          team_name: d.teamName,
+          car_number: d.carNumber,
+          waki_cash_price: d.wakiCashPrice,
+          is_elite: d.isElite,
+        })),
+      };
+    },
+  );
 
   typed.get(
     "/status",
@@ -39,7 +105,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         prisma.nascarWeek.count(),
         prisma.nascarDriver.count({ where: { isActive: true } }),
       ]);
-      const enabled = weeks > 0 && drivers >= LINEUP_SIZE;
+      const enabled = weeks > 0 && drivers >= NASCAR_LINEUP_SIZE;
       return {
         sport: "nascar" as const,
         enabled,
@@ -157,14 +223,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({
             week_key: z.string(),
             lineup_size: z.number().int(),
-            picks: z.array(
-              z.object({
-                slot_index: z.number().int(),
-                driver_key: z.string(),
-                driver_name: z.string(),
-                is_captain: z.boolean(),
-              }),
-            ),
+            picks: z.array(PickRowSchema),
           }),
           404: ErrorMessage,
         },
@@ -183,12 +242,14 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
 
       return {
         week_key: week.weekKey,
-        lineup_size: LINEUP_SIZE,
+        lineup_size: NASCAR_LINEUP_SIZE,
         picks: lineup.picks.map((p) => ({
           slot_index: p.slotIndex,
           driver_key: p.driver.driverKey,
           driver_name: p.driver.displayName,
           is_captain: p.isCaptain,
+          waki_cash_price: p.driver.wakiCashPrice,
+          is_elite: p.driver.isElite,
         })),
       };
     },
@@ -204,14 +265,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         response: {
           200: z.object({
             week_key: z.string(),
-            picks: z.array(
-              z.object({
-                slot_index: z.number().int(),
-                driver_key: z.string(),
-                driver_name: z.string(),
-                is_captain: z.boolean(),
-              }),
-            ),
+            picks: z.array(PickRowSchema),
           }),
           400: ErrorMessage,
           404: ErrorMessage,
@@ -243,6 +297,24 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         return reply.code(400).send({ message: "One or more driver_key values are invalid/inactive." } as const);
       }
       const byKey = new Map(drivers.map((d) => [d.driverKey, d]));
+
+      let salaryTotal = 0;
+      let eliteCount = 0;
+      for (const pick of picks) {
+        const d = byKey.get(pick.driver_key)!;
+        salaryTotal += d.wakiCashPrice;
+        if (d.isElite) eliteCount += 1;
+      }
+      if (salaryTotal > NASCAR_LINEUP_WAKICASH_BUDGET) {
+        return reply.code(400).send({
+          message: `Lineup uses ${salaryTotal} WakiCash; weekly budget is ${NASCAR_LINEUP_WAKICASH_BUDGET}.`,
+        } as const);
+      }
+      if (eliteCount > NASCAR_LINEUP_MAX_ELITE) {
+        return reply.code(400).send({
+          message: `At most ${NASCAR_LINEUP_MAX_ELITE} elite drivers per lineup (this lineup has ${eliteCount}).`,
+        } as const);
+      }
 
       const lineup = await prisma.nascarWeeklyLineup.upsert({
         where: { userId_weekId: { userId: req.authUser!.id, weekId: week.id } },
@@ -277,6 +349,8 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           driver_key: p.driver.driverKey,
           driver_name: p.driver.displayName,
           is_captain: p.isCaptain,
+          waki_cash_price: p.driver.wakiCashPrice,
+          is_elite: p.driver.isElite,
         })),
       };
     },

@@ -6,7 +6,7 @@ import SiteFooter from "./components/SiteFooter";
 import HostPersonaPanel from "./components/HostPersonaPanel";
 import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
 import { Dashboard, DashboardDataProvider, PickTeamsPage, RostersPage } from "./sports/pickleball";
-import { NascarHubPage } from "./sports/nascar";
+import { NascarHubPage, NascarScoringTablePage } from "./sports/nascar";
 import {
   ContactPage,
   FantasyRulesPage,
@@ -148,6 +148,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
+      <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
       <Route path="/nascar" element={<NascarHubPage />} />
       <Route
         path="/rosters"

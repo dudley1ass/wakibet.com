@@ -62,13 +62,6 @@ export const NASCAR_EXAMPLE_SCORE = {
   captainTotal: 43.5,
 };
 
-export const NASCAR_WHY_IT_WORKS: string[] = [
-  "Reduces ties — decimal scoring from laps led spreads the field.",
-  "Rewards smart picks — position gain is its own line item.",
-  "Adds risk — DNF penalty keeps chalk from being free.",
-  "Stays simple enough to explain in one screen.",
-];
-
 export const NASCAR_LINEUP_RULES_ROWS: { label: string; pts: string }[] = [
   { label: "WakiCash budget (weekly)", pts: "100" },
   { label: "Drivers picked", pts: "5" },

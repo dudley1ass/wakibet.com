@@ -28,7 +28,8 @@ export default function SiteFooter() {
             <div className="site-footer-links site-footer-links--legal">
               <Link to="/terms">Terms of Use</Link>
               <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/scoring-table">Scoring Table</Link>
+              <Link to="/scoring-table">Pickleball scoring</Link>
+              <Link to="/nascar/scoring">NASCAR scoring</Link>
               <Link to="/fantasy-rules">How fantasy works</Link>
             </div>
             <div className="site-footer-links site-footer-links--app">

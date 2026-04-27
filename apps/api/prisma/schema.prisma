@@ -175,12 +175,16 @@ model NascarWeek {
 }
 
 model NascarDriver {
-  id          String  @id @default(cuid())
-  driverKey   String  @unique
-  displayName String
-  teamName    String?
-  carNumber   String?
-  isActive    Boolean @default(true)
+  id            String  @id @default(cuid())
+  driverKey     String  @unique
+  displayName   String
+  teamName      String?
+  carNumber     String?
+  isActive      Boolean @default(true)
+  /// Weekly salary in WakiCash (0 until priced for the season).
+  wakiCashPrice Int     @default(0)
+  /// “Elite” drivers count toward max-2-elite lineup rule.
+  isElite       Boolean @default(false)
 
   picks NascarWeeklyPick[]
 

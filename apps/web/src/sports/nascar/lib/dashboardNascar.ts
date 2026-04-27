@@ -10,7 +10,14 @@ export type NascarWeekRow = {
 export type NascarLineupPayload = {
   week_key: string;
   lineup_size: number;
-  picks: { slot_index: number; driver_key: string; driver_name: string; is_captain: boolean }[];
+  picks: {
+    slot_index: number;
+    driver_key: string;
+    driver_name: string;
+    is_captain: boolean;
+    waki_cash_price: number;
+    is_elite: boolean;
+  }[];
 };
 
 export function nascarFocusWeek(weeks: NascarWeekRow[]): NascarWeekRow | null {
