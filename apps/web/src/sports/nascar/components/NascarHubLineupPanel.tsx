@@ -25,13 +25,20 @@ type Props = {
   weekKey: string;
   week: NascarWeekRow;
   drivers: HubDriverRow[];
+  /** Lineup salary cap (defaults to cup rule; may match API `budget_wakicash`). */
+  wakicashBudget?: number;
 };
 
 function isPremiumPrice(price: number): boolean {
   return price > NASCAR_PREMIUM_WAKICASH_THRESHOLD;
 }
 
-export default function NascarHubLineupPanel({ weekKey, week, drivers }: Props) {
+export default function NascarHubLineupPanel({
+  weekKey,
+  week,
+  drivers,
+  wakicashBudget = NASCAR_LINEUP_WAKICASH_BUDGET,
+}: Props) {
   const qc = useQueryClient();
   const byKey = useMemo(() => new Map(drivers.map((d) => [d.driver_key, d])), [drivers]);
 
@@ -70,6 +77,8 @@ export default function NascarHubLineupPanel({ weekKey, week, drivers }: Props) 
     return t;
   }, [slots, byKey]);
 
+  const wakiCashLeft = wakicashBudget - spent;
+
   const premiumCount = useMemo(() => {
     let n = 0;
     for (const k of slots) {
@@ -95,13 +104,13 @@ export default function NascarHubLineupPanel({ weekKey, week, drivers }: Props) 
         total += dr.waki_cash_price;
         if (isPremiumPrice(dr.waki_cash_price)) prem += 1;
       }
-      if (total > NASCAR_LINEUP_WAKICASH_BUDGET) return `Would exceed ${NASCAR_LINEUP_WAKICASH_BUDGET} WakiCash.`;
+      if (total > wakicashBudget) return `Would exceed ${wakicashBudget} WakiCash.`;
       if (prem > NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD) {
         return `At most ${NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD} drivers over ${NASCAR_PREMIUM_WAKICASH_THRESHOLD} WakiCash.`;
       }
       return null;
     },
-    [slots, byKey, readOnly],
+    [slots, byKey, readOnly, wakicashBudget],
   );
 
   const removeSlot = (dk: string) => {
@@ -158,25 +167,36 @@ export default function NascarHubLineupPanel({ weekKey, week, drivers }: Props) 
       <h2 id="nascar-lineup-title" className="dash-section-title">
         Your lineup — {week.race_name}
       </h2>
-      <p className="dash-section-lead">
-        Spent <strong>{spent}</strong> / {NASCAR_LINEUP_WAKICASH_BUDGET} WakiCash ·{" "}
-        {`Premium (>${NASCAR_PREMIUM_WAKICASH_THRESHOLD}):`}{" "}
-        <strong>
-          {premiumCount}/{NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD}
-        </strong>
-        {readOnly ? (
-          <>
-            {" "}
-            · <em>Editing closed for this race.</em>
-          </>
-        ) : null}
-        {complete && lineupQ.data ? (
-          <>
-            {" "}
-            · <span className="nascar-lineup-panel__saved">Saved lineup on file.</span>
-          </>
-        ) : null}
-      </p>
+      <div
+        className={`nascar-lineup-panel__budget${wakiCashLeft < 0 ? " nascar-lineup-panel__budget--over" : ""}`}
+        role="status"
+        aria-live="polite"
+        aria-label="WakiCash budget"
+      >
+        <div className="nascar-lineup-panel__budget-main">
+          <span className="nascar-lineup-panel__budget-left-num">{wakiCashLeft}</span>
+          <span className="nascar-lineup-panel__budget-left-text"> WakiCash left</span>
+        </div>
+        <p className="nascar-lineup-panel__budget-sub">
+          Spent <strong>{spent}</strong> of {wakicashBudget}
+          {` · Premium (>${NASCAR_PREMIUM_WAKICASH_THRESHOLD}): `}
+          <strong>
+            {premiumCount}/{NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD}
+          </strong>
+          {readOnly ? (
+            <>
+              {" "}
+              · <em>Editing closed for this race.</em>
+            </>
+          ) : null}
+          {complete && lineupQ.data ? (
+            <>
+              {" "}
+              · <span className="nascar-lineup-panel__saved">Saved lineup on file.</span>
+            </>
+          ) : null}
+        </p>
+      </div>
 
       {lineupQ.isLoading ? (
         <p className="dash-empty">Loading lineup…</p>
@@ -233,7 +253,9 @@ export default function NascarHubLineupPanel({ weekKey, week, drivers }: Props) 
 
           <h3 className="nascar-lineup-panel__pool-title">Add drivers</h3>
           <p className="dash-section-lead nascar-lineup-panel__pool-lead">
-            {readOnly ? "Pool shown for reference." : "Tap a driver to add to the next open slot."}
+            {readOnly
+              ? "Pool shown for reference (highest WakiCash first)."
+              : "Highest WakiCash at the top — tap a driver to add to the next open slot."}
           </p>
           <div className="nascar-lineup-driver-chips" aria-label="Driver pool">
             {drivers.map((d) => {

@@ -81,6 +81,13 @@ export default function NascarHubPage({ user }: Props) {
 
   const activeWeek = weeks.find((w) => w.week_key === selectedWeekKey) ?? null;
   const drivers = driversQ.data?.drivers ?? [];
+  const driversByWakiCashDesc = useMemo(
+    () =>
+      [...drivers].sort(
+        (a, b) => b.waki_cash_price - a.waki_cash_price || a.display_name.localeCompare(b.display_name),
+      ),
+    [drivers],
+  );
 
   return (
     <div className="dash-shell">
@@ -115,7 +122,12 @@ export default function NascarHubPage({ user }: Props) {
       />
 
       {user && activeWeek && drivers.length > 0 ? (
-        <NascarHubLineupPanel weekKey={activeWeek.week_key} week={activeWeek} drivers={drivers} />
+        <NascarHubLineupPanel
+          weekKey={activeWeek.week_key}
+          week={activeWeek}
+          drivers={driversByWakiCashDesc}
+          wakicashBudget={driversQ.data?.budget_wakicash ?? NASCAR_LINEUP_WAKICASH_BUDGET}
+        />
       ) : null}
 
       <section className="dash-section" aria-labelledby="nascar-drivers-title">
@@ -123,8 +135,8 @@ export default function NascarHubPage({ user }: Props) {
           Driver pool (WakiCash)
         </h2>
         <p className="dash-section-lead">
-          Full list for reference — use <strong>Add drivers</strong> above to build your lineup. API:{" "}
-          <code className="dash-code">GET /api/v1/nascar/drivers</code>
+          Highest WakiCash first — full list for reference. Use <strong>Add drivers</strong> above to build your
+          lineup. API: <code className="dash-code">GET /api/v1/nascar/drivers</code>
         </p>
         {driversQ.isLoading ? (
           <p className="dash-empty">Loading drivers…</p>
@@ -150,7 +162,7 @@ export default function NascarHubPage({ user }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {drivers.map((d) => (
+                {driversByWakiCashDesc.map((d) => (
                   <tr key={d.driver_key}>
                     <td>{d.display_name}</td>
                     <td>{d.car_number ?? "—"}</td>

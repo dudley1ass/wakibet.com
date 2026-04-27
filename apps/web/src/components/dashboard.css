@@ -1145,6 +1145,50 @@ a.rost-dash-link {
   color: #86efac;
   font-weight: 700;
 }
+
+.nascar-lineup-panel__budget {
+  margin-top: 10px;
+  padding: 12px 12px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(253, 230, 138, 0.35);
+  background: rgba(0, 0, 0, 0.35);
+}
+.nascar-lineup-panel__budget--over {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(69, 10, 10, 0.35);
+}
+.nascar-lineup-panel__budget-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.nascar-lineup-panel__budget-left-num {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #fef3c7;
+  font-variant-numeric: tabular-nums;
+}
+.nascar-lineup-panel__budget--over .nascar-lineup-panel__budget-left-num {
+  color: #fecaca;
+}
+.nascar-lineup-panel__budget-left-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fde68a;
+}
+.nascar-lineup-panel__budget-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #e7e5e4;
+}
+.nascar-lineup-panel__budget-sub strong {
+  font-weight: 800;
+  color: #fffbeb;
+}
 .nascar-lineup-slots {
   display: grid;
   gap: 10px;
@@ -1184,7 +1228,9 @@ a.rost-dash-link {
 }
 .nascar-lineup-slot__meta {
   margin-top: 4px;
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: #fecaca;
 }
 .nascar-lineup-slot__empty {
@@ -1278,9 +1324,10 @@ a.rost-dash-link {
   line-height: 1.2;
 }
 .nascar-lineup-chip__price {
-  font-size: 10px;
+  font-size: 13px;
   color: #fcd34d;
-  font-weight: 700;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .dash-whatif-list {
