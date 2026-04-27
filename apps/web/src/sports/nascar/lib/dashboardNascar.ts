@@ -10,6 +10,10 @@ export type NascarWeekRow = {
 export type NascarLineupPayload = {
   week_key: string;
   lineup_size: number;
+  /** Whole seconds P1 ahead of P2 at the line (tiebreaker #1). */
+  tiebreaker_win_margin_seconds: number | null;
+  /** Predicted total caution laps in the race (tiebreaker #2). */
+  tiebreaker_caution_laps: number | null;
   picks: {
     slot_index: number;
     driver_key: string;
@@ -35,5 +39,7 @@ export function nascarFocusWeek(weeks: NascarWeekRow[]): NascarWeekRow | null {
 export function nascarLineupComplete(lineup: NascarLineupPayload | undefined, size: number): boolean {
   if (!lineup) return false;
   if (lineup.picks.length !== size) return false;
-  return lineup.picks.filter((p) => p.is_captain).length === 1;
+  if (lineup.picks.filter((p) => p.is_captain).length !== 1) return false;
+  if (lineup.tiebreaker_win_margin_seconds == null || lineup.tiebreaker_caution_laps == null) return false;
+  return true;
 }

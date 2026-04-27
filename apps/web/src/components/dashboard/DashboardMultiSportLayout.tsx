@@ -40,7 +40,7 @@ function pickleballStatusLabel(incompleteDivisions: number, rosterCount: number)
 }
 
 function nascarStatusLabel(w: NascarWeekRow | null): string {
-  if (!w) return "Soon";
+  if (!w) return "";
   if (w.status === "closed") return "Closed";
   if (w.status === "locked") return "Live";
   return "Open";

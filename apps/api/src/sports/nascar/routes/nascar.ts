@@ -49,6 +49,18 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     picks: z
       .array(z.object({ driver_key: z.string().min(1), is_captain: z.boolean().optional() }))
       .length(NASCAR_LINEUP_SIZE),
+    /** Whole seconds between 1st and 2nd at the finish (tiebreaker #1). */
+    tiebreaker_win_margin_seconds: z.number().int().min(0).max(999_999),
+    /** Total laps run under caution in the race (tiebreaker #2). */
+    tiebreaker_caution_laps: z.number().int().min(0).max(500),
+  });
+
+  const LineupResponseSchema = z.object({
+    week_key: z.string(),
+    lineup_size: z.number().int(),
+    picks: z.array(PickRowSchema),
+    tiebreaker_win_margin_seconds: z.number().int().nullable(),
+    tiebreaker_caution_laps: z.number().int().nullable(),
   });
 
   typed.get(
@@ -253,11 +265,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         tags: ["nascar"],
         querystring: LineupQuery,
         response: {
-          200: z.object({
-            week_key: z.string(),
-            lineup_size: z.number().int(),
-            picks: z.array(PickRowSchema),
-          }),
+          200: LineupResponseSchema,
           404: ErrorMessage,
         },
       },
@@ -276,6 +284,8 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       return {
         week_key: week.weekKey,
         lineup_size: NASCAR_LINEUP_SIZE,
+        tiebreaker_win_margin_seconds: lineup.tiebreakerWinMarginSeconds,
+        tiebreaker_caution_laps: lineup.tiebreakerCautionLaps,
         picks: lineup.picks.map((p) => ({
           slot_index: p.slotIndex,
           driver_key: p.driver.driverKey,
@@ -300,10 +310,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         tags: ["nascar"],
         body: PutLineupBody,
         response: {
-          200: z.object({
-            week_key: z.string(),
-            picks: z.array(PickRowSchema),
-          }),
+          200: LineupResponseSchema,
           400: ErrorMessage,
           404: ErrorMessage,
           409: ErrorMessage,
@@ -311,7 +318,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req, reply) => {
-      const { week_key, picks } = req.body;
+      const { week_key, picks, tiebreaker_win_margin_seconds, tiebreaker_caution_laps } = req.body;
       const week = await prisma.nascarWeek.findUnique({ where: { weekKey: week_key } });
       if (!week) return reply.code(404).send({ message: "Unknown week_key." } as const);
       if (week.isClosed || new Date() >= week.lockAt) {
@@ -380,6 +387,13 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
             },
           });
         }
+        await tx.nascarWeeklyLineup.update({
+          where: { id: lineup.id },
+          data: {
+            tiebreakerWinMarginSeconds: tiebreaker_win_margin_seconds,
+            tiebreakerCautionLaps: tiebreaker_caution_laps,
+          },
+        });
         return tx.nascarWeeklyLineup.findUniqueOrThrow({
           where: { id: lineup.id },
           include: { picks: { orderBy: { slotIndex: "asc" }, include: { driver: true } } },
@@ -388,6 +402,9 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
 
       return {
         week_key,
+        lineup_size: NASCAR_LINEUP_SIZE,
+        tiebreaker_win_margin_seconds: saved.tiebreakerWinMarginSeconds,
+        tiebreaker_caution_laps: saved.tiebreakerCautionLaps,
         picks: saved.picks.map((p) => ({
           slot_index: p.slotIndex,
           driver_key: p.driver.driverKey,

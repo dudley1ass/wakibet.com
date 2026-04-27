@@ -52,12 +52,18 @@ export default function NascarHubLineupPanel({
 
   const [slots, setSlots] = useState<string[]>([]);
   const [captainKey, setCaptainKey] = useState<string | null>(null);
+  const [tbWinMarginSeconds, setTbWinMarginSeconds] = useState("");
+  const [tbCautionLaps, setTbCautionLaps] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const data = lineupQ.data;
     if (!data || data.week_key !== weekKey) return;
+    setTbWinMarginSeconds(
+      data.tiebreaker_win_margin_seconds != null ? String(data.tiebreaker_win_margin_seconds) : "",
+    );
+    setTbCautionLaps(data.tiebreaker_caution_laps != null ? String(data.tiebreaker_caution_laps) : "");
     const picks = [...data.picks].sort((a, b) => a.slot_index - b.slot_index);
     if (picks.length === 0) {
       setSlots([]);
@@ -145,13 +151,30 @@ export default function NascarHubLineupPanel({
       setSaveError("Tap “Captain” on one driver in your lineup.");
       return;
     }
+    const winSec = Number.parseInt(tbWinMarginSeconds.trim(), 10);
+    const cautionLaps = Number.parseInt(tbCautionLaps.trim(), 10);
+    if (!Number.isFinite(winSec) || winSec < 0 || winSec > 999_999) {
+      setSaveError(
+        "Tiebreaker 1: enter whole seconds (0–999,999) for the win margin — time from 1st place to 2nd at the finish.",
+      );
+      return;
+    }
+    if (!Number.isFinite(cautionLaps) || cautionLaps < 0 || cautionLaps > 500) {
+      setSaveError("Tiebreaker 2: enter total caution laps in the race (0–500).");
+      return;
+    }
     const picks = slots.map((driver_key) => ({
       driver_key,
       is_captain: driver_key === captainKey,
     }));
     setSaving(true);
     try {
-      await apiPut<NascarLineupPayload>("/api/v1/nascar/lineup", { week_key: weekKey, picks });
+      await apiPut<NascarLineupPayload>("/api/v1/nascar/lineup", {
+        week_key: weekKey,
+        picks,
+        tiebreaker_win_margin_seconds: winSec,
+        tiebreaker_caution_laps: cautionLaps,
+      });
       await qc.invalidateQueries({ queryKey: ["nascar", "lineup", weekKey] });
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Could not save lineup.");
@@ -242,13 +265,78 @@ export default function NascarHubLineupPanel({
             })}
           </div>
 
-          {!readOnly ? (
-            <div className="nascar-lineup-panel__save-row">
-              <button type="button" className="dash-main-btn" onClick={() => void handleSave()} disabled={saving}>
-                {saving ? "Saving…" : "Save lineup"}
-              </button>
-              {saveError ? <p className="dash-error nascar-lineup-panel__err">{saveError}</p> : null}
+          {readOnly && lineupQ.data ? (
+            <div className="nascar-lineup-tb nascar-lineup-tb--readonly" aria-label="Saved tiebreakers">
+              <p className="nascar-lineup-tb__readonly">
+                Tiebreakers on file:{" "}
+                <strong>
+                  {lineupQ.data.tiebreaker_win_margin_seconds != null
+                    ? `${lineupQ.data.tiebreaker_win_margin_seconds}s`
+                    : "—"}{" "}
+                </strong>
+                win margin (1st→2nd) ·{" "}
+                <strong>
+                  {lineupQ.data.tiebreaker_caution_laps != null ? `${lineupQ.data.tiebreaker_caution_laps} laps` : "—"}
+                </strong>{" "}
+                under caution
+              </p>
             </div>
+          ) : null}
+
+          {!readOnly ? (
+            <>
+              <div className="nascar-lineup-tb">
+                <h3 className="nascar-lineup-tb__title">Tiebreakers</h3>
+                <p className="nascar-lineup-tb__hint">
+                  Used if players tie on fantasy points. Enter integers; closest to the official race stats wins each
+                  tiebreaker in order (#1 then #2).
+                </p>
+                <div className="nascar-lineup-tb__grid">
+                  <label className="nascar-lineup-tb__field">
+                    <span className="nascar-lineup-tb__label">#1 — Win margin (seconds)</span>
+                    <span className="nascar-lineup-tb__sublabel">Whole seconds between 1st and 2nd at the line</span>
+                    <input
+                      className="nascar-lineup-tb__input"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={999_999}
+                      step={1}
+                      value={tbWinMarginSeconds}
+                      onChange={(e) => {
+                        setTbWinMarginSeconds(e.target.value);
+                        setSaveError(null);
+                      }}
+                      aria-label="Tiebreaker one: win margin in seconds from first to second place"
+                    />
+                  </label>
+                  <label className="nascar-lineup-tb__field">
+                    <span className="nascar-lineup-tb__label">#2 — Total caution laps</span>
+                    <span className="nascar-lineup-tb__sublabel">All laps run under yellow in the race</span>
+                    <input
+                      className="nascar-lineup-tb__input"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={500}
+                      step={1}
+                      value={tbCautionLaps}
+                      onChange={(e) => {
+                        setTbCautionLaps(e.target.value);
+                        setSaveError(null);
+                      }}
+                      aria-label="Tiebreaker two: total caution laps"
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="nascar-lineup-panel__save-row">
+                <button type="button" className="dash-main-btn" onClick={() => void handleSave()} disabled={saving}>
+                  {saving ? "Saving…" : "Save lineup"}
+                </button>
+                {saveError ? <p className="dash-error nascar-lineup-panel__err">{saveError}</p> : null}
+              </div>
+            </>
           ) : null}
 
           <h3 className="nascar-lineup-panel__pool-title">Add drivers</h3>

@@ -36,9 +36,11 @@ export default function SportCard({
           <p className="dash-sport-card__sub">{subline}</p>
         </div>
       </div>
-      <div className="dash-sport-card__meta">
-        <span className={`dash-sport-card__pill dash-sport-card__pill--${variant}`}>{statusLabel}</span>
-      </div>
+      {statusLabel ? (
+        <div className="dash-sport-card__meta">
+          <span className={`dash-sport-card__pill dash-sport-card__pill--${variant}`}>{statusLabel}</span>
+        </div>
+      ) : null}
       <Link className="dash-sport-card__cta" to={ctaTo}>
         {ctaLabel}
       </Link>

@@ -204,6 +204,10 @@ model NascarWeeklyLineup {
   week      NascarWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
   status    String @default("active")
   totalPts  Float  @default(0)
+  /// Tiebreaker #1: whole seconds between P1 and P2 at the finish (user prediction).
+  tiebreakerWinMarginSeconds Int?
+  /// Tiebreaker #2: total race laps run under caution (user prediction).
+  tiebreakerCautionLaps      Int?
 
   picks NascarWeeklyPick[]
 
