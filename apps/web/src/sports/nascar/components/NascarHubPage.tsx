@@ -106,6 +106,11 @@ export default function NascarHubPage({ user }: Props) {
           </p>
         </div>
         <div className="dash-head-actions">
+          {user ? (
+            <Link className="dash-ghost-btn" to="/nascar/rosters">
+              My race lineups
+            </Link>
+          ) : null}
           <Link className="dash-ghost-btn" to="/nascar/scoring">
             Scoring table
           </Link>

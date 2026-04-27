@@ -63,6 +63,20 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     tiebreaker_caution_laps: z.number().int().nullable(),
   });
 
+  const SeasonLineupsWeekSchema = z.object({
+    week_key: z.string(),
+    race_name: z.string(),
+    track: z.string(),
+    race_start_at: z.string(),
+    lock_at: z.string(),
+    status: z.enum(["upcoming", "locked", "closed"]),
+    total_points: z.number(),
+    lineup_complete: z.boolean(),
+    tiebreaker_win_margin_seconds: z.number().int().nullable(),
+    tiebreaker_caution_laps: z.number().int().nullable(),
+    picks: z.array(PickRowSchema),
+  });
+
   typed.get(
     "/drivers",
     {
@@ -254,6 +268,87 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       const strictlyAhead = totals.filter((t) => t.pts > total_points + 1e-9).length;
       const rank = strictlyAhead + 1;
       return { season_year: seasonYear, total_points, rank, weeks_played };
+    },
+  );
+
+  typed.get(
+    "/lineups",
+    {
+      ...authPre,
+      schema: {
+        tags: ["nascar"],
+        querystring: WeekQuery,
+        response: {
+          200: z.object({
+            season: z.string(),
+            lineup_size: z.number().int(),
+            weeks: z.array(SeasonLineupsWeekSchema),
+          }),
+        },
+      },
+    },
+    async (req) => {
+      const userId = req.authUser!.id;
+      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+      const now = new Date();
+
+      const weeks = await prisma.nascarWeek.findMany({
+        where: { seasonYear },
+        orderBy: { raceStartAt: "asc" },
+      });
+      if (weeks.length === 0) {
+        return { season: String(seasonYear), lineup_size: NASCAR_LINEUP_SIZE, weeks: [] };
+      }
+
+      const lineups = await prisma.nascarWeeklyLineup.findMany({
+        where: { userId, weekId: { in: weeks.map((w) => w.id) } },
+        include: { picks: { orderBy: { slotIndex: "asc" }, include: { driver: true } } },
+      });
+      const lineupByWeekId = new Map(lineups.map((l) => [l.weekId, l]));
+
+      const weeksOut = weeks.map((w) => {
+        const status: "upcoming" | "locked" | "closed" = w.isClosed
+          ? "closed"
+          : now >= w.lockAt
+            ? "locked"
+            : "upcoming";
+        const L = lineupByWeekId.get(w.id);
+        const picks =
+          L?.picks.map((p) => ({
+            slot_index: p.slotIndex,
+            driver_key: p.driver.driverKey,
+            driver_name: p.driver.displayName,
+            car_number: p.driver.carNumber,
+            sponsor: p.driver.sponsor,
+            manufacturer: p.driver.manufacturer,
+            team_name: p.driver.teamName,
+            is_captain: p.isCaptain,
+            waki_cash_price: p.driver.wakiCashPrice,
+            is_elite: isPremiumSalary(p.driver.wakiCashPrice),
+          })) ?? [];
+        const tbWin = L?.tiebreakerWinMarginSeconds ?? null;
+        const tbCaut = L?.tiebreakerCautionLaps ?? null;
+        const lineup_complete =
+          picks.length === NASCAR_LINEUP_SIZE &&
+          picks.filter((p) => p.is_captain).length === 1 &&
+          tbWin != null &&
+          tbCaut != null;
+        return {
+          week_key: w.weekKey,
+          race_name: w.raceName,
+          track: w.trackName,
+          race_start_at: w.raceStartAt.toISOString(),
+          lock_at: w.lockAt.toISOString(),
+          status,
+          total_points: L?.totalPts ?? 0,
+          lineup_complete,
+          tiebreaker_win_margin_seconds: tbWin,
+          tiebreaker_caution_laps: tbCaut,
+          picks,
+        };
+      });
+
+      return { season: String(seasonYear), lineup_size: NASCAR_LINEUP_SIZE, weeks: weeksOut };
     },
   );
 

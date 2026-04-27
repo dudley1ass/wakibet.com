@@ -1964,6 +1964,18 @@ a.rost-dash-link {
   color: #fde68a;
   opacity: 0.9;
 }
+.dash-contest-card__sub-link {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff7ed;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dash-contest-card__sub-link:hover {
+  color: #fffbeb;
+}
 .dash-contest-card__stats {
   display: flex;
   gap: 14px;
@@ -1995,6 +2007,57 @@ a.rost-dash-link {
 }
 .dash-contest-card__link:hover {
   border-color: #fde68a;
+}
+
+.nascar-rost-season-hint {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: rgba(0, 0, 0, 0.22);
+  max-width: 720px;
+}
+.nascar-rost-season-hint a {
+  color: #fde68a;
+  font-weight: 800;
+}
+.nascar-rost-list {
+  margin-top: 4px;
+}
+.nascar-rost-card {
+  border-color: rgba(251, 191, 36, 0.2);
+}
+.nascar-rost-race-meta {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d6d3d1;
+}
+.nascar-rost-car {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a8a29e;
+}
+.nascar-rost-empty-picks {
+  margin: 6px 0 0;
+}
+.nascar-rost-tb-summary {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: #d6d3d1;
+  line-height: 1.45;
+}
+.nascar-rost-tb-summary strong {
+  color: #fde68a;
+}
+.nascar-rost-tb-summary--incomplete {
+  color: #fcd34d;
+}
+.nascar-rost-card-foot {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dash-season-rank-list {

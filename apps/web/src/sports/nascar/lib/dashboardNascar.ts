@@ -28,6 +28,21 @@ export type NascarLineupPayload = {
   }[];
 };
 
+/** One race weekend plus saved lineup (from `GET /api/v1/nascar/lineups`). */
+export type NascarSeasonLineupWeekPayload = NascarWeekRow & {
+  total_points: number;
+  lineup_complete: boolean;
+  tiebreaker_win_margin_seconds: number | null;
+  tiebreaker_caution_laps: number | null;
+  picks: NascarLineupPayload["picks"];
+};
+
+export type NascarSeasonLineupsPayload = {
+  season: string;
+  lineup_size: number;
+  weeks: NascarSeasonLineupWeekPayload[];
+};
+
 export function nascarFocusWeek(weeks: NascarWeekRow[]): NascarWeekRow | null {
   const open = weeks.find((w) => w.status === "upcoming");
   if (open) return open;

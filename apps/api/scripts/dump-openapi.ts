@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { buildApp } from "../src/app.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, "..", "..");
+/** Monorepo root (`apps/api/scripts` → three levels up). */
+const root = join(__dirname, "..", "..", "..");
 
 async function main() {
   const app = await buildApp();

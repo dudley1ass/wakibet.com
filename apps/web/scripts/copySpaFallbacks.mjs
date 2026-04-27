@@ -36,4 +36,14 @@ for (const r of routes) {
   fs.writeFileSync(path.join(dir, "index.html"), html);
 }
 
-console.log("[copySpaFallbacks] wrote 404.html and route shells for:", routes.join(", "));
+const nestedRoutes = [["nascar"], ["nascar", "rosters"], ["nascar", "scoring"]];
+for (const segments of nestedRoutes) {
+  const dir = path.join(dist, ...segments);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "index.html"), html);
+}
+
+console.log(
+  "[copySpaFallbacks] wrote 404.html and route shells for:",
+  [...routes, ...nestedRoutes.map((s) => s.join("/"))].join(", "),
+);

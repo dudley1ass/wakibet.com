@@ -200,6 +200,11 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
                     : nascarComplete
                       ? "Lineup submitted for this week"
                       : "Build your 5-driver lineup (1 captain)"}
+                  {nascarEnabled ? (
+                    <Link className="dash-contest-card__sub-link" to="/nascar/rosters">
+                      View all race lineups
+                    </Link>
+                  ) : null}
                 </div>
               </div>
               <div className="dash-contest-card__stats">

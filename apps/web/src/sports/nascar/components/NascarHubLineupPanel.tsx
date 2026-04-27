@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { apiGet, apiPut } from "../../../api";
 import type { NascarLineupPayload, NascarWeekRow } from "../lib/dashboardNascar";
 import { nascarLineupComplete } from "../lib/dashboardNascar";
@@ -175,7 +176,10 @@ export default function NascarHubLineupPanel({
         tiebreaker_win_margin_seconds: winSec,
         tiebreaker_caution_laps: cautionLaps,
       });
-      await qc.invalidateQueries({ queryKey: ["nascar", "lineup", weekKey] });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["nascar", "lineup", weekKey] }),
+        qc.invalidateQueries({ queryKey: ["nascar", "lineups", NASCAR_CUP_SCHEDULE_SEASON_YEAR] }),
+      ]);
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Could not save lineup.");
     } finally {
