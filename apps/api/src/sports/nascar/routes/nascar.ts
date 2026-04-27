@@ -9,6 +9,7 @@ import {
   NASCAR_LINEUP_WAKICASH_BUDGET,
   NASCAR_PREMIUM_WAKICASH_THRESHOLD,
 } from "../lib/nascarLineupRules.js";
+import { entryDriverKeysForWeek, isDriverKeyOnWeekEntryList } from "../lib/nascarWeekEntryDriverKeys.js";
 
 function isPremiumSalary(wakiCashPrice: number): boolean {
   return wakiCashPrice > NASCAR_PREMIUM_WAKICASH_THRESHOLD;
@@ -40,6 +41,9 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     ),
   });
   const LineupQuery = z.object({ week_key: z.string().min(1) });
+  const DriversQuery = z.object({
+    week_key: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.string().min(1).optional()),
+  });
   const PutLineupBody = z.object({
     week_key: z.string().min(1),
     picks: z
@@ -52,6 +56,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     {
       schema: {
         tags: ["nascar"],
+        querystring: DriversQuery,
         response: {
           200: z.object({
             budget_wakicash: z.number().int(),
@@ -74,9 +79,13 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
         },
       },
     },
-    async () => {
+    async (req) => {
+      const entryKeys = req.query.week_key ? entryDriverKeysForWeek(req.query.week_key) : null;
       const drivers = await prisma.nascarDriver.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          ...(entryKeys ? { driverKey: { in: [...entryKeys] } } : {}),
+        },
         orderBy: { displayName: "asc" },
         select: {
           driverKey: true,
@@ -316,6 +325,13 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       const keys = picks.map((p) => p.driver_key);
       if (new Set(keys).size !== keys.length) {
         return reply.code(400).send({ message: "Duplicate drivers are not allowed." } as const);
+      }
+
+      const notOnEntry = keys.filter((k) => !isDriverKeyOnWeekEntryList(week_key, k));
+      if (notOnEntry.length > 0) {
+        return reply.code(400).send({
+          message: `Not on the official entry list for this race: ${notOnEntry.join(", ")}.`,
+        } as const);
       }
 
       const drivers = await prisma.nascarDriver.findMany({

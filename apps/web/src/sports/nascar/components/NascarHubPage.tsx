@@ -33,11 +33,6 @@ export default function NascarHubPage({ user }: Props) {
   const [params, setParams] = useSearchParams();
   const weekKeyParam = params.get("week_key");
 
-  const driversQ = useQuery<DriversPayload>({
-    queryKey: ["nascar", "drivers", "catalog"] as const,
-    queryFn: () => apiGet<DriversPayload>("/api/v1/nascar/drivers"),
-  });
-
   const weeksQ = useQuery<NascarWeeksPayload>({
     queryKey: ["nascar", "weeks", seasonYear] as const,
     queryFn: () => apiGet<NascarWeeksPayload>(`/api/v1/nascar/weeks?season_year=${seasonYear}`),
@@ -49,6 +44,14 @@ export default function NascarHubPage({ user }: Props) {
     if (weekKeyParam && weeks.some((w) => w.week_key === weekKeyParam)) return weekKeyParam;
     return nascarFocusWeek(weeks)?.week_key ?? weeks[0]?.week_key ?? "";
   }, [weekKeyParam, weeks]);
+
+  const driversQ = useQuery<DriversPayload>({
+    queryKey: ["nascar", "drivers", selectedWeekKey || "__all__"] as const,
+    queryFn: () => {
+      const q = selectedWeekKey ? `?week_key=${encodeURIComponent(selectedWeekKey)}` : "";
+      return apiGet<DriversPayload>(`/api/v1/nascar/drivers${q}`);
+    },
+  });
 
   useEffect(() => {
     if (weeks.length === 0) return;
@@ -136,7 +139,9 @@ export default function NascarHubPage({ user }: Props) {
         </h2>
         <p className="dash-section-lead">
           Highest WakiCash first — full list for reference. Use <strong>Add drivers</strong> above to build your
-          lineup. API: <code className="dash-code">GET /api/v1/nascar/drivers</code>
+          lineup. API:{" "}
+          <code className="dash-code">GET /api/v1/nascar/drivers?week_key=…</code> (some races restrict to the official
+          entry list)
         </p>
         {driversQ.isLoading ? (
           <p className="dash-empty">Loading drivers…</p>
