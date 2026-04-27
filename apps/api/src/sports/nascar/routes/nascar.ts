@@ -32,7 +32,13 @@ const PickRowSchema = z.object({
 export const nascarRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
   const ErrorMessage = z.object({ message: z.string() });
-  const WeekQuery = z.object({ season_year: z.number().int().optional() });
+  /** Query params are strings; coerce so `?season_year=2026` validates. */
+  const WeekQuery = z.object({
+    season_year: z.preprocess(
+      (v) => (v === "" || v === null ? undefined : v),
+      z.coerce.number().int().optional(),
+    ),
+  });
   const LineupQuery = z.object({ week_key: z.string().min(1) });
   const PutLineupBody = z.object({
     week_key: z.string().min(1),
