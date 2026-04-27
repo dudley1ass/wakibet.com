@@ -58,7 +58,10 @@ export default function NascarHubHero({
           ) : weeksError ? (
             <p className="nascar-hub-hero__status nascar-hub-hero__status--error">Could not load the race schedule.</p>
           ) : weeks.length === 0 ? (
-            <p className="nascar-hub-hero__status">No Cup weeks in the database yet.</p>
+            <p className="nascar-hub-hero__status">
+              No Cup races on file for this season yet — the schedule should load automatically after the API starts.
+              If this message stays up, the app may not be able to write to the database (see API logs).
+            </p>
           ) : (
             <>
               <label className="nascar-hub-hero__race-label">

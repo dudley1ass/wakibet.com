@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { Link, useSearchParams } from "react-router-dom";
 import type { SessionUser } from "../../../App";
 import { apiGet } from "../../../api";
@@ -28,7 +29,7 @@ type Props = {
 };
 
 export default function NascarHubPage({ user }: Props) {
-  const seasonYear = new Date().getUTCFullYear();
+  const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
   const [params, setParams] = useSearchParams();
   const weekKeyParam = params.get("week_key");
 

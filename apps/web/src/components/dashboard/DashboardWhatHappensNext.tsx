@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
+import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { Link } from "react-router-dom";
 import { apiGet } from "../../api";
 import type { DashboardData } from "../Dashboard";
@@ -24,7 +25,7 @@ type Props = {
 };
 
 export default function DashboardWhatHappensNext({ preview }: Props) {
-  const seasonYear = new Date().getUTCFullYear();
+  const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
   const whatIf = preview.fantasy_what_if ?? [];
 
   const [statusQ, weeksQ] = useQueries({

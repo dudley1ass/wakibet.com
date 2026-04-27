@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
+import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { Link } from "react-router-dom";
 import { apiGet } from "../../api";
 import type { DashboardData } from "../Dashboard";
@@ -51,7 +52,7 @@ type Props = {
 };
 
 export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
-  const seasonYear = new Date().getUTCFullYear();
+  const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
   const pbLockIso = useMemo(() => firstPickleballLockIso(preview), [preview]);
   const incomplete = useMemo(
     () => preview.winter_fantasy_rosters.filter((r) => !r.waki_lineup_complete).length,

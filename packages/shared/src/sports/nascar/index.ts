@@ -1,2 +1,1 @@
-// Shared NASCAR types/rules exports will be added here.
-export {};
+export { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "./season.js";
