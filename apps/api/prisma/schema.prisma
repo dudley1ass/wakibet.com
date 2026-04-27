@@ -32,6 +32,7 @@ model User {
   notifications          Notification[]
   winterFantasyRosters       WinterFantasyRoster[]
   fantasyTournamentLineups FantasyTournamentLineup[]
+  nascarWeeklyLineups      NascarWeeklyLineup[]
   wfRosters                WfRoster[]
   wfSeasonScores           WfSeasonScore[]
 
@@ -151,6 +152,79 @@ model TournamentEventCatalog {
 
   @@unique([tournamentKey, eventKey])
   @@index([tournamentKey])
+}
+
+// ============ NASCAR FANTASY (weekly picks) ============
+
+model NascarWeek {
+  id          String  @id @default(cuid())
+  seasonYear  Int
+  weekKey     String  @unique
+  raceName    String
+  trackName   String
+  raceStartAt DateTime
+  lockAt      DateTime
+  isClosed    Boolean @default(false)
+
+  lineups NascarWeeklyLineup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([seasonYear, raceStartAt])
+}
+
+model NascarDriver {
+  id          String  @id @default(cuid())
+  driverKey   String  @unique
+  displayName String
+  teamName    String?
+  carNumber   String?
+  isActive    Boolean @default(true)
+
+  picks NascarWeeklyPick[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([displayName])
+}
+
+model NascarWeeklyLineup {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekId    String
+  week      NascarWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  status    String @default("active")
+  totalPts  Float  @default(0)
+
+  picks NascarWeeklyPick[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekId])
+  @@index([weekId])
+  @@index([userId])
+}
+
+model NascarWeeklyPick {
+  id        String @id @default(cuid())
+  lineupId  String
+  lineup    NascarWeeklyLineup @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  slotIndex Int
+  driverId  String
+  driver    NascarDriver @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  isCaptain Boolean @default(false)
+  points    Float   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([lineupId, slotIndex])
+  @@unique([lineupId, driverId])
+  @@index([driverId])
 }
 
 // ============ WAKI BRACKET FANTASY (normalized; phases 1–3) ============
