@@ -39,8 +39,26 @@ function firstMatchStartsAt(matches: WinterMatch[]): Date | null {
   return new Date(Math.min(...starts));
 }
 
+function eventTypeWithDoublesLabel(eventType: string): string {
+  const e = eventType.trim();
+  if (e === "Mens") return "Mens Doubles";
+  if (e === "Womens") return "Womens Doubles";
+  if (e === "Mixed") return "Mixed Doubles";
+  return e;
+}
+
+/**
+ * Human-facing event label. Pictona exports use `skill_level: "Skill"` and put the real
+ * bracket line in `age_bracket` as `(rating) Age: (range)` — mirror PickleballTournaments.com wording.
+ */
 function titleish(parts: { event_type: string; skill_level: string; age_bracket: string }): string {
-  return [parts.event_type, parts.skill_level, parts.age_bracket].filter(Boolean).join(" · ");
+  const skill = parts.skill_level?.trim() ?? "";
+  const age = parts.age_bracket?.trim() ?? "";
+  const et = eventTypeWithDoublesLabel(parts.event_type);
+  if (skill === "Skill" && /^\([^)]+\)\s*Age:\s*\(/i.test(age)) {
+    return `${et} Skill: ${age}`;
+  }
+  return [et, skill, age].filter(Boolean).join(" · ");
 }
 
 export type TierAssignment = {
