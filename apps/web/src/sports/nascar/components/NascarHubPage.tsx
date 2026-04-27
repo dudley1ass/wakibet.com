@@ -131,7 +131,10 @@ export default function NascarHubPage({ user }: Props) {
         ) : driversQ.isError ? (
           <p className="dash-error">Could not load drivers.</p>
         ) : drivers.length === 0 ? (
-          <p className="dash-empty">No active drivers yet — run the NASCAR seed on the API, then refresh.</p>
+          <p className="dash-empty">
+            No active drivers yet. Try refreshing—the API loads the Cup pool when it starts. If this keeps showing,
+            the database may be unreachable from the API or migrations are missing.
+          </p>
         ) : (
           <div className="nascar-driver-table-wrap">
             <table className="nascar-driver-table">

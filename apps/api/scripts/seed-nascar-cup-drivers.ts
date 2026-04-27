@@ -6,37 +6,10 @@
  *   pnpm --filter @wakibet/api run db:seed:nascar
  */
 import { prisma } from "../src/lib/prisma.js";
-import { NASCAR_CUP_DRIVER_SEED_ROWS } from "../src/sports/nascar/lib/nascarCupDriverSeed.js";
+import { ensureNascarCupDrivers } from "../src/sports/nascar/lib/ensureNascarCupDrivers.js";
 
 async function main(): Promise<void> {
-  let n = 0;
-  for (const row of NASCAR_CUP_DRIVER_SEED_ROWS) {
-    await prisma.nascarDriver.upsert({
-      where: { driverKey: row.driverKey },
-      create: {
-        driverKey: row.driverKey,
-        displayName: row.displayName,
-        carNumber: row.carNumber,
-        sponsor: row.sponsor,
-        manufacturer: row.manufacturer,
-        teamName: row.teamName,
-        wakiCashPrice: row.wakiCashPrice,
-        isElite: row.isElite,
-        isActive: true,
-      },
-      update: {
-        displayName: row.displayName,
-        carNumber: row.carNumber,
-        sponsor: row.sponsor,
-        manufacturer: row.manufacturer,
-        teamName: row.teamName,
-        wakiCashPrice: row.wakiCashPrice,
-        isElite: row.isElite,
-        isActive: true,
-      },
-    });
-    n += 1;
-  }
+  const n = await ensureNascarCupDrivers(prisma);
   console.log(`NASCAR Cup drivers upserted: ${n}`);
 }
 
