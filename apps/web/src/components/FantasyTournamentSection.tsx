@@ -107,8 +107,14 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [actionOk, setActionOk] = useState<string | null>(null);
 
-  const selectableEvents = useMemo(
+  /** Eligible divisions the user can still attach to a slot (not past first-match lock). */
+  const pickableEvents = useMemo(
     () => (eventsMeta?.events ?? []).filter((e) => e.is_selectable && !e.is_locked),
+    [eventsMeta],
+  );
+  /** Eligible on paper, but first match is in the past — show in dropdown disabled so the hub is not empty. */
+  const lockedSelectableEvents = useMemo(
+    () => (eventsMeta?.events ?? []).filter((e) => e.is_selectable && e.is_locked),
     [eventsMeta],
   );
 
@@ -195,6 +201,29 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
   const coach = useMemo(() => {
     if (metaErr) return { tone: "error" as const, title: "Heads up", lines: [metaErr] };
+    if (!loading && eventsMeta && pickableEvents.length === 0 && lockedSelectableEvents.length > 0) {
+      return {
+        tone: "warn" as const,
+        title: "Lineups closed for this schedule",
+        lines: [
+          `Every fantasy-eligible event for ${eventsMeta.tournament_name} is past its lineup lock (first match already started or finished).`,
+          "Expand “Choose event” below to see those divisions grayed out, or switch to a tournament whose dates are still in the future.",
+        ],
+      };
+    }
+    if (!loading && eventsMeta && pickableEvents.length === 0 && lockedSelectableEvents.length === 0) {
+      const offered = eventsMeta.events.filter((e) => e.is_selectable).length;
+      const total = eventsMeta.events.length;
+      if (total > 0 && offered === 0) {
+        return {
+          tone: "warn" as const,
+          title: "No events offered for fantasy",
+          lines: [
+            "This schedule loaded, but no divisions passed the fantasy gates (enough distinct players plus a valid 100 WakiCash five-player roster at tier multipliers). Try another tournament.",
+          ],
+        };
+      }
+    }
     if (actionErr) return { tone: "error" as const, title: "Fix this first", lines: [actionErr] };
     if (hasEventOverBudget) {
       return {
@@ -263,10 +292,20 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         "Choose up to five events. Each event needs five different players and one captain. Same player can play multiple events — just not twice in the same event.",
       ],
     };
-  }, [metaErr, actionErr, hasEventOverBudget, actionOk, slots]);
+  }, [
+    metaErr,
+    actionErr,
+    hasEventOverBudget,
+    actionOk,
+    slots,
+    loading,
+    eventsMeta,
+    pickableEvents.length,
+    lockedSelectableEvents.length,
+  ]);
 
   async function attachEventToSlot(slotIndex: number, event_key: string) {
-    const ev = selectableEvents.find((e) => e.event_key === event_key);
+    const ev = pickableEvents.find((e) => e.event_key === event_key);
     if (!ev) return;
     setActionErr(null);
     setBusy(true);
@@ -503,11 +542,20 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                       }}
                     >
                       <option value="">—</option>
-                      {selectableEvents.map((e) => (
+                      {pickableEvents.map((e) => (
                         <option key={e.event_key} value={e.event_key}>
                           {e.label} (tier {e.tier_code})
                         </option>
                       ))}
+                      {lockedSelectableEvents.length > 0 ? (
+                        <optgroup label="Locked (new picks closed — first match in the past)">
+                          {lockedSelectableEvents.map((e) => (
+                            <option key={e.event_key} value="" disabled>
+                              {e.label} (tier {e.tier_code})
+                            </option>
+                          ))}
+                        </optgroup>
+                      ) : null}
                     </select>
                   </div>
                 ) : (
