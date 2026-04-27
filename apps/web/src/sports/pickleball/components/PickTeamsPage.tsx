@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { SessionUser } from "../../../App";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import FantasyTournamentSection from "../../../components/FantasyTournamentSection";
@@ -20,9 +21,14 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
             Signed in as <strong>{user.display_name || user.email}</strong>
           </p>
         </div>
-        <a className="dash-ghost-btn" href="/">
-          Back to dashboard
-        </a>
+        <div className="dash-head-actions">
+          <Link className="dash-ghost-btn" to="/rosters">
+            My Rosters
+          </Link>
+          <Link className="dash-ghost-btn" to="/">
+            Back to dashboard
+          </Link>
+        </div>
       </header>
       <FantasyTournamentSection
         pageLayout

@@ -1,7 +1,7 @@
 ﻿import type { SessionUser } from "../App";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
+import DashboardPrizeHero from "./dashboard/DashboardPrizeHero";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
-import DashboardNascarPointsTeaser from "./dashboard/DashboardNascarPointsTeaser";
 import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
 import HostPersonaPanel from "./HostPersonaPanel";
 import "./dashboard.css";
@@ -130,9 +130,6 @@ export default function Dashboard({ user, onLogout }: Props) {
           </p>
         </div>
         <div className="dash-head-actions">
-          <a className="dash-ghost-btn" href="/rosters">
-            My Rosters
-          </a>
           <button type="button" onClick={() => void loadDashboard()} disabled={loading} className="dash-ghost-btn">
             {loading ? "Updating…" : "Refresh"}
           </button>
@@ -152,23 +149,7 @@ export default function Dashboard({ user, onLogout }: Props) {
 
       {preview && pulse && (
         <>
-          <section className="dash-prize-strip dash-kpi-strip dash-kpi-strip--compact" aria-label="Season prizes">
-            <div className="dash-kpi-card dash-prize-card">
-              <div className="dash-kpi-kicker">Prizes</div>
-              <div className="dash-prize-value">1st Place</div>
-              <div className="dash-kpi-label">WakiBet Champion Hat</div>
-            </div>
-            <div className="dash-kpi-card dash-prize-card">
-              <div className="dash-kpi-kicker">Prizes</div>
-              <div className="dash-prize-value">Best Underdog Pick</div>
-              <div className="dash-kpi-label">Limited WakiBet Founders Hat</div>
-            </div>
-            <div className="dash-kpi-card dash-prize-card">
-              <div className="dash-kpi-kicker">Prizes</div>
-              <div className="dash-prize-value">Biggest Climb</div>
-              <div className="dash-kpi-label">Limited WakiBet Founders Hat</div>
-            </div>
-          </section>
+          <DashboardPrizeHero />
 
           <DashboardMultiSportLayout preview={preview} pulse={pulse} />
 
@@ -197,8 +178,6 @@ export default function Dashboard({ user, onLogout }: Props) {
               </ul>
             )}
           </section>
-
-          <DashboardNascarPointsTeaser />
 
           <details className="dash-account-fold">
             <summary>Account</summary>

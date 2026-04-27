@@ -1,5 +1,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+/** Schedule JSON lives under `apps/api/data` regardless of process cwd (turbo/monorepo, Render, etc.). */
+function tournamentScheduleDataDir(): string {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  return path.join(here, "..", "..", "data");
+}
 
 export type WinterMatch = {
   match_id: string;
@@ -202,7 +209,7 @@ const tournamentDataPromises = new Map<TournamentKey, Promise<WinterData | null>
 export function getTournamentData(tournamentKey: TournamentKey): Promise<WinterData | null> {
   const cached = tournamentDataPromises.get(tournamentKey);
   if (cached) return cached;
-  const jsonPath = path.join(process.cwd(), "data", TOURNAMENT_FILES[tournamentKey]);
+  const jsonPath = path.join(tournamentScheduleDataDir(), TOURNAMENT_FILES[tournamentKey]);
   const promise = readFile(jsonPath, "utf-8")
     .then((raw) => JSON.parse(raw) as WinterData)
     .catch(() => null);
