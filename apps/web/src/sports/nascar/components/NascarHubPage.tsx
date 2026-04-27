@@ -1,37 +1,86 @@
+import { useCallback, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
+import type { SessionUser } from "../../../App";
 import { apiGet } from "../../../api";
 import {
   NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD,
   NASCAR_LINEUP_WAKICASH_BUDGET,
   NASCAR_PREMIUM_WAKICASH_THRESHOLD,
 } from "../lib/nascarLineupRules";
+import { nascarFocusWeek } from "../lib/dashboardNascar";
+import type { NascarWeekRow } from "../lib/dashboardNascar";
+import NascarHubHero from "./NascarHubHero";
+import NascarHubLineupPanel, { type HubDriverRow } from "./NascarHubLineupPanel";
 
 type DriversPayload = {
   budget_wakicash: number;
   premium_wakicash_threshold?: number;
   max_premium_drivers?: number;
   max_elite_drivers: number;
-  drivers: {
-    driver_key: string;
-    display_name: string;
-    team_name: string | null;
-    car_number: string | null;
-    sponsor: string | null;
-    manufacturer: string | null;
-    waki_cash_price: number;
-    is_elite: boolean;
-  }[];
+  drivers: HubDriverRow[];
 };
 
-export default function NascarHubPage() {
-  const [params] = useSearchParams();
-  const weekKey = params.get("week_key");
+type NascarWeeksPayload = { season: string; weeks: NascarWeekRow[] };
+
+type Props = {
+  user: SessionUser | null;
+};
+
+export default function NascarHubPage({ user }: Props) {
+  const seasonYear = new Date().getUTCFullYear();
+  const [params, setParams] = useSearchParams();
+  const weekKeyParam = params.get("week_key");
 
   const driversQ = useQuery<DriversPayload>({
     queryKey: ["nascar", "drivers", "catalog"] as const,
     queryFn: () => apiGet<DriversPayload>("/api/v1/nascar/drivers"),
   });
+
+  const weeksQ = useQuery<NascarWeeksPayload>({
+    queryKey: ["nascar", "weeks", seasonYear] as const,
+    queryFn: () => apiGet<NascarWeeksPayload>(`/api/v1/nascar/weeks?season_year=${seasonYear}`),
+    enabled: Boolean(user),
+  });
+
+  const weeks = weeksQ.data?.weeks ?? [];
+
+  const selectedWeekKey = useMemo(() => {
+    if (weekKeyParam && weeks.some((w) => w.week_key === weekKeyParam)) return weekKeyParam;
+    return nascarFocusWeek(weeks)?.week_key ?? weeks[0]?.week_key ?? "";
+  }, [weekKeyParam, weeks]);
+
+  useEffect(() => {
+    if (!user || weeks.length === 0) return;
+    if (!weekKeyParam || !weeks.some((w) => w.week_key === weekKeyParam)) {
+      const def = nascarFocusWeek(weeks)?.week_key ?? weeks[0]!.week_key;
+      setParams(
+        (p) => {
+          const next = new URLSearchParams(p);
+          next.set("week_key", def);
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [user, weeks, weekKeyParam, setParams]);
+
+  const onSelectWeek = useCallback(
+    (weekKey: string) => {
+      setParams(
+        (p) => {
+          const next = new URLSearchParams(p);
+          next.set("week_key", weekKey);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setParams],
+  );
+
+  const activeWeek = weeks.find((w) => w.week_key === selectedWeekKey) ?? null;
+  const drivers = driversQ.data?.drivers ?? [];
 
   return (
     <div className="dash-shell">
@@ -43,8 +92,7 @@ export default function NascarHubPage() {
           <p>
             Pick <strong>5 drivers</strong> under <strong>{NASCAR_LINEUP_WAKICASH_BUDGET} WakiCash</strong>, at most{" "}
             <strong>{NASCAR_LINEUP_MAX_PREMIUM_OVER_THRESHOLD}</strong> with salary over{" "}
-            <strong>{NASCAR_PREMIUM_WAKICASH_THRESHOLD}</strong>, exactly one captain. Salaries follow Cup points
-            standing (re-seed after standings change).
+            <strong>{NASCAR_PREMIUM_WAKICASH_THRESHOLD}</strong>, exactly one captain.
           </p>
         </div>
         <div className="dash-head-actions">
@@ -57,10 +105,17 @@ export default function NascarHubPage() {
         </div>
       </div>
 
-      {weekKey ? (
-        <p className="dash-section-lead" style={{ marginTop: 0 }}>
-          Week: <strong>{weekKey}</strong> — lineup builder UI next.
-        </p>
+      <NascarHubHero
+        user={user}
+        weeks={weeks}
+        weeksLoading={weeksQ.isLoading}
+        weeksError={weeksQ.isError}
+        selectedWeekKey={selectedWeekKey}
+        onSelectWeek={onSelectWeek}
+      />
+
+      {user && activeWeek && drivers.length > 0 ? (
+        <NascarHubLineupPanel weekKey={activeWeek.week_key} week={activeWeek} drivers={drivers} />
       ) : null}
 
       <section className="dash-section" aria-labelledby="nascar-drivers-title">
@@ -68,15 +123,15 @@ export default function NascarHubPage() {
           Driver pool (WakiCash)
         </h2>
         <p className="dash-section-lead">
-          Each driver has a weekly <strong>WakiCash</strong> salary; your lineup of five must stay at or under the
-          budget. API: <code className="dash-code">GET /api/v1/nascar/drivers</code>
+          Full list for reference — use <strong>Add drivers</strong> above to build your lineup. API:{" "}
+          <code className="dash-code">GET /api/v1/nascar/drivers</code>
         </p>
         {driversQ.isLoading ? (
           <p className="dash-empty">Loading drivers…</p>
         ) : driversQ.isError ? (
           <p className="dash-error">Could not load drivers.</p>
-        ) : (driversQ.data?.drivers.length ?? 0) === 0 ? (
-          <p className="dash-empty">No active drivers yet — add rows in admin, then refresh.</p>
+        ) : drivers.length === 0 ? (
+          <p className="dash-empty">No active drivers yet — run the NASCAR seed on the API, then refresh.</p>
         ) : (
           <div className="nascar-driver-table-wrap">
             <table className="nascar-driver-table">
@@ -92,7 +147,7 @@ export default function NascarHubPage() {
                 </tr>
               </thead>
               <tbody>
-                {(driversQ.data?.drivers ?? []).map((d) => (
+                {drivers.map((d) => (
                   <tr key={d.driver_key}>
                     <td>{d.display_name}</td>
                     <td>{d.car_number ?? "—"}</td>
@@ -107,13 +162,6 @@ export default function NascarHubPage() {
             </table>
           </div>
         )}
-      </section>
-
-      <section className="dash-section">
-        <h2 className="dash-section-title">Coming soon</h2>
-        <p className="dash-section-lead">
-          Click-to-pick lineup UI, week locks, and live scoring will consume the same salaries and rules as the API.
-        </p>
       </section>
     </div>
   );

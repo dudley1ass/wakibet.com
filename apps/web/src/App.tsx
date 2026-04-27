@@ -149,7 +149,18 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
-      <Route path="/nascar" element={<NascarHubPage />} />
+      <Route
+        path="/nascar"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : (
+            <NascarHubPage user={session} />
+          )
+        }
+      />
       <Route
         path="/rosters"
         element={
