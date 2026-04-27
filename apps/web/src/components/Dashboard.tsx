@@ -222,14 +222,22 @@ export default function Dashboard({ user, onLogout }: Props) {
 
       {preview && pulse && (
         <>
-          <section className="dash-prize-hero" aria-label="Season awards">
-            <p className="dash-prize-headline">🥇 1st place - WakiBet Champion Hat</p>
-            <p className="dash-prize-sub">🎯 Special categories:</p>
-            <ul className="dash-prize-list">
-              <li>Best Underdog Pick</li>
-              <li>Biggest Climb</li>
-            </ul>
-            <p className="dash-prize-foot">Winners get a limited WakiBet founders hat.</p>
+          <section className="dash-prize-strip dash-kpi-strip dash-kpi-strip--compact" aria-label="Season prizes">
+            <div className="dash-kpi-card dash-prize-card">
+              <div className="dash-kpi-kicker">Prizes</div>
+              <div className="dash-prize-value">1st Place</div>
+              <div className="dash-kpi-label">WakiBet Champion Hat</div>
+            </div>
+            <div className="dash-kpi-card dash-prize-card">
+              <div className="dash-kpi-kicker">Prizes</div>
+              <div className="dash-prize-value">Best Underdog Pick</div>
+              <div className="dash-kpi-label">Limited WakiBet Founders Hat</div>
+            </div>
+            <div className="dash-kpi-card dash-prize-card">
+              <div className="dash-kpi-kicker">Prizes</div>
+              <div className="dash-prize-value">Biggest Climb</div>
+              <div className="dash-kpi-label">Limited WakiBet Founders Hat</div>
+            </div>
           </section>
 
           <section className="dash-kpi-host-row" aria-label="Your season standing and host">
