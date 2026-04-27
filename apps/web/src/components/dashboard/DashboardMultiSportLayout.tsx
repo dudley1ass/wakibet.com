@@ -3,6 +3,12 @@ import { useQueries } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { apiGet } from "../../api";
 import type { DashboardData } from "../Dashboard";
+import {
+  nascarFocusWeek,
+  nascarLineupComplete,
+  type NascarLineupPayload,
+  type NascarWeekRow,
+} from "../../sports/nascar/lib/dashboardNascar";
 import SportCard from "./SportCard";
 import { countdownFromIso, firstPickleballLockIso } from "./countdown";
 
@@ -16,15 +22,6 @@ type NascarStatus = {
   message: string;
 };
 
-type NascarWeekRow = {
-  week_key: string;
-  race_name: string;
-  track: string;
-  race_start_at: string;
-  lock_at: string;
-  status: "upcoming" | "locked" | "closed";
-};
-
 type NascarWeeksPayload = { season: string; weeks: NascarWeekRow[] };
 
 type NascarSeasonSummary = {
@@ -33,26 +30,6 @@ type NascarSeasonSummary = {
   rank: number | null;
   weeks_played: number;
 };
-
-type NascarLineupPayload = {
-  week_key: string;
-  lineup_size: number;
-  picks: { slot_index: number; driver_key: string; driver_name: string; is_captain: boolean }[];
-};
-
-function nascarFocusWeek(weeks: NascarWeekRow[]): NascarWeekRow | null {
-  const open = weeks.find((w) => w.status === "upcoming");
-  if (open) return open;
-  const live = weeks.find((w) => w.status === "locked");
-  if (live) return live;
-  return weeks[0] ?? null;
-}
-
-function nascarLineupComplete(lineup: NascarLineupPayload | undefined, size: number): boolean {
-  if (!lineup) return false;
-  if (lineup.picks.length !== size) return false;
-  return lineup.picks.filter((p) => p.is_captain).length === 1;
-}
 
 function pickleballStatusLabel(incompleteDivisions: number, rosterCount: number): string {
   if (rosterCount === 0) return "Setup";
