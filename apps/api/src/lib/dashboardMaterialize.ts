@@ -338,8 +338,7 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
     waki_cash_spent_total,
     waki_cash_budget_total,
     by_division,
-    note:
-      `WakiPoints v3 rolls up across loaded tournament schedules. Multi-event tournament lineups (when saved) replace legacy winter rosters for that tournament on this dashboard; tier A/B/C adjusts WakiCash and WakiPoints per event. Captain 1.5× per event. ${FANTASY_SEASON_V1.tieBreakerNote}`,
+    note: "",
   };
 
   const winterRowsForLeaderboard = allFantasyRows.filter((r) => {

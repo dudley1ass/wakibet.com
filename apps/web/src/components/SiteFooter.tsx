@@ -33,8 +33,6 @@ export default function SiteFooter() {
               <Link to="/fantasy-rules">How fantasy works</Link>
             </div>
             <div className="site-footer-links site-footer-links--app">
-              <Link to="/rosters">My Rosters</Link>
-              <Link to="/pick-teams">Pick / Edit Teams</Link>
               <Link to="/contact">Contact</Link>
               <Link to="/responsible-play">Responsible Play</Link>
             </div>

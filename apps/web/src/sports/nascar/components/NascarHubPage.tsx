@@ -143,10 +143,7 @@ export default function NascarHubPage({ user }: Props) {
           Driver pool (WakiCash)
         </h2>
         <p className="dash-section-lead">
-          Highest WakiCash first — full list for reference. Use <strong>Add drivers</strong> above to build your
-          lineup. API:{" "}
-          <code className="dash-code">GET /api/v1/nascar/drivers?week_key=…</code> (some races restrict to the official
-          entry list)
+          Build a 5-driver lineup.
         </p>
         {driversQ.isLoading ? (
           <p className="dash-empty">Loading drivers…</p>

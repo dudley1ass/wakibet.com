@@ -108,7 +108,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const pbSub =
     incomplete > 0
       ? `${incomplete} division${incomplete === 1 ? "" : "s"} still open · ${countdownFromIso(pbLockIso)}`
-      : `All saved · next action ${countdownFromIso(pbLockIso)}`;
+      : `Lineups saved · ${countdownFromIso(pbLockIso)}`;
 
   const nascarRank = seasonQ.data?.rank;
   const nascarPts = seasonQ.data?.total_points ?? 0;
