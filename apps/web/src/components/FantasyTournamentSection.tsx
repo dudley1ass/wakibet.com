@@ -54,10 +54,7 @@ type LineupResponse = {
 
 const ROSTER_SIZE = WINTER_FANTASY_ROSTER_SIZE;
 const TOURNAMENT_OPTIONS: { tournament_key: string; label: string }[] = [
-  { tournament_key: "winter_springs", label: "Winter Springs" },
-  { tournament_key: "pictona", label: "Pictona" },
-  { tournament_key: "jacksonville", label: "Jacksonville" },
-  { tournament_key: "bradenton", label: "Bradenton" },
+  { tournament_key: "atlanta_weekend", label: "PPA Atlanta Weekend" },
 ];
 
 function emptyPicks(): string[] {
@@ -97,7 +94,7 @@ type FantasyTournamentProps = {
 };
 
 export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: FantasyTournamentProps) {
-  const [tournamentKey, setTournamentKey] = useState("winter_springs");
+  const [tournamentKey, setTournamentKey] = useState("atlanta_weekend");
   const [eventsMeta, setEventsMeta] = useState<EventsResponse | null>(null);
   const [lineup, setLineup] = useState<LineupResponse | null>(null);
   const [metaErr, setMetaErr] = useState<string | null>(null);
