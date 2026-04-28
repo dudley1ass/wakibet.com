@@ -322,7 +322,7 @@ export function ScoringTablePage() {
 
 export function FantasyRulesPage() {
   return (
-    <StaticLayout title="How fantasy works (v1)">
+    <StaticLayout title="How Fantasy Works (v1)">
       <p>
         WakiBet fantasy is <strong>season-long WakiPoints</strong>: you pick players who earn points from real
         schedule results. These rules are what the app enforces today.
@@ -341,7 +341,7 @@ export function FantasyRulesPage() {
         <li>Prices scale with skill band and a stable hash so every pool has stars and sleepers.</li>
       </ul>
 
-      <h3>What you pick (tournament mode)</h3>
+      <h3>What You Pick (Tournament Mode)</h3>
       <ul>
         <li>Up to <strong>five different events</strong> per tournament — <strong>fewer is allowed</strong>; empty slots
           are fine.</li>
@@ -363,13 +363,13 @@ export function FantasyRulesPage() {
           until you are locked.</li>
       </ul>
 
-      <h3>Which events you can play</h3>
+      <h3>Which Events You Can Play</h3>
       <ul>
         <li>Only events with at least <strong>6 teams/players</strong> appear in the picker.</li>
         <li>Events can be tier <strong>A / B / C</strong> for price and WakiPoints weighting.</li>
       </ul>
 
-      <h3>Season score & ties</h3>
+      <h3>Season Score & Ties</h3>
       <ul>
         <li>Your season total is the <strong>sum of WakiPoints</strong> from all your lineups on loaded schedules.</li>
         <li>Skip a tournament → <strong>0 points</strong> for that stop (no penalty row).</li>

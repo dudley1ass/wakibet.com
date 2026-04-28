@@ -666,7 +666,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       {pageLayout ? (
         <div className="wf-page-hero">
           <div className="wf-page-hero-kicker">Multi-event lineup</div>
-          <h2 className="wf-page-title">Tournament fantasy</h2>
+          <h2 className="wf-page-title">Tournament Fantasy</h2>
           <p className="wf-page-lead">
             Up to five events per tournament, one fresh <strong>100 WakiCash</strong> pool per tournament, per-event
             locks. Same scoring engine as division fantasy; tier A/B/C adjusts prices and WakiPoints.{" "}
@@ -674,7 +674,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           </p>
         </div>
       ) : (
-        <div className="dash-label">Tournament fantasy — multi-event</div>
+        <div className="dash-label">Tournament Fantasy — Multi-Event</div>
       )}
 
       {pageLayout ? (

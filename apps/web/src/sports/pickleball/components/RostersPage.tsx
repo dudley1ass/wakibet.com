@@ -54,7 +54,7 @@ export default function RostersPage({ user }: Props) {
     <div className="rost-shell">
       <header className="rost-head">
         <div>
-          <h1 className="rost-title">My rosters</h1>
+          <h1 className="rost-title">My Rosters</h1>
           <p className="rost-sub">
             <strong>{user.display_name || user.email}</strong> — tournament and division lineups
           </p>

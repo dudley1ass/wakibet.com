@@ -12,7 +12,6 @@ import {
 } from "../../sports/nascar/lib/dashboardNascar";
 import DashboardPrizeHero from "./DashboardPrizeHero";
 import SportCard from "./SportCard";
-import { countdownFromIso, firstPickleballLockIso } from "./countdown";
 
 type FantasyPulseLite = NonNullable<DashboardData["fantasy_pulse"]>;
 
@@ -53,7 +52,6 @@ type Props = {
 
 export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
-  const pbLockIso = useMemo(() => firstPickleballLockIso(preview), [preview]);
   const incomplete = useMemo(
     () => preview.winter_fantasy_rosters.filter((r) => !r.waki_lineup_complete).length,
     [preview.winter_fantasy_rosters],
@@ -82,11 +80,15 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     ],
   });
 
+  const nascarWeeks = weeksQ.data?.weeks ?? [];
   const focusWeek = useMemo(() => nascarFocusWeek(weeksQ.data?.weeks ?? []), [weeksQ.data?.weeks]);
   const nextNascarWeek = useMemo(() => {
-    const weeks = weeksQ.data?.weeks ?? [];
-    return weeks.find((w) => w.status === "upcoming") ?? weeks[0] ?? null;
-  }, [weeksQ.data?.weeks]);
+    if (nascarWeeks.length === 0) return null;
+    if (!focusWeek) return nascarWeeks[1] ?? nascarWeeks[0] ?? null;
+    const currentIdx = nascarWeeks.findIndex((w) => w.week_key === focusWeek.week_key);
+    if (currentIdx >= 0 && currentIdx + 1 < nascarWeeks.length) return nascarWeeks[currentIdx + 1];
+    return nascarWeeks.find((w) => w.status === "upcoming" && w.week_key !== focusWeek.week_key) ?? null;
+  }, [nascarWeeks, focusWeek]);
   const [lineupQ] = useQueries({
     queries: [
       {
@@ -110,10 +112,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const nascarTo = focusWeek ? `/nascar?week_key=${encodeURIComponent(focusWeek.week_key)}` : "/nascar";
 
   const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
-  const pbSub =
-    incomplete > 0
-      ? `${incomplete} left`
-      : `${countdownFromIso(pbLockIso)}`;
+  const pbSub = "Next tournament is MLP Dallas";
 
   const nascarRank = seasonQ.data?.rank;
   const nascarPts = seasonQ.data?.total_points ?? 0;
@@ -122,7 +121,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     <>
       <section className="dash-ms-section dash-ms-section--sports-top" aria-labelledby="dash-ms-hero-title">
         <h2 id="dash-ms-hero-title" className="dash-ms-section-title">
-          Your sports
+          Your Sports
         </h2>
         <p className="dash-ms-section-lead dash-ms-section-lead--tight">
           Same layout per sport — separate scores and leaderboards.
@@ -162,7 +161,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
         </div>
         <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">
           <h2 id="dash-ms-contests-title" className="dash-ms-section-title dash-ms-section-title--sm">
-            Your Active Contest
+            Your Active Contests
           </h2>
           <ul className="dash-contest-list dash-contest-list--compact">
             <li className="dash-contest-card dash-contest-card--pickleball dash-contest-card--compact">

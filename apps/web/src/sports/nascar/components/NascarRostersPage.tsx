@@ -54,7 +54,7 @@ export default function NascarRostersPage({ user }: Props) {
     <div className="rost-shell">
       <header className="rost-head">
         <div>
-          <h1 className="rost-title">My NASCAR lineups</h1>
+          <h1 className="rost-title">My NASCAR Lineups</h1>
           <p className="rost-sub">
             <strong>{user.display_name || user.email}</strong> — {data?.season ?? seasonYear} Cup schedule and your picks
             per race
@@ -65,7 +65,7 @@ export default function NascarRostersPage({ user }: Props) {
             {loading ? "Refreshing…" : "Refresh"}
           </button>
           <Link className="dash-ghost-btn" to="/nascar">
-            NASCAR hub
+            NASCAR Hub
           </Link>
           <Link className="dash-main-btn rost-dash-link" to="/">
             Dashboard
@@ -86,7 +86,7 @@ export default function NascarRostersPage({ user }: Props) {
           <p className="rost-empty-title">No races on the calendar</p>
           <p className="rost-empty-body">There are no NASCAR Cup weeks loaded for this season yet.</p>
           <Link className="dash-main-btn" to="/nascar">
-            Open NASCAR hub
+            Open NASCAR Hub
           </Link>
         </div>
       )}
