@@ -59,10 +59,11 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     [preview.winter_fantasy_rosters],
   );
   const rosterCount = preview.winter_fantasy_rosters.length;
-  const pbEvent =
+  const pbEventRaw =
     preview.open_contests[0]?.name ??
     preview.tournament_schedules[0]?.tournament_name ??
     "Winter Fantasy";
+  const pbEvent = pbEventRaw.replace(/\s*[-–—]?\s*test run\s*/i, "").trim();
 
   const [statusQ, weeksQ, seasonQ] = useQueries({
     queries: [
@@ -82,6 +83,10 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   });
 
   const focusWeek = useMemo(() => nascarFocusWeek(weeksQ.data?.weeks ?? []), [weeksQ.data?.weeks]);
+  const nextNascarWeek = useMemo(() => {
+    const weeks = weeksQ.data?.weeks ?? [];
+    return weeks.find((w) => w.status === "upcoming") ?? weeks[0] ?? null;
+  }, [weeksQ.data?.weeks]);
   const [lineupQ] = useQueries({
     queries: [
       {
@@ -97,8 +102,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const nascarLineup = lineupQ.data;
   const nascarSize = nascarLineup?.lineup_size ?? 5;
   const nascarComplete = nascarLineupComplete(nascarLineup, nascarSize);
-  const nascarSub = focusWeek
-    ? `${countdownFromIso(focusWeek.lock_at)}`
+  const nascarSub = nextNascarWeek
+    ? `Next race is ${nextNascarWeek.race_name}`
     : statusQ.data?.message ?? "Loading NASCAR…";
   const nascarEvent = focusWeek?.race_name ?? "NASCAR weekly picks";
   const nascarCta = !nascarEnabled ? "View hub" : nascarComplete ? "View lineup" : "Build lineup";
@@ -129,6 +134,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             sportLabel="Pickleball"
             eventName={pbEvent}
             subline={pbSub}
+            sublineSecondary="Next tournament is MLP Dallas"
             statusLabel={pickleballStatusLabel(incomplete, rosterCount)}
             ctaLabel={pbCta}
             ctaTo="/pick-teams"

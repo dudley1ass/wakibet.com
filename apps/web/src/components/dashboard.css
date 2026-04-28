@@ -1817,6 +1817,12 @@ a.rost-dash-link {
   color: #d1fae5;
   line-height: 1.4;
 }
+.dash-sport-card__sub-secondary {
+  margin: 3px 0 0;
+  font-size: 10px;
+  color: #93a2b8;
+  line-height: 1.35;
+}
 .dash-sport-card--nascar .dash-sport-card__sub {
   color: #fecaca;
 }

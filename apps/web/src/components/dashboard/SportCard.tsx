@@ -8,6 +8,7 @@ type Props = {
   sportLabel: string;
   eventName: string;
   subline: string;
+  sublineSecondary?: string;
   statusLabel: string;
   ctaLabel: string;
   ctaTo: string;
@@ -19,6 +20,7 @@ export default function SportCard({
   sportLabel,
   eventName,
   subline,
+  sublineSecondary,
   statusLabel,
   ctaLabel,
   ctaTo,
@@ -34,6 +36,7 @@ export default function SportCard({
           <div className="dash-sport-card__sport">{sportLabel}</div>
           <h3 className="dash-sport-card__event">{eventName}</h3>
           <p className="dash-sport-card__sub">{subline}</p>
+          {sublineSecondary ? <p className="dash-sport-card__sub-secondary">{sublineSecondary}</p> : null}
         </div>
       </div>
       {statusLabel ? (
