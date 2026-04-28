@@ -18,9 +18,9 @@ body {
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 20% 20%, rgba(185, 28, 28, 0.28), transparent 40%),
-    radial-gradient(circle at 80% 0%, rgba(217, 119, 6, 0.2), transparent 40%),
-    linear-gradient(145deg, #0b0a09 0%, #1b0f0f 38%, #2b1212 100%);
+    radial-gradient(circle at 20% 20%, rgba(220, 179, 21, 0.16), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.08), transparent 40%),
+    linear-gradient(145deg, #0b0b0b 0%, #161514 45%, #1b1918 100%);
   display: flex;
   flex-direction: column;
 }
@@ -73,10 +73,10 @@ body {
 }
 
 .site-footer {
-  background: linear-gradient(180deg, #14110f 0%, #0f0b0b 100%);
+  background: linear-gradient(180deg, #151413 0%, #0f0f0f 100%);
   color: #f9fafb;
-  border-top: 2px solid #f59e0b;
-  box-shadow: inset 0 1px 0 rgba(251, 191, 36, 0.2);
+  border-top: 2px solid #dcb315;
+  box-shadow: inset 0 1px 0 rgba(220, 179, 21, 0.28);
 }
 
 .site-footer-inner {

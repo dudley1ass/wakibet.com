@@ -1,11 +1,11 @@
 ﻿.dash-shell {
   width: 100%;
   max-width: 1120px;
-  background: rgba(22, 14, 14, 0.9);
+  background: rgba(22, 21, 20, 0.92);
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.36);
-  border: 1px solid rgba(245, 158, 11, 0.34);
+  border: 1px solid rgba(220, 179, 21, 0.34);
 }
 .dash-shell a,
 .dash-shell a:hover,
@@ -27,7 +27,7 @@
   margin-top: 0;
   border-radius: 999px;
   border: 0;
-  background: linear-gradient(135deg, #d97706, #991b1b);
+  background: linear-gradient(135deg, #dcb315, #7b6310);
   color: #fff8e1;
   font-weight: 700;
   font-size: 13px;
@@ -46,9 +46,9 @@
   box-sizing: border-box;
   min-height: 40px;
   padding: 8px 18px;
-  border: 1px solid #f59e0b;
-  background: rgba(12, 10, 10, 0.45);
-  color: #fcd34d;
+  border: 1px solid #dcb315;
+  background: rgba(12, 12, 12, 0.45);
+  color: #f2dd8f;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
@@ -207,7 +207,7 @@
 .dash-hero {
   margin-top: 16px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #1c1917 0%, #431407 45%, #7f1d1d 100%);
+  background: linear-gradient(135deg, #1b1918 0%, #24211e 45%, #121212 100%);
   color: #fff7ed;
   padding: 20px 20px 22px;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);

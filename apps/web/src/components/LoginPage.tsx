@@ -88,11 +88,11 @@ export default function LoginPage({ onAuthSuccess }: Props) {
       style={{
         width: "100%",
         maxWidth: "420px",
-        background: "rgba(18, 12, 12, 0.92)",
+        background: "rgba(20, 20, 20, 0.94)",
         borderRadius: "16px",
         padding: "20px",
         boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
-        border: "1px solid rgba(245, 158, 11, 0.35)",
+        border: "1px solid rgba(220, 179, 21, 0.45)",
       }}
     >
       <div
@@ -107,17 +107,17 @@ export default function LoginPage({ onAuthSuccess }: Props) {
           <h1 style={{ margin: 0, fontSize: "22px", color: "#facc15" }}>
             <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: "36px", width: "auto" }} />
           </h1>
-          <div style={{ fontSize: "11px", color: "#92400e" }}>
+          <div style={{ fontSize: "11px", color: "#dcb315" }}>
             Fantasy contests — WakiPoints only.
           </div>
         </div>
         <div
           style={{
             display: "inline-flex",
-            background: "rgba(14, 10, 10, 0.7)",
+            background: "rgba(18, 18, 18, 0.75)",
             borderRadius: "999px",
             padding: "2px",
-            border: "1px solid #f59e0b",
+            border: "1px solid #dcb315",
           }}
         >
           <button
@@ -129,8 +129,8 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               borderRadius: "999px",
               border: "none",
               cursor: "pointer",
-              background: mode === "login" ? "#b45309" : "transparent",
-              color: mode === "login" ? "white" : "#fcd34d",
+              background: mode === "login" ? "#8a6f11" : "transparent",
+              color: mode === "login" ? "white" : "#f2dd8f",
             }}
           >
             Log in
@@ -144,8 +144,8 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               borderRadius: "999px",
               border: "none",
               cursor: "pointer",
-              background: mode === "register" ? "#b45309" : "transparent",
-              color: mode === "register" ? "white" : "#fcd34d",
+              background: mode === "register" ? "#8a6f11" : "transparent",
+              color: mode === "register" ? "white" : "#f2dd8f",
             }}
           >
             Create
@@ -272,7 +272,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
             padding: "10px",
             borderRadius: "999px",
             border: "none",
-            background: "linear-gradient(135deg, #b45309, #7f1d1d)",
+            background: "linear-gradient(135deg, #dcb315, #8a6f11)",
             color: "white",
             fontWeight: "600",
             cursor: "pointer",
