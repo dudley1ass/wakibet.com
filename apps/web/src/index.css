@@ -8,7 +8,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: #fef3c7;
+  color: #ffffff;
 }
 
 #root {
@@ -18,9 +18,9 @@ body {
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 20% 20%, rgba(220, 179, 21, 0.34), transparent 46%),
-    radial-gradient(circle at 80% 0%, rgba(255, 246, 204, 0.18), transparent 46%),
-    linear-gradient(145deg, #2a251f 0%, #332d25 46%, #3b342a 100%);
+    radial-gradient(circle at 20% 20%, rgba(220, 179, 21, 0.2), transparent 44%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.07), transparent 46%),
+    linear-gradient(145deg, #0b0f14 0%, #111827 55%, #101823 100%);
   display: flex;
   flex-direction: column;
 }
@@ -142,15 +142,15 @@ body {
 
 .static-page-card {
   width: min(960px, 100%);
-  background: rgba(31, 20, 20, 0.9);
+  background: rgba(17, 24, 39, 0.94);
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  border: 1px solid #2a3342;
 }
 
 .static-page-body {
-  color: #fce7bf;
+  color: #ffffff;
   font-size: 14px;
   line-height: 1.55;
 }
@@ -164,7 +164,7 @@ body {
 .contact-fallback {
   margin: 0 0 12px;
   font-size: 13px;
-  color: #d6d3d1;
+  color: #a7b0be;
 }
 .contact-fallback a {
   color: #fbbf24;
@@ -208,8 +208,8 @@ body {
 }
 .scoring-block {
   border-radius: 12px;
-  border: 1px solid rgba(251, 191, 36, 0.28);
-  background: rgba(18, 12, 10, 0.88);
+  border: 1px solid #2a3342;
+  background: rgba(17, 24, 39, 0.9);
   padding: 12px 14px;
 }
 .scoring-block-title {
@@ -233,7 +233,7 @@ body {
   font-size: 13px;
   padding: 6px 0;
   border-bottom: 1px solid rgba(251, 191, 36, 0.12);
-  color: #fce7bf;
+  color: #ffffff;
 }
 .scoring-row:last-child {
   border-bottom: 0;
@@ -257,13 +257,13 @@ body {
 .scoring-lite-body {
   margin: 0;
   font-size: 12px;
-  color: #d6d3d1;
+  color: #a7b0be;
   line-height: 1.5;
 }
 .scoring-foot {
   margin-top: 16px;
   font-size: 11px;
-  color: #a8a29e;
+  color: #a7b0be;
   line-height: 1.45;
 }
 
