@@ -15,7 +15,7 @@ export default function SiteFooter() {
       <div className="site-footer-inner">
         <div className="site-footer-brand">
           <div className="site-footer-title">
-            WakiBet <span className="brand-jp">ワキベット</span>
+            <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: "34px", width: "auto" }} />
           </div>
           <div className="site-footer-copy">© 2026 WakiBet. All rights reserved.</div>
           <div className="site-footer-disclaimer">

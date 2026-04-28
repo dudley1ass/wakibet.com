@@ -105,7 +105,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
       >
         <div>
           <h1 style={{ margin: 0, fontSize: "22px", color: "#facc15" }}>
-            WakiBet <span style={{ fontSize: "14px", fontWeight: 500, color: "#fef3c7" }}>ワキベット</span>
+            <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: "36px", width: "auto" }} />
           </h1>
           <div style={{ fontSize: "11px", color: "#92400e" }}>
             Fantasy contests — WakiPoints only.

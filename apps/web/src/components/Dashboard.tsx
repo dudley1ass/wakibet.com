@@ -122,7 +122,7 @@ export default function Dashboard({ user, onLogout }: Props) {
       <div className="dash-head">
         <div>
           <h1>
-            WakiBet <span className="brand-jp">ワキベット</span>
+            <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: "44px", width: "auto" }} />
           </h1>
           <p>
             Welcome Back, <strong>{user.display_name || user.email}</strong>
