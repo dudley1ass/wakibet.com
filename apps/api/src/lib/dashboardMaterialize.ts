@@ -147,12 +147,20 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
       },
     }),
     prisma.fantasyTournamentLineup.findMany({
-      where: { userId, seasonKey: "" },
+      where: {
+        userId,
+        seasonKey: "",
+        tournamentKey: { in: [...TOURNAMENT_KEYS] },
+      },
       include: {
         eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
       },
     }),
     prisma.fantasyTournamentLineup.findMany({
+      where: {
+        seasonKey: "",
+        tournamentKey: { in: [...TOURNAMENT_KEYS] },
+      },
       include: {
         user: { select: { displayName: true } },
         eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
