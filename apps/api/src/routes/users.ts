@@ -30,7 +30,7 @@ const DashboardResponse = z.object({
   ),
   tournament_schedules: z.array(
     z.object({
-      tournament_key: z.enum(TOURNAMENT_KEYS),
+      tournament_key: z.string(),
       tournament_name: z.string(),
       generated_matches: z.number().int(),
       my_upcoming_matches: z.array(
@@ -56,7 +56,7 @@ const DashboardResponse = z.object({
   ),
   winter_fantasy_rosters: z.array(
     z.object({
-      tournament_key: z.enum(TOURNAMENT_KEYS),
+      tournament_key: z.string(),
       tournament_name: z.string(),
       division_key: z.string(),
       event_type: z.string(),
@@ -76,7 +76,7 @@ const DashboardResponse = z.object({
     waki_cash_budget_total: z.number().int(),
     by_division: z.array(
       z.object({
-        tournament_key: z.enum(TOURNAMENT_KEYS),
+        tournament_key: z.string(),
         tournament_name: z.string(),
         division_key: z.string(),
         event_type: z.string(),
@@ -127,7 +127,7 @@ const DashboardResponse = z.object({
       scenario_key: z.string(),
       kind: z.enum(["win_next", "lose_next"]),
       player_name: z.string(),
-      tournament_key: z.enum(TOURNAMENT_KEYS),
+      tournament_key: z.string(),
       tournament_name: z.string(),
       division_label: z.string(),
       match_summary: z.string(),
