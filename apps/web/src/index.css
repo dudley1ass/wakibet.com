@@ -18,9 +18,9 @@ body {
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 20% 20%, rgba(220, 179, 21, 0.24), transparent 42%),
-    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.14), transparent 44%),
-    linear-gradient(145deg, #1a1816 0%, #24211e 46%, #2c2926 100%);
+    radial-gradient(circle at 20% 20%, rgba(220, 179, 21, 0.34), transparent 46%),
+    radial-gradient(circle at 80% 0%, rgba(255, 246, 204, 0.18), transparent 46%),
+    linear-gradient(145deg, #2a251f 0%, #332d25 46%, #3b342a 100%);
   display: flex;
   flex-direction: column;
 }

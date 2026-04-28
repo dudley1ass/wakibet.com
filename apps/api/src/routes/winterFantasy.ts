@@ -24,7 +24,7 @@ import {
   toStoredDivisionKey,
   uniquePlayersInMatches,
 } from "../sports/pickleball/lib/index.js";
-import { getMlpDallasPlayers, isMlpTournament } from "../lib/mlpTournamentData.js";
+import { getMlpPlayersForTournament, isMlpTournament } from "../lib/mlpTournamentData.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 
@@ -186,7 +186,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       const skill = parsed?.skill_level ?? "";
       const names = uniquePlayersInMatches(ms);
       if (isMlpTournament(tournament_key)) {
-        const mlpPlayers = await getMlpDallasPlayers();
+        const mlpPlayers = await getMlpPlayersForTournament(tournament_key);
         return {
           tournament_key,
           division_key,

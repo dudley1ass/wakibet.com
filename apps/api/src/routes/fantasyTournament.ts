@@ -15,7 +15,7 @@ import {
   uniquePlayersInMatches,
   type TournamentKey,
 } from "../sports/pickleball/lib/index.js";
-import { getMlpDallasPlayers, isMlpTournament } from "../lib/mlpTournamentData.js";
+import { getMlpPlayersForTournament, isMlpTournament } from "../lib/mlpTournamentData.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 
@@ -48,7 +48,7 @@ async function playerPoolForEvent(
   data: { matches: { player_a: string; player_b: string }[] } | null,
 ): Promise<PoolPlayer[]> {
   if (isMlpTournament(tournamentKey)) {
-    const rows = await getMlpDallasPlayers();
+    const rows = await getMlpPlayersForTournament(tournamentKey);
     return rows.map((r) => ({
       player_name: r.player_name,
       waki_cash: r.waki_cash,

@@ -56,9 +56,13 @@ export default function NascarScoringTablePage() {
 
         <div className="static-page-body">
           <p className="scoring-lede">
-            Weekly fantasy points stack <strong>finish position</strong>, <strong>position gained/lost</strong>,{" "}
-            <strong>laps led</strong>, <strong>fastest lap</strong>, and <strong>DNF</strong>. One captain per lineup
-            earns <strong>1.5×</strong> that driver&apos;s race total.
+            Weekly fantasy points come from finish position, positions gained or lost, laps led, fastest lap, and DNF.
+            All of these add up to a driver&apos;s total score.
+            <br />
+            <br />
+            You can also choose one Captain for your lineup-
+            <br />
+            that driver earns 1.5× their race points.
           </p>
 
           <div className="scoring-board">

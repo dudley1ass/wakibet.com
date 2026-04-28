@@ -36,7 +36,7 @@ type NascarSeasonSummary = {
 function pickleballStatusLabel(incompleteDivisions: number, rosterCount: number): string {
   if (rosterCount === 0) return "Set";
   if (incompleteDivisions > 0) return "Edit";
-  return "Saved";
+  return "Ready";
 }
 
 function nascarStatusLabel(w: NascarWeekRow | null): string {
@@ -107,8 +107,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
   const pbSub =
     incomplete > 0
-      ? `${incomplete} division${incomplete === 1 ? "" : "s"} still open · ${countdownFromIso(pbLockIso)}`
-      : `Lineups saved · ${countdownFromIso(pbLockIso)}`;
+      ? `${incomplete} left · ${countdownFromIso(pbLockIso)}`
+      : `${countdownFromIso(pbLockIso)}`;
 
   const nascarRank = seasonQ.data?.rank;
   const nascarPts = seasonQ.data?.total_points ?? 0;
@@ -170,7 +170,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
                 <div className="dash-contest-card__detail">
                   {incomplete > 0
                     ? `${incomplete} division${incomplete === 1 ? "" : "s"} need picks`
-                    : "Lineups saved for loaded divisions"}
+                    : "All divisions loaded"}
                 </div>
               </div>
               <div className="dash-contest-card__stats">

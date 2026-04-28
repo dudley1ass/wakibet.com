@@ -9,7 +9,7 @@ function StaticLayout({ title, children }: { title: string; children: ReactNode 
         <div className="dash-head" style={{ marginBottom: 8 }}>
           <h1 style={{ margin: 0 }}>{title}</h1>
           <a className="dash-ghost-btn" href="/">
-            Back to WakiBet ワキベット
+            Back to Dashboard
           </a>
         </div>
         <div className="static-page-body">{children}</div>
@@ -223,9 +223,23 @@ export function ScoringTablePage() {
   return (
     <StaticLayout title="WakiPoints — Full Table (v3)">
       <p className="scoring-lede">
-        <strong>WakiPoints</strong> stack <em>base</em>, <em>performance</em>, <em>progression</em>, and{" "}
-        <em>Waki bonuses</em> when tournament data includes the right fields. Captain multiplies one slot&apos;s{" "}
-        <strong>base</strong> total by {r.captainMultiplier}× on your roster.
+        WakiPoints are built from multiple layers:
+        <br />
+        Base points
+        <br />
+        Performance in matches
+        <br />
+        Progression through the tournament
+        <br />
+        Bonus points (when available)
+        <br />
+        <br />
+        All of these combine to create a player&apos;s total score.
+        <br />
+        <br />
+        You can also assign a Captain on your roster -
+        <br />
+        that player earns {r.captainMultiplier}× points, giving you a strategic edge.
       </p>
 
       <div className="scoring-example" role="note">
@@ -295,31 +309,13 @@ export function ScoringTablePage() {
           ]}
         />
         <ScoringBlock
-          title="Penalties (optional)"
+          title="Penalties"
           rows={[
             { label: "Early elimination (0 wins, 4+ finished matches)", pts: `${r.earlyEliminationPenalty}` },
             { label: "Favorite upset loss (seeds + upset flag)", pts: `${r.favoriteUpsetLossPenalty}` },
           ]}
         />
       </div>
-
-      <div className="scoring-lite">
-        <h3 className="scoring-block-title">Mental “lite mode”</h3>
-        <p className="scoring-lite-body">
-          Win {r.matchWinPoints} · Playoffs {r.playoffQualifyPoints} · Gold {r.goldMedalPoints} · Upset {r.upsetWinPoints}{" "}
-          · Undefeated pool {r.undefeatedPoolPoints} — the engine still awards deeper lines whenever the JSON carries
-          scores, seeds, and stage labels.
-        </p>
-      </div>
-
-      <p className="scoring-foot">
-        Rules version <strong>{r.version}</strong>. Rows without the needed fields in schedule data simply award 0 for
-        that category. Streaks / perfect run / triple-play are computed from results in the division slice.
-      </p>
-      <p className="scoring-foot">
-        Dashboard <strong>What happens next</strong> uses this same table: we clone your next undecided match, force a
-        winner or loss, and re-run the shared WakiPoints engine — no duplicate point math outside this package.
-      </p>
     </StaticLayout>
   );
 }

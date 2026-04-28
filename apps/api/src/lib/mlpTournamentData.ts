@@ -25,9 +25,6 @@ export type MlpPlayerRow = {
   waki_cash: number;
 };
 
-const MLP_TOURNAMENT_KEY = "mlp_dallas_2026";
-const MLP_CSV_FILE = "mlp_dallas_2026_players_wakicash.csv";
-
 function tournamentDataDir(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   return path.join(here, "..", "..", "data");
@@ -55,12 +52,13 @@ function tierFromPrice(price: number): "S+" | "S" | "A" | "B" | "C" | "D" {
   return "D";
 }
 
-let mlpPlayersPromise: Promise<MlpPlayerRow[]> | null = null;
+const mlpPlayersPromiseByKey = new Map<string, Promise<MlpPlayerRow[]>>();
 
-export function getMlpDallasPlayers(): Promise<MlpPlayerRow[]> {
-  if (mlpPlayersPromise) return mlpPlayersPromise;
-  const csvPath = path.join(tournamentDataDir(), MLP_CSV_FILE);
-  mlpPlayersPromise = readFile(csvPath, "utf-8")
+export function getMlpPlayersForTournament(tournamentKey: string): Promise<MlpPlayerRow[]> {
+  const cached = mlpPlayersPromiseByKey.get(tournamentKey);
+  if (cached) return cached;
+  const csvPath = path.join(tournamentDataDir(), `${tournamentKey}_players_wakicash.csv`);
+  const promise = readFile(csvPath, "utf-8")
     .then((raw) => {
       const lines = raw
         .split(/\r?\n/)
@@ -79,7 +77,7 @@ export function getMlpDallasPlayers(): Promise<MlpPlayerRow[]> {
           gender_guess: cols[index.gender_guess] ?? "",
           wakicash_base_price: cols[index.wakicash_base_price] ?? "",
         } as MlpCsvRow;
-        if (row.event_id !== MLP_TOURNAMENT_KEY || !row.player) continue;
+        if (row.event_id !== tournamentKey || !row.player) continue;
         const basePrice = Number.parseInt(row.wakicash_base_price, 10);
         const waki_cash = Number.isFinite(basePrice) ? priceFromBase(basePrice) : 10;
         const gender = row.gender_guess.toUpperCase().startsWith("F") ? "F" : "M";
@@ -94,10 +92,11 @@ export function getMlpDallasPlayers(): Promise<MlpPlayerRow[]> {
       return rows;
     })
     .catch(() => []);
-  return mlpPlayersPromise;
+  mlpPlayersPromiseByKey.set(tournamentKey, promise);
+  return promise;
 }
 
 export function isMlpTournament(tournamentKey: string): boolean {
-  return tournamentKey === MLP_TOURNAMENT_KEY;
+  return tournamentKey.startsWith("mlp_");
 }
 
