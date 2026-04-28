@@ -34,16 +34,16 @@ type NascarSeasonSummary = {
 };
 
 function pickleballStatusLabel(incompleteDivisions: number, rosterCount: number): string {
-  if (rosterCount === 0) return "Setup";
-  if (incompleteDivisions > 0) return "Open";
-  return "Entered";
+  if (rosterCount === 0) return "Set";
+  if (incompleteDivisions > 0) return "Edit";
+  return "Saved";
 }
 
 function nascarStatusLabel(w: NascarWeekRow | null): string {
   if (!w) return "";
   if (w.status === "closed") return "Closed";
   if (w.status === "locked") return "Live";
-  return "Open";
+  return "";
 }
 
 type Props = {

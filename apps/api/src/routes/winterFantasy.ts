@@ -24,6 +24,7 @@ import {
   toStoredDivisionKey,
   uniquePlayersInMatches,
 } from "../sports/pickleball/lib/index.js";
+import { getMlpDallasPlayers, isMlpTournament } from "../lib/mlpTournamentData.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 
@@ -144,7 +145,17 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
             division_key: z.string(),
             skill_level: z.string(),
             waki_cash_budget: z.number().int(),
-            players: z.array(z.object({ player_name: z.string(), waki_cash: z.number().int() })),
+            roster_size: z.number().int(),
+            required_men: z.number().int().nullable(),
+            required_women: z.number().int().nullable(),
+            players: z.array(
+              z.object({
+                player_name: z.string(),
+                waki_cash: z.number().int(),
+                gender: z.enum(["M", "F"]).optional(),
+                tier: z.string().optional(),
+              }),
+            ),
           }),
           401: ErrorMessage,
           400: ErrorMessage,
@@ -174,11 +185,32 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       const parsed = parseDivisionKey(division_key);
       const skill = parsed?.skill_level ?? "";
       const names = uniquePlayersInMatches(ms);
+      if (isMlpTournament(tournament_key)) {
+        const mlpPlayers = await getMlpDallasPlayers();
+        return {
+          tournament_key,
+          division_key,
+          skill_level: skill,
+          waki_cash_budget: 100,
+          roster_size: 4,
+          required_men: 2,
+          required_women: 2,
+          players: mlpPlayers.map((p) => ({
+            player_name: p.player_name,
+            waki_cash: p.waki_cash,
+            gender: p.gender,
+            tier: p.tier,
+          })),
+        };
+      }
       return {
         tournament_key,
         division_key,
         skill_level: skill,
         waki_cash_budget: 100,
+        roster_size: 5,
+        required_men: null,
+        required_women: null,
         players: names.map((player_name) => ({
           player_name,
           waki_cash: playerWakiCashCost(skill, player_name),

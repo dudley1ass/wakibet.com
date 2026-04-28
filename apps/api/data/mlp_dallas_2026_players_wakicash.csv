@@ -1,0 +1,67 @@
+event_id,event_name,event_start,event_end,team,player,gender_guess,roster_slot,acquisition,buy_type,wakicash_base_price,source_note
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Bay Area Breakers,Mya Bui,F,1,Kept,player,7800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Bay Area Breakers,Ella Yeh,F,2,Pick 26,player,6200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Bay Area Breakers,Genie Erokhina,F,3,Pick 48,player,5200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Bay Area Breakers,Pablo Tellez,M,4,Kept,player,7800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Bay Area Breakers,Len Yang,M,5,Pick 18,player,6800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Bay Area Breakers,Luc Pham,M,6,Pick 49,player,5200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Carolina Hogs,Ava Ignatowich,F,1,Kept,player,8500,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Carolina Hogs,Angie Walker,F,2,Kept,player,7600,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Carolina Hogs,Isabella Dunlap,F,3,Pick 66,player,4400,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Carolina Hogs,James Delgado,M,4,Kept,player,6800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Carolina Hogs,DJ Young,M,5,Kept,player,7600,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Carolina Hogs,Brandon French,M,6,Pick 65,player,4500,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Columbus Sliders,Parris Todd,F,1,Kept,player,9000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Columbus Sliders,Danni-Elle Townsend,F,2,Pick 3,player,8800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Columbus Sliders,Alli Phillips,F,3,Pick 42,player,5600,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Columbus Sliders,Andrei Daescu,M,4,Kept,player,9000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Columbus Sliders,CJ Klinger,M,5,Kept,player,8000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Columbus Sliders,Alex Crum,M,6,Pick 50,player,5200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Dallas Flash,Hurricane Tyra Black,F,1,Kept,player,9000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Dallas Flash,Callie Smith,F,2,Pick 19,player,7000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Dallas Flash,Samantha Parker,F,3,Pick 57,player,4900,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Dallas Flash,JW Johnson,M,4,Kept,player,10000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Dallas Flash,Augie Ge,M,5,Kept,player,7200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Dallas Flash,Ivan Jakovljevic,M,6,Pick 56,player,4900,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Los Angeles Mad Drops,Catherine Parenteau,F,1,Kept,player,9500,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Los Angeles Mad Drops,Jade Kawamoto,F,2,Kept,player,7800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Los Angeles Mad Drops,Paula Rives Palau,F,3,Pick 62,player,4600,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Los Angeles Mad Drops,Ben Johns,M,4,Kept,player,10000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Los Angeles Mad Drops,Max Freeman,M,5,Kept,player,7600,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Los Angeles Mad Drops,Gabriel Joseph,M,6,Pick 36,player,5900,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,New Jersey 5s,Anna Leigh Waters,F,1,Kept,player,10000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,New Jersey 5s,Jorja Johnson,F,2,Pick 2,player,9300,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,New Jersey 5s,Lina Padegimaite,F,3,Pick 64,player,4500,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,New Jersey 5s,Noe Khlif,M,4,Kept,player,7600,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,New Jersey 5s,Will Howells,M,5,Kept,player,8500,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,New Jersey 5s,Martin Emmrich,M,6,Pick 58,player,4800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Orlando Squeeze,Lacey Schneemann,F,1,Kept,player,8000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Orlando Squeeze,Milan Rane,F,2,Kept,player,7800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Orlando Squeeze,Alex Walker,F,3,Pick 40,player,5700,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Orlando Squeeze,Federico Staksrud,M,4,Kept,player,9800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Orlando Squeeze,Jack Sock,M,5,Pick 8,player,8200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Orlando Squeeze,Yates Johnson,M,6,Pick 52,player,5100,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Phoenix Flames,Jessie Irvine,F,1,Kept,player,8400,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Phoenix Flames,Judit Castillo,F,2,Pick 21,player,6900,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Phoenix Flames,Alexa Schull,F,3,Pick 46,player,5400,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Phoenix Flames,Jonathan Truong,M,4,Pick 10,player,8000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Phoenix Flames,Camden Chaffin,M,5,Pick 16,player,7100,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Phoenix Flames,Wyatt Stone,M,6,Pick 38,player,5800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,St. Louis Shock,Kate Fahey,F,1,Kept,player,9000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,St. Louis Shock,Anna Bright,F,2,Pick 1,player,9800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,St. Louis Shock,Elsie Hendershot,F,3,Pick 30,player,6200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,St. Louis Shock,Hayden Patriquin,M,4,Kept,player,9300,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,St. Louis Shock,Gabe Tardio,M,5,Kept,player,9000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,St. Louis Shock,John Lucian Goins,M,6,Pick 29,player,6300,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Texas Ranchers,Lea Jansen,F,1,Pick 4,player,8700,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Texas Ranchers,Sahra Dennehy,F,2,Pick 22,player,6800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Texas Ranchers,Ava Cavataio,F,3,Pick 51,player,5100,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Texas Ranchers,Christian Alshon,M,4,Kept,player,9300,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Texas Ranchers,Eric Oncins,M,5,Kept,player,7800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Texas Ranchers,Luca Mack,M,6,Pick 33,player,6100,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Utah Black Diamonds,Etta Tuionetoa,F,1,Kept,player,6800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Utah Black Diamonds,Allyce Jones,F,2,Kept,player,8000,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Utah Black Diamonds,Victoria Di Muzio,F,3,Pick 39,player,5800,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Utah Black Diamonds,Connor Garnett,M,4,Kept,player,9200,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Utah Black Diamonds,Tama Shimabukuro,M,5,Pick 9,player,8100,MLP roster table
+mlp_dallas_2026,MLP Dallas 2026,2026-05-22,2026-05-25,Utah Black Diamonds,Tyler Loong,M,6,Pick 59,player,4800,MLP roster table

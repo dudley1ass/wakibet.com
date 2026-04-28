@@ -15,10 +15,55 @@ import {
   uniquePlayersInMatches,
   type TournamentKey,
 } from "../sports/pickleball/lib/index.js";
+import { getMlpDallasPlayers, isMlpTournament } from "../lib/mlpTournamentData.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 
 const authPre = { preHandler: [requireAuthUser] };
+
+type RosterRules = {
+  rosterSize: number;
+  budget: number;
+  requiredMen: number | null;
+  requiredWomen: number | null;
+};
+
+type PoolPlayer = {
+  player_name: string;
+  waki_cash: number;
+  gender?: "M" | "F";
+  tier?: "S+" | "S" | "A" | "B" | "C" | "D";
+};
+
+function rosterRulesForTournament(tournamentKey: TournamentKey): RosterRules {
+  if (isMlpTournament(tournamentKey)) {
+    return { rosterSize: 4, budget: 100, requiredMen: 2, requiredWomen: 2 };
+  }
+  return { rosterSize: WINTER_FANTASY_ROSTER_SIZE, budget: 100, requiredMen: null, requiredWomen: null };
+}
+
+async function playerPoolForEvent(
+  tournamentKey: TournamentKey,
+  scheduleDivisionKey: string,
+  data: { matches: { player_a: string; player_b: string }[] } | null,
+): Promise<PoolPlayer[]> {
+  if (isMlpTournament(tournamentKey)) {
+    const rows = await getMlpDallasPlayers();
+    return rows.map((r) => ({
+      player_name: r.player_name,
+      waki_cash: r.waki_cash,
+      gender: r.gender,
+      tier: r.tier,
+    }));
+  }
+  if (!data) return [];
+  const ms = filterMatchesForDivision(data.matches as never[], scheduleDivisionKey);
+  const skill = parseDivisionKey(scheduleDivisionKey)?.skill_level ?? "";
+  return uniquePlayersInMatches(ms).map((player_name) => ({
+    player_name,
+    waki_cash: playerWakiCashCost(skill, player_name),
+  }));
+}
 
 function isEventLocked(firstMatchStartsAt: Date | null, lockedAt: Date | null): boolean {
   if (lockedAt) return true;
@@ -53,9 +98,10 @@ function sameSlots(
 function validateEventPicksShape(
   picks: { player_name: string; is_captain?: boolean; waki_cash: number }[],
   eventBudget: number,
+  rosterSize: number,
 ): { ok: true } | { ok: false; message: string } {
-  if (picks.length !== WINTER_FANTASY_ROSTER_SIZE) {
-    return { ok: false, message: `Exactly ${WINTER_FANTASY_ROSTER_SIZE} picks per event.` };
+  if (picks.length !== rosterSize) {
+    return { ok: false, message: `Exactly ${rosterSize} picks per event.` };
   }
   const captains = picks.filter((p) => p.is_captain);
   if (captains.length !== 1) {
@@ -84,7 +130,7 @@ const PickIn = z.object({
 const EventPickIn = z.object({
   slot_index: z.number().int().min(0).max(4),
   event_key: z.string().min(1),
-  picks: z.array(PickIn).length(WINTER_FANTASY_ROSTER_SIZE),
+  picks: z.array(PickIn).min(1).max(8),
 });
 
 const PutLineupBody = z.object({
@@ -106,6 +152,9 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({
             tournament_key: z.enum(TOURNAMENT_KEYS),
             tournament_name: z.string(),
+            roster_size: z.number().int(),
+            required_men: z.number().int().nullable(),
+            required_women: z.number().int().nullable(),
             events: z.array(
               z.object({
                 event_key: z.string(),
@@ -130,6 +179,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req, reply) => {
       const { tournament_key: tournamentKey } = req.params;
+      const rules = rosterRulesForTournament(tournamentKey);
       const data = await getTournamentData(tournamentKey);
       if (!data) {
         return reply.code(503).send({ message: "Tournament schedule data is not available." } as const);
@@ -142,6 +192,9 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       return {
         tournament_key: tournamentKey,
         tournament_name: data.summary.tournament_name,
+        roster_size: rules.rosterSize,
+        required_men: rules.requiredMen,
+        required_women: rules.requiredWomen,
         events: rows.map((r) => ({
           event_key: r.eventKey,
           schedule_division_key: r.scheduleDivisionKey,
@@ -172,6 +225,9 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({
             tournament_key: z.enum(TOURNAMENT_KEYS),
             season_key: z.string(),
+            roster_size: z.number().int(),
+            required_men: z.number().int().nullable(),
+            required_women: z.number().int().nullable(),
             wakicash_budget: z.number().int(),
             wakicash_spent: z.number().int(),
             events: z.array(
@@ -200,6 +256,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
     async (req, reply) => {
       const uid = req.authUser!.id;
       const { tournament_key: tournamentKey } = req.params;
+      const rules = rosterRulesForTournament(tournamentKey);
       const seasonKey = req.query.season_key ?? "";
       const data = await getTournamentData(tournamentKey);
       if (data) await syncTournamentEventCatalog(prisma, tournamentKey, data);
@@ -212,7 +269,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           userId: uid,
           tournamentKey,
           seasonKey,
-          wakicashBudget: 100,
+          wakicashBudget: rules.budget,
           wakicashSpent: 0,
         },
         update: {},
@@ -228,16 +285,23 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         where: { tournamentKey },
       });
       const catalogByKey = new Map(catalogRows.map((c) => [c.eventKey, c]));
+      const pools = await Promise.all(
+        catalogRows.map(async (c) => [c.eventKey, await playerPoolForEvent(tournamentKey, c.scheduleDivisionKey, data)] as const),
+      );
+      const poolByEvent = new Map(pools);
 
       return {
         tournament_key: tournamentKey as TournamentKey,
         season_key: lineup.seasonKey,
+        roster_size: rules.rosterSize,
+        required_men: rules.requiredMen,
+        required_women: rules.requiredWomen,
         wakicash_budget: lineup.wakicashBudget,
         wakicash_spent: lineup.wakicashSpent,
         events: lineup.eventPicks.map((ep) => {
           const cat = catalogByKey.get(ep.eventKey);
           const locked = isEventLocked(ep.firstMatchStartsAt ?? cat?.firstMatchStartsAt ?? null, ep.lockedAt);
-          const skill = parseDivisionKey(ep.scheduleDivisionKey)?.skill_level ?? cat?.skillLevel ?? "";
+          const costMap = new Map((poolByEvent.get(ep.eventKey) ?? []).map((p) => [normName(p.player_name), p.waki_cash]));
           return {
             slot_index: ep.slotIndex,
             event_key: ep.eventKey,
@@ -254,9 +318,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
               slot_index: s.slotIndex,
               player_name: s.playerName,
               is_captain: s.isCaptain,
-              waki_cash: Math.ceil(
-                playerWakiCashCost(skill, s.playerName) * Number(cat?.wakicashMultiplier ?? 1),
-              ),
+              waki_cash: costMap.get(normName(s.playerName)) ?? 0,
             })),
           };
         }),
@@ -276,6 +338,9 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({
             tournament_key: z.enum(TOURNAMENT_KEYS),
             season_key: z.string(),
+            roster_size: z.number().int(),
+            required_men: z.number().int().nullable(),
+            required_women: z.number().int().nullable(),
             wakicash_budget: z.number().int(),
             wakicash_spent: z.number().int(),
             events: z.array(
@@ -307,6 +372,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
     async (req, reply) => {
       const uid = req.authUser!.id;
       const { tournament_key: tournamentKey } = req.params;
+      const rules = rosterRulesForTournament(tournamentKey);
       const { season_key: seasonKey, events: incoming } = req.body;
 
       const data = await getTournamentData(tournamentKey);
@@ -373,18 +439,34 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
             message: "This event is not selectable for fantasy. Events must have at least 6 teams/players to be eligible.",
           } as const);
         }
-        const divMatches = filterMatchesForDivision(data.matches, cat.scheduleDivisionKey);
-        const allowed = new Set(uniquePlayersInMatches(divMatches).map(normName));
-        const skill = cat.skillLevel;
-        const wakiMult = Number(cat.wakicashMultiplier);
-        const priced = inc.picks.map((p) => ({
-          player_name: p.player_name,
-          is_captain: Boolean(p.is_captain),
-          waki_cash: Math.ceil(playerWakiCashCost(skill, p.player_name) * wakiMult),
-        }));
-        const shape = validateEventPicksShape(priced, existing?.wakicashBudget ?? 100);
+        const pool = await playerPoolForEvent(tournamentKey, cat.scheduleDivisionKey, data);
+        const allowed = new Map(pool.map((p) => [normName(p.player_name), p]));
+        const priced = inc.picks.map((p) => {
+          const row = allowed.get(normName(p.player_name));
+          return {
+            player_name: p.player_name,
+            is_captain: Boolean(p.is_captain),
+            waki_cash: row?.waki_cash ?? 0,
+            gender: row?.gender,
+          };
+        });
+        const shape = validateEventPicksShape(priced, existing?.wakicashBudget ?? rules.budget, rules.rosterSize);
         if (!shape.ok) {
           return reply.code(400).send({ message: `${inc.event_key}: ${shape.message}` } as const);
+        }
+        if (rules.requiredMen != null || rules.requiredWomen != null) {
+          const men = priced.filter((p) => p.gender === "M").length;
+          const women = priced.filter((p) => p.gender === "F").length;
+          if (rules.requiredMen != null && men !== rules.requiredMen) {
+            return reply.code(400).send({
+              message: `${inc.event_key}: lineup must include exactly ${rules.requiredMen} men.`,
+            } as const);
+          }
+          if (rules.requiredWomen != null && women !== rules.requiredWomen) {
+            return reply.code(400).send({
+              message: `${inc.event_key}: lineup must include exactly ${rules.requiredWomen} women.`,
+            } as const);
+          }
         }
         for (const p of inc.picks) {
           if (!allowed.has(normName(p.player_name))) {
@@ -398,19 +480,18 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       let totalSpend = 0;
       for (const inc of incoming) {
         const cat = catalogByKey.get(inc.event_key)!;
-        const wakiMult = Number(cat.wakicashMultiplier);
-        const skill = cat.skillLevel;
+        const pool = await playerPoolForEvent(tournamentKey, cat.scheduleDivisionKey, data);
+        const costMap = new Map(pool.map((p) => [normName(p.player_name), p.waki_cash]));
         for (const p of inc.picks) {
-          totalSpend += Math.ceil(playerWakiCashCost(skill, p.player_name) * wakiMult);
+          totalSpend += costMap.get(normName(p.player_name)) ?? 0;
         }
       }
       for (const ex of existingPicks) {
         if (isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
-          const cat = catalogByKey.get(ex.eventKey);
-          const skill = parseDivisionKey(ex.scheduleDivisionKey)?.skill_level ?? cat?.skillLevel ?? "";
-          const mult = Number(cat?.wakicashMultiplier ?? 1);
+          const pool = await playerPoolForEvent(tournamentKey, ex.scheduleDivisionKey, data);
+          const costMap = new Map(pool.map((p) => [normName(p.player_name), p.waki_cash]));
           for (const s of ex.slots) {
-            totalSpend += Math.ceil(playerWakiCashCost(skill, s.playerName) * mult);
+            totalSpend += costMap.get(normName(s.playerName)) ?? 0;
           }
         }
       }
@@ -421,7 +502,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           userId: uid,
           tournamentKey,
           seasonKey,
-          wakicashBudget: 100,
+          wakicashBudget: rules.budget,
           wakicashSpent: 0,
         },
         update: {},
@@ -493,16 +574,31 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         where: { tournamentKey },
       });
       const catMap = new Map(refreshedCatalog.map((c) => [c.eventKey, c]));
+      const pools = await Promise.all(
+        refreshedCatalog.map(async (c) => [
+          c.eventKey,
+          new Map(
+            (await playerPoolForEvent(tournamentKey, c.scheduleDivisionKey, data)).map((p) => [
+              normName(p.player_name),
+              p.waki_cash,
+            ]),
+          ),
+        ] as const),
+      );
+      const poolByEvent = new Map(pools);
 
       return {
         tournament_key: tournamentKey as TournamentKey,
         season_key: lineup.seasonKey,
+        roster_size: rules.rosterSize,
+        required_men: rules.requiredMen,
+        required_women: rules.requiredWomen,
         wakicash_budget: lineup.wakicashBudget,
         wakicash_spent: lineup.wakicashSpent,
         events: lineup.eventPicks.map((ep) => {
           const cat = catMap.get(ep.eventKey);
           const locked = isEventLocked(ep.firstMatchStartsAt ?? cat?.firstMatchStartsAt ?? null, ep.lockedAt);
-          const skill = parseDivisionKey(ep.scheduleDivisionKey)?.skill_level ?? cat?.skillLevel ?? "";
+          const costMap = poolByEvent.get(ep.eventKey);
           return {
             slot_index: ep.slotIndex,
             event_key: ep.eventKey,
@@ -519,9 +615,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
               slot_index: s.slotIndex,
               player_name: s.playerName,
               is_captain: s.isCaptain,
-              waki_cash: Math.ceil(
-                playerWakiCashCost(skill, s.playerName) * Number(cat?.wakicashMultiplier ?? 1),
-              ),
+              waki_cash: costMap?.get(normName(s.playerName)) ?? 0,
             })),
           };
         }),

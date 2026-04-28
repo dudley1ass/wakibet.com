@@ -1,11 +1,11 @@
 ﻿.dash-shell {
   width: 100%;
   max-width: 1120px;
-  background: rgba(22, 21, 20, 0.92);
+  background: rgba(45, 41, 37, 0.9);
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.36);
-  border: 1px solid rgba(220, 179, 21, 0.34);
+  border: 1px solid rgba(220, 179, 21, 0.46);
 }
 .dash-shell a,
 .dash-shell a:hover,

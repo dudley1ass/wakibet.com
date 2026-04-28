@@ -34,15 +34,17 @@ export type WinterData = {
   per_player_matches: Record<string, WinterPerPlayer[]>;
 };
 
-export const TOURNAMENT_KEYS = ["atlanta_weekend"] as const;
+export const TOURNAMENT_KEYS = ["atlanta_weekend", "mlp_dallas_2026"] as const;
 export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
 
 const TOURNAMENT_FILES: Record<TournamentKey, string> = {
   atlanta_weekend: "atlanta_weekend_test_run_matches.json",
+  mlp_dallas_2026: "mlp_dallas_2026_matches.json",
 };
 
 const TOURNAMENT_LABELS: Record<TournamentKey, string> = {
   atlanta_weekend: "PPA Atlanta Weekend",
+  mlp_dallas_2026: "MLP Dallas 2026",
 };
 
 /** Stable division id: unlikely to appear in skill or age fields. */

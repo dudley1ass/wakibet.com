@@ -2,7 +2,6 @@
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
 import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
-import HostPersonaPanel from "./HostPersonaPanel";
 import "./dashboard.css";
 
 export type FantasyRosterRow = {
@@ -149,10 +148,6 @@ export default function Dashboard({ user, onLogout }: Props) {
       {preview && pulse && (
         <>
           <DashboardMultiSportLayout preview={preview} pulse={pulse} />
-
-          <section className="dash-activity-row" aria-label="Activity feed">
-            <HostPersonaPanel user={user} path="/" layout="inline" />
-          </section>
 
           <DashboardWhatHappensNext preview={preview} />
 

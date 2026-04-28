@@ -3,7 +3,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
-import HostPersonaPanel from "./components/HostPersonaPanel";
 import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
 import { Dashboard, DashboardDataProvider, PickTeamsPage, RostersPage } from "./sports/pickleball";
 import { NascarHubPage, NascarRostersPage, NascarScoringTablePage } from "./sports/nascar";
@@ -136,7 +135,6 @@ type ShellProps = {
 function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
   const location = useLocation();
   const path = normalizePathname(location.pathname);
-  const activityPageAside = Boolean(session && !booting) && path !== "/";
 
   let main: ReactNode;
 
@@ -232,18 +230,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
 
   return (
     <div className="app-shell">
-      <div className={`app-main${activityPageAside ? " app-main--with-aside" : ""}`}>
-        {activityPageAside ? (
-          <div className="app-page-with-aside">
-            <div className="app-page-body">{main}</div>
-            <aside className="app-page-aside" aria-label="Activity feed">
-              <HostPersonaPanel user={session!} path={path} layout="aside" />
-            </aside>
-          </div>
-        ) : (
-          main
-        )}
-      </div>
+      <div className="app-main">{main}</div>
       <SiteFooter />
     </div>
   );

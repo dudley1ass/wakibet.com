@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { playerWakiCashCost, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import { WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
 import "./dashboard.css";
 
@@ -21,16 +21,22 @@ type CatalogEvent = {
 type EventsResponse = {
   tournament_key: string;
   tournament_name: string;
+  roster_size: number;
+  required_men: number | null;
+  required_women: number | null;
   events: CatalogEvent[];
 };
 
-type DivisionPlayer = { player_name: string; waki_cash: number };
+type DivisionPlayer = { player_name: string; waki_cash: number; gender?: "M" | "F"; tier?: string };
 
 type PlayersResponse = {
   tournament_key: string;
   division_key: string;
   skill_level: string;
   waki_cash_budget: number;
+  roster_size: number;
+  required_men: number | null;
+  required_women: number | null;
   players: DivisionPlayer[];
 };
 
@@ -47,18 +53,21 @@ type LineupEvent = {
 type LineupResponse = {
   tournament_key: string;
   season_key: string;
+  roster_size: number;
+  required_men: number | null;
+  required_women: number | null;
   wakicash_budget: number;
   wakicash_spent: number;
   events: LineupEvent[];
 };
 
-const ROSTER_SIZE = WINTER_FANTASY_ROSTER_SIZE;
 const TOURNAMENT_OPTIONS: { tournament_key: string; label: string }[] = [
   { tournament_key: "atlanta_weekend", label: "PPA Atlanta Weekend" },
+  { tournament_key: "mlp_dallas_2026", label: "MLP Dallas 2026" },
 ];
 
-function emptyPicks(): string[] {
-  return Array.from({ length: ROSTER_SIZE }, () => "");
+function emptyPicks(rosterSize: number): string[] {
+  return Array.from({ length: rosterSize }, () => "");
 }
 
 function normPlayerName(n: string): string {
@@ -103,6 +112,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
   const [busy, setBusy] = useState(false);
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [actionOk, setActionOk] = useState<string | null>(null);
+  const rosterSize = lineup?.roster_size ?? eventsMeta?.roster_size ?? WINTER_FANTASY_ROSTER_SIZE;
 
   /** Eligible divisions the user can still attach to a slot (not past first-match lock). */
   const pickableEvents = useMemo(
@@ -136,7 +146,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           `/api/v1/winter-fantasy/division-players?tournament_key=${encodeURIComponent(tk)}&division_key=${encodeURIComponent(row.schedule_division_key)}`,
         );
         const players = pl.players ?? [];
-        const picks = emptyPicks();
+        const picks = emptyPicks(lu.roster_size ?? WINTER_FANTASY_ROSTER_SIZE);
         let cap: number | null = null;
         for (const p of row.picks) {
           if (p.slot_index >= 0 && p.slot_index < picks.length) {
@@ -174,14 +184,14 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     let s = 0;
     for (const sl of slots) {
       if (!sl) continue;
-      for (let i = 0; i < ROSTER_SIZE; i++) {
+      for (let i = 0; i < rosterSize; i++) {
         const n = sl.picks[i]?.trim();
         if (!n) continue;
-        s += Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
+        s += sl.players.find((p) => p.player_name === n)?.waki_cash ?? 0;
       }
     }
     return s;
-  }, [slots]);
+  }, [slots, rosterSize]);
 
   const budgetPerEvent = lineup?.wakicash_budget ?? 100;
   const hasEventOverBudget = useMemo(() => {
@@ -190,7 +200,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       const slotSpend = sl.picks.reduce((sum, name) => {
         const n = name.trim();
         if (!n) return sum;
-        return sum + Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
+        return sum + (sl.players.find((p) => p.player_name === n)?.waki_cash ?? 0);
       }, 0);
       return slotSpend > budgetPerEvent;
     });
@@ -270,7 +280,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     for (let s = 4; s >= 0; s--) {
       const sl = slots[s];
       if (!sl) continue;
-      for (let i = ROSTER_SIZE - 1; i >= 0; i--) {
+      for (let i = rosterSize - 1; i >= 0; i--) {
         const n = sl.picks[i]?.trim();
         if (n) {
           lastPick = n;
@@ -321,7 +331,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           skill_level: pl.skill_level,
           wakicash_multiplier: ev.wakicash_multiplier,
           players: pl.players ?? [],
-          picks: emptyPicks(),
+          picks: emptyPicks(rosterSize),
           captainSlot: null,
         };
         return next;
@@ -381,7 +391,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       if (!sl) continue;
       const filled = sl.picks.map((p) => p.trim());
       if (filled.some((p) => !p)) {
-        setActionErr(`Event slot ${s + 1}: fill all ${ROSTER_SIZE} players.`);
+        setActionErr(`Event slot ${s + 1}: fill all ${rosterSize} players.`);
         return;
       }
       if (new Set(filled).size !== filled.length) {
@@ -393,13 +403,24 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         return;
       }
       const eventSpend = filled.reduce(
-        (sum, player_name) =>
-          sum + Math.ceil(playerWakiCashCost(sl.skill_level, player_name) * sl.wakicash_multiplier),
+        (sum, player_name) => sum + (sl.players.find((p) => p.player_name === player_name)?.waki_cash ?? 0),
         0,
       );
       if (eventSpend > budget) {
         setActionErr(`Event slot ${s + 1} exceeds ${budget} WakiCash.`);
         return;
+      }
+      if (lineup?.required_men != null || lineup?.required_women != null) {
+        const men = filled.filter((name) => sl.players.find((p) => p.player_name === name)?.gender === "M").length;
+        const women = filled.filter((name) => sl.players.find((p) => p.player_name === name)?.gender === "F").length;
+        if (lineup.required_men != null && men !== lineup.required_men) {
+          setActionErr(`Event slot ${s + 1}: must include exactly ${lineup.required_men} men.`);
+          return;
+        }
+        if (lineup.required_women != null && women !== lineup.required_women) {
+          setActionErr(`Event slot ${s + 1}: must include exactly ${lineup.required_women} women.`);
+          return;
+        }
       }
       payloadEvents.push({
         slot_index: s,
@@ -481,12 +502,12 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         <div className="wf-cascade" style={{ marginTop: 12 }}>
           {[0, 1, 2, 3, 4].map((slotIndex) => {
             const sl = slots[slotIndex];
-            const budget = lineup?.wakicash_budget ?? 100;
-            const slotSpend =
+      const budget = lineup?.wakicash_budget ?? 100;
+              const slotSpend =
               sl?.picks.reduce((sum, name) => {
                 const n = name.trim();
                 if (!n) return sum;
-                return sum + Math.ceil(playerWakiCashCost(sl.skill_level, n) * sl.wakicash_multiplier);
+                  return sum + (sl.players.find((p) => p.player_name === n)?.waki_cash ?? 0);
               }, 0) ?? 0;
             const slotAvailable = Math.max(0, budget - slotSpend);
             const slotOverBudget = slotSpend > budget;
@@ -561,7 +582,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                       <strong>{sl.label}</strong> · tier WakiCash ×{sl.wakicash_multiplier}
                     </p>
                     <div className="wf-picks" style={{ marginTop: 8 }}>
-                      {Array.from({ length: ROSTER_SIZE }, (_, i) => {
+                      {Array.from({ length: rosterSize }, (_, i) => {
                         const currentPick = sl.picks[i] ?? "";
                         const takenInEvent = new Set(
                           sl.picks
@@ -583,12 +604,11 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                             >
                               <option value="">Choose player…</option>
                               {playerOptions.map((p) => {
-                                const cost = Math.ceil(
-                                  playerWakiCashCost(sl.skill_level, p.player_name) * sl.wakicash_multiplier,
-                                );
+                                const cost = p.waki_cash;
                                 return (
                                   <option key={p.player_name} value={p.player_name}>
-                                    {p.player_name} — {cost} WC
+                                    {p.player_name}
+                                    {p.gender ? ` (${p.gender})` : ""} — {cost} WC
                                   </option>
                                 );
                               })}

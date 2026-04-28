@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "tournament_name": "MLP Dallas 2026",
+    "matches_generated": 6
+  },
+  "matches": [
+    {
+      "match_id": "mlp_dallas_001",
+      "event_type": "MLP Team",
+      "skill_level": "MLP",
+      "age_bracket": "Open",
+      "event_date": "2026-05-22T15:00:00Z",
+      "player_a": "Ben Johns",
+      "player_b": "Anna Leigh Waters",
+      "status": "scheduled"
+    },
+    {
+      "match_id": "mlp_dallas_002",
+      "event_type": "MLP Team",
+      "skill_level": "MLP",
+      "age_bracket": "Open",
+      "event_date": "2026-05-22T18:00:00Z",
+      "player_a": "JW Johnson",
+      "player_b": "Anna Bright",
+      "status": "scheduled"
+    },
+    {
+      "match_id": "mlp_dallas_003",
+      "event_type": "MLP Team",
+      "skill_level": "MLP",
+      "age_bracket": "Open",
+      "event_date": "2026-05-23T14:00:00Z",
+      "player_a": "Federico Staksrud",
+      "player_b": "Catherine Parenteau",
+      "status": "scheduled"
+    },
+    {
+      "match_id": "mlp_dallas_004",
+      "event_type": "MLP Team",
+      "skill_level": "MLP",
+      "age_bracket": "Open",
+      "event_date": "2026-05-23T17:00:00Z",
+      "player_a": "Jorja Johnson",
+      "player_b": "Will Howells",
+      "status": "scheduled"
+    },
+    {
+      "match_id": "mlp_dallas_005",
+      "event_type": "MLP Team",
+      "skill_level": "MLP",
+      "age_bracket": "Open",
+      "event_date": "2026-05-24T15:00:00Z",
+      "player_a": "Hayden Patriquin",
+      "player_b": "Gabe Tardio",
+      "status": "scheduled"
+    },
+    {
+      "match_id": "mlp_dallas_006",
+      "event_type": "MLP Team",
+      "skill_level": "MLP",
+      "age_bracket": "Open",
+      "event_date": "2026-05-24T19:00:00Z",
+      "player_a": "Lea Jansen",
+      "player_b": "Christian Alshon",
+      "status": "scheduled"
+    }
+  ],
+  "per_player_matches": {
+    "Ben Johns": [
+      { "match_id": "mlp_dallas_001", "event_type": "MLP Team", "skill_level": "MLP", "age_bracket": "Open", "event_date": "2026-05-22T15:00:00Z", "opponent": "Anna Leigh Waters" }
+    ],
+    "Anna Leigh Waters": [
+      { "match_id": "mlp_dallas_001", "event_type": "MLP Team", "skill_level": "MLP", "age_bracket": "Open", "event_date": "2026-05-22T15:00:00Z", "opponent": "Ben Johns" }
+    ]
+  }
+}
