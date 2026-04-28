@@ -1810,6 +1810,9 @@ a.rost-dash-link {
   font-weight: 800;
   color: #fffbeb;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dash-sport-card__sub {
   margin: 6px 0 0;

@@ -63,7 +63,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     preview.open_contests[0]?.name ??
     preview.tournament_schedules[0]?.tournament_name ??
     "Winter Fantasy";
-  const pbEvent = pbEventRaw.replace(/\s*[-–—]?\s*test run\s*/i, "").trim();
+  const pbEvent = pbEventRaw.replace(/\s*[-–—]?\s*test run\s*/i, "").replace(/[()_]/g, "").trim();
 
   const [statusQ, weeksQ, seasonQ] = useQueries({
     queries: [
@@ -134,7 +134,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             sportLabel="Pickleball"
             eventName={pbEvent}
             subline={pbSub}
-            sublineSecondary="Next tournament is MLP Dallas"
             statusLabel={pickleballStatusLabel(incomplete, rosterCount)}
             ctaLabel={pbCta}
             ctaTo="/pick-teams"
@@ -163,7 +162,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
         </div>
         <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">
           <h2 id="dash-ms-contests-title" className="dash-ms-section-title dash-ms-section-title--sm">
-            Your active contests
+            Your Active Contest
           </h2>
           <ul className="dash-contest-list dash-contest-list--compact">
             <li className="dash-contest-card dash-contest-card--pickleball dash-contest-card--compact">
@@ -235,7 +234,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
 
       <section className="dash-ms-section dash-ms-section--rank" aria-labelledby="dash-ms-rank-title">
         <h2 id="dash-ms-rank-title" className="dash-ms-section-title">
-          Season standings
+          Season Standings
         </h2>
         <p className="dash-ms-section-lead">Never mixed across sports — each line is its own game.</p>
         <ul className="dash-season-rank-list">

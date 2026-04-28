@@ -61,14 +61,9 @@ export default function DashboardWhatHappensNext({ preview }: Props) {
 
   return (
     <section className="dash-section dash-section--whatif dash-section--whatif-micro" aria-labelledby="dash-whatif-title">
-      <h2 id="dash-whatif-title" className="dash-section-title">
-        What happens next
+      <h2 id="dash-whatif-title" className="dash-ms-section-title">
+        What Happens Next
       </h2>
-      <p className="dash-section-lead dash-section-lead--compact">
-        Short read — full pickleball math on the{" "}
-        <Link to="/scoring-table">scoring table</Link>; NASCAR race points on{" "}
-        <Link to="/nascar/scoring">NASCAR table</Link>.
-      </p>
 
       <div className="dash-whatif-split dash-whatif-split--micro">
         <div className="dash-whatif-col dash-whatif-col--pickleball">
