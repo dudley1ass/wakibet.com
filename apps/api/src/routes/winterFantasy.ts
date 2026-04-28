@@ -58,11 +58,11 @@ function isRosterEditLocked(matches: unknown[]): boolean {
 }
 
 const DivisionKeyQuery = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default("winter_springs"),
+  tournament_key: z.enum(TOURNAMENT_KEYS).default("atlanta_weekend"),
   division_key: z.string().min(1),
 });
 const TournamentQuery = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default("winter_springs"),
+  tournament_key: z.enum(TOURNAMENT_KEYS).default("atlanta_weekend"),
 });
 
 const PickRow = z.object({
@@ -222,10 +222,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       const skill = divParsed?.skill_level ?? "";
       const storedDivisionKey = toStoredDivisionKey(tournament_key, division_key);
       const roster = await prisma.winterFantasyRoster.findFirst({
-        where:
-          tournament_key === "winter_springs"
-            ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey: division_key }] }
-            : { userId: uid, divisionKey: storedDivisionKey },
+        where: { userId: uid, divisionKey: storedDivisionKey },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
       return {
@@ -326,10 +323,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
 
       const saved = await prisma.$transaction(async (tx) => {
         let roster = await tx.winterFantasyRoster.findFirst({
-          where:
-            tournament_key === "winter_springs"
-              ? { userId: uid, OR: [{ divisionKey: storedDivisionKey }, { divisionKey: division_key }] }
-              : { userId: uid, divisionKey: storedDivisionKey },
+          where: { userId: uid, divisionKey: storedDivisionKey },
         });
         if (!roster) {
           roster = await tx.winterFantasyRoster.create({
@@ -416,16 +410,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       }
       const divMatches = filterMatchesForDivision(data.matches, division_key) as WinterJsonMatch[];
       const roster = await prisma.winterFantasyRoster.findFirst({
-        where:
-          tournament_key === "winter_springs"
-            ? {
-                userId: uid,
-                OR: [
-                  { divisionKey: toStoredDivisionKey(tournament_key, division_key) },
-                  { divisionKey: division_key },
-                ],
-              }
-            : { userId: uid, divisionKey: toStoredDivisionKey(tournament_key, division_key) },
+        where: { userId: uid, divisionKey: toStoredDivisionKey(tournament_key, division_key) },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
       if (!roster || roster.picks.length === 0) {

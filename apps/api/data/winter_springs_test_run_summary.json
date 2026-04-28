@@ -1,9 +1,0 @@
-{
-  "tournament_name": "Winter Springs Spring Classic (test run)",
-  "source_file": "C:\\Users\\robin\\Downloads\\Winter_Springs_Player_Data_Improved.xlsx",
-  "players_in_registrations": 81,
-  "players_with_generated_matches": 81,
-  "divisions_considered": 15,
-  "matches_generated": 514,
-  "generation_mode": "round_robin_by_player_within_division"
-}

@@ -1,9 +1,0 @@
-{
-  "tournament_name": "2026 MetroHealth Super Senior Doubles Championships (50+) at Pictona",
-  "source_file": "C:\\Users\\robin\\Downloads\\Pictona_Player_Data.xlsx",
-  "players_in_registrations": 400,
-  "players_with_generated_matches": 400,
-  "divisions_considered": 51,
-  "matches_generated": 4553,
-  "generation_mode": "round_robin_by_player_within_division"
-}

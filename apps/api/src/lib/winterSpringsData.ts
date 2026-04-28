@@ -34,21 +34,15 @@ export type WinterData = {
   per_player_matches: Record<string, WinterPerPlayer[]>;
 };
 
-export const TOURNAMENT_KEYS = ["winter_springs", "pictona", "jacksonville", "bradenton"] as const;
+export const TOURNAMENT_KEYS = ["atlanta_weekend"] as const;
 export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
 
 const TOURNAMENT_FILES: Record<TournamentKey, string> = {
-  winter_springs: "winter_springs_test_run_matches.json",
-  pictona: "pictona_test_run_matches.json",
-  jacksonville: "jacksonville_test_run_matches.json",
-  bradenton: "bradenton_test_run_matches.json",
+  atlanta_weekend: "atlanta_weekend_test_run_matches.json",
 };
 
 const TOURNAMENT_LABELS: Record<TournamentKey, string> = {
-  winter_springs: "Winter Springs",
-  pictona: "Pictona",
-  jacksonville: "Jacksonville",
-  bradenton: "Bradenton",
+  atlanta_weekend: "PPA Atlanta Weekend",
 };
 
 /** Stable division id: unlikely to appear in skill or age fields. */
@@ -90,9 +84,9 @@ export function parseStoredDivisionKey(storedKey: string): {
 } | null {
   const idx = storedKey.indexOf(STORED_ROSTER_KEY_DELIM);
   if (idx < 0) {
-    // Backward compatibility with older Winter Springs rows.
+    // Backward compatibility with pre-atlanta rows.
     if (!parseDivisionKey(storedKey)) return null;
-    return { tournament_key: "winter_springs", division_key: storedKey };
+    return { tournament_key: "atlanta_weekend", division_key: storedKey };
   }
   const tournamentKey = storedKey.slice(0, idx);
   const divisionKey = storedKey.slice(idx + STORED_ROSTER_KEY_DELIM.length);
@@ -219,5 +213,5 @@ export function getTournamentData(tournamentKey: TournamentKey): Promise<WinterD
 
 /** Backward compatibility for existing call sites. */
 export function getWinterData(): Promise<WinterData | null> {
-  return getTournamentData("winter_springs");
+  return getTournamentData("atlanta_weekend");
 }

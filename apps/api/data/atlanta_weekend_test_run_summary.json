@@ -1,0 +1,9 @@
+{
+  "tournament_name": "PPA Tour: 2026 Veolia Atlanta Pickleball Championships (test run)",
+  "source_file": "C:\\App\\wakibet\\apps\\api\\data\\atlanta_players_raw.txt",
+  "player_event_rows_parsed": 3125,
+  "players_with_generated_matches": 1578,
+  "divisions_considered": 104,
+  "matches_generated": 1581,
+  "generation_mode": "synthetic_pairs_per_division_from_players_page"
+}
