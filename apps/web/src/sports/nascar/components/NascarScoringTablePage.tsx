@@ -41,17 +41,9 @@ export default function NascarScoringTablePage() {
           <h1 style={{ margin: 0 }}>
             <span aria-hidden>🏁 </span>WakiBet NASCAR scoring
           </h1>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            <Link className="dash-ghost-btn" to="/">
-              Home
-            </Link>
-            <Link className="dash-ghost-btn" to="/scoring-table">
-              Pickleball table
-            </Link>
-            <Link className="dash-ghost-btn" to="/nascar">
-              NASCAR hub
-            </Link>
-          </div>
+          <Link className="dash-ghost-btn" to="/">
+            Back to Dashboard
+          </Link>
         </div>
 
         <div className="static-page-body">

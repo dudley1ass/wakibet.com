@@ -36,7 +36,7 @@ type NascarSeasonSummary = {
 function pickleballStatusLabel(incompleteDivisions: number, rosterCount: number): string {
   if (rosterCount === 0) return "Set";
   if (incompleteDivisions > 0) return "Edit";
-  return "Ready";
+  return "";
 }
 
 function nascarStatusLabel(w: NascarWeekRow | null): string {
@@ -98,7 +98,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const nascarSize = nascarLineup?.lineup_size ?? 5;
   const nascarComplete = nascarLineupComplete(nascarLineup, nascarSize);
   const nascarSub = focusWeek
-    ? `${countdownFromIso(focusWeek.lock_at)} · ${focusWeek.track}`
+    ? `${countdownFromIso(focusWeek.lock_at)}`
     : statusQ.data?.message ?? "Loading NASCAR…";
   const nascarEvent = focusWeek?.race_name ?? "NASCAR weekly picks";
   const nascarCta = !nascarEnabled ? "View hub" : nascarComplete ? "View lineup" : "Build lineup";
@@ -107,7 +107,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
   const pbSub =
     incomplete > 0
-      ? `${incomplete} left · ${countdownFromIso(pbLockIso)}`
+      ? `${incomplete} left`
       : `${countdownFromIso(pbLockIso)}`;
 
   const nascarRank = seasonQ.data?.rank;
