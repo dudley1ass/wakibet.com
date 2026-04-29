@@ -172,9 +172,13 @@ const adminEmails = new Set(
 );
 
 async function requireAdminUser(req: FastifyRequest, reply: FastifyReply) {
-  // If ADMIN_EMAILS is not configured yet, allow authenticated access
-  // so the admin tool works out of the box in early-stage deployments.
-  if (adminEmails.size === 0) return;
+  if (adminEmails.size === 0) {
+    await reply.code(503).send({
+      message:
+        "Admin routes are disabled until ADMIN_EMAILS is set (comma-separated admin email addresses).",
+    } as const);
+    return;
+  }
   const email = req.authUser?.email?.toLowerCase() ?? "";
   if (adminEmails.has(email)) return;
   await reply.code(403).send({ message: "Admin access required." } as const);
@@ -281,6 +285,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           }),
           401: ErrorMessage,
           403: ErrorMessage,
+          503: ErrorMessage,
         },
       },
     },
@@ -377,6 +382,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           400: ErrorMessage,
           403: ErrorMessage,
           404: ErrorMessage,
+          503: ErrorMessage,
         },
       },
     },
