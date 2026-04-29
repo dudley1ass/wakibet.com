@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LayoutDashboard } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -74,5 +74,19 @@ export function Hero({
         </Link>
       </div>
     </section>
+  );
+}
+
+export function PicksDashboardBar() {
+  return (
+    <div className="mb-2 flex justify-end">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/90 px-4 py-2.5 text-sm font-bold text-slate-200 shadow-sm transition hover:border-yellow-500/50 hover:bg-slate-800 hover:text-white"
+      >
+        <LayoutDashboard className="h-4 w-4 shrink-0 text-yellow-400" aria-hidden />
+        Dashboard
+      </Link>
+    </div>
   );
 }

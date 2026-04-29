@@ -1,11 +1,12 @@
 import { Bomb, CircleDot, Target, Trophy, Zap } from "lucide-react";
 
-import { Hero, PickCard, PlayerRow } from "./picksUi";
+import { Hero, PickCard, PicksDashboardBar, PlayerRow } from "./picksUi";
 
 export default function PpaAtlantaPicksPage() {
   return (
     <main className="picks-root min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
+        <PicksDashboardBar />
         <Hero
           sport="Pickleball Fantasy Picks"
           title="Best Pickleball Picks This Week"
