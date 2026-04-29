@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "node scripts/clean-prisma-generated.mjs && prisma generate",
     "dev": "dotenv -e ../../.env -e ../../.env.example -- tsx watch src/index.ts",
-    "build": "node scripts/clean-prisma-generated.mjs && prisma generate && tsc -p tsconfig.json",
+    "build": "node scripts/clean-prisma-generated.mjs && prisma generate && tsc -p tsconfig.json && node scripts/sync-generated-prisma-to-dist.mjs",
     "start": "node dist/index.js",
     "lint": "tsc -p tsconfig.json --noEmit",
     "db:generate": "node scripts/clean-prisma-generated.mjs && dotenv -e ../../.env -e ../../.env.example -- prisma generate",
