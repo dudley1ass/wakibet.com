@@ -5,6 +5,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { getCachedDashboardFull } from "../lib/dashboardMaterialize.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 import { prisma } from "../lib/prisma.js";
+import { TOURNAMENT_KEYS } from "../lib/winterSpringsData.js";
 
 const FantasyRosterPick = z.object({
   slot_index: z.number().int(),
@@ -319,6 +320,9 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
             },
           },
           fantasyTournamentLineups: {
+            where: {
+              tournamentKey: { in: [...TOURNAMENT_KEYS] },
+            },
             orderBy: { updatedAt: "desc" },
             take: 30,
             select: {
