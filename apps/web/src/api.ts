@@ -9,7 +9,7 @@ const MISSING_BASE_HELP =
   "In Render → your Static Site → Environment, set VITE_API_BASE = your API origin (no trailing slash), " +
   "then redeploy with Clear build cache.";
 
-const DEFAULT_FETCH_MS = import.meta.env.PROD ? 60_000 : 20_000;
+const DEFAULT_FETCH_MS = import.meta.env.PROD ? 90_000 : 20_000;
 
 let accessToken: string | null = null;
 
@@ -27,7 +27,7 @@ function isTimedOut(e: unknown): boolean {
   return e instanceof Error && e.name === "AbortError";
 }
 
-async function apiFetch(path: string, init: RequestInit): Promise<Response> {
+async function apiFetch(path: string, init: RequestInit, attempt = 1): Promise<Response> {
   try {
     return await fetch(`${baseUrl()}${path}`, {
       ...init,
@@ -35,6 +35,10 @@ async function apiFetch(path: string, init: RequestInit): Promise<Response> {
     });
   } catch (e) {
     if (isTimedOut(e)) {
+      // Render cold starts can exceed typical request budgets; retry idempotent reads once.
+      if ((init.method == null || init.method.toUpperCase() === "GET") && attempt < 2) {
+        return apiFetch(path, init, attempt + 1);
+      }
       throw new Error(
         `Request to ${path} timed out after ${DEFAULT_FETCH_MS / 1000}s. Check VITE_API_BASE, that the API is running, and your network.`,
       );
