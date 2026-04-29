@@ -298,6 +298,9 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           email: true,
           displayName: true,
           fantasyTournamentLineups: {
+            where: {
+              tournamentKey: { in: [...TOURNAMENT_KEYS] },
+            },
             orderBy: { updatedAt: "desc" },
             select: {
               tournamentKey: true,

@@ -124,7 +124,14 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
           Your Sports
         </h2>
         <p className="dash-ms-section-lead dash-ms-section-lead--tight">
-          Same layout per sport — separate scores and leaderboards.
+          Same layout per sport — separate scores and leaderboards.{" "}
+          <Link className="dash-ms-inline-link" to="/pick-teams/leaderboard">
+            Pickleball top 100
+          </Link>
+          {" · "}
+          <Link className="dash-ms-inline-link" to="/nascar/leaderboard">
+            NASCAR top 100
+          </Link>
         </p>
         <div className="dash-sport-hero-row">
           <SportCard
@@ -235,7 +242,16 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
         <h2 id="dash-ms-rank-title" className="dash-ms-section-title">
           Season Standings
         </h2>
-        <p className="dash-ms-section-lead">Never mixed across sports — each line is its own game.</p>
+        <p className="dash-ms-section-lead">
+          Never mixed across sports — each line is its own game.{" "}
+          <Link className="dash-ms-inline-link" to="/pick-teams/leaderboard">
+            Full pickleball leaderboard
+          </Link>
+          {" · "}
+          <Link className="dash-ms-inline-link" to="/nascar/leaderboard">
+            Full NASCAR leaderboard
+          </Link>
+        </p>
         <ul className="dash-season-rank-list">
           <li className="dash-season-rank-row dash-season-rank-row--pickleball">
             <span className="dash-season-rank-ico" aria-hidden>

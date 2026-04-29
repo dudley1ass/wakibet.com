@@ -22,6 +22,9 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
           </p>
         </div>
         <div className="dash-head-actions">
+          <Link className="dash-ghost-btn" to="/pick-teams/leaderboard">
+            Season leaderboard
+          </Link>
           <Link className="dash-ghost-btn" to="/rosters">
             My Rosters
           </Link>

@@ -245,10 +245,24 @@ export function ScoringTablePage() {
       <div className="scoring-example" role="note">
         <div className="scoring-example-kicker">Example</div>
         <p className="scoring-example-body">
-          Bauer wins an upset match with big margin: <strong>+{r.matchWinPoints} match</strong> +{" "}
-          <strong>+{r.upsetWinPoints} upset</strong> + <strong>+{r.winMargin8PlusPoints} margin (8+)</strong> ={" "}
-          <strong className="scoring-example-total">{r.matchWinPoints + r.upsetWinPoints + r.winMargin8PlusPoints} WakiPoints</strong>{" "}
-          from that result row (medals / playoff legs would add on top when the schedule marks them).
+          If Bauer pulls off an upset win by a large margin, he earns points from each part of that result:
+          <br />
+          <br />
+          <strong>+{r.matchWinPoints}</strong> for the match win
+          <br />
+          <strong>+{r.upsetWinPoints}</strong> for the upset
+          <br />
+          <strong>+{r.winMargin8PlusPoints}</strong> for winning by 8+ points
+          <br />
+          <br />
+          That&apos;s{" "}
+          <strong className="scoring-example-total">
+            {r.matchWinPoints + r.upsetWinPoints + r.winMargin8PlusPoints} WakiPoints
+          </strong>{" "}
+          total for that match.
+          <br />
+          <br />
+          Any bonus points from medals or playoff rounds are added separately when applicable.
         </p>
       </div>
 

@@ -272,6 +272,86 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
   );
 
   typed.get(
+    "/season-leaderboard",
+    {
+      ...authPre,
+      schema: {
+        tags: ["nascar"],
+        querystring: WeekQuery,
+        response: {
+          200: z.object({
+            sport: z.literal("nascar"),
+            season_year: z.number().int(),
+            total_players: z.number().int(),
+            rows: z.array(
+              z.object({
+                rank: z.number().int(),
+                display_name: z.string(),
+                points: z.number(),
+                is_me: z.boolean(),
+              }),
+            ),
+          }),
+          401: ErrorMessage,
+        },
+      },
+    },
+    async (req) => {
+      const me = req.authUser!.id;
+      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+
+      const grouped = await prisma.nascarWeeklyLineup.groupBy({
+        by: ["userId"],
+        where: { week: { seasonYear } },
+        _sum: { totalPts: true },
+      });
+      if (grouped.length === 0) {
+        return { sport: "nascar" as const, season_year: seasonYear, total_players: 0, rows: [] };
+      }
+
+      const userIds = grouped.map((g) => g.userId);
+      const users = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, displayName: true },
+      });
+      const nameById = new Map(users.map((u) => [u.id, u.displayName]));
+
+      const totals = grouped
+        .map((g) => ({
+          user_id: g.userId,
+          display_name: nameById.get(g.userId) ?? "Player",
+          points: g._sum.totalPts ?? 0,
+        }))
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          const dn = a.display_name.localeCompare(b.display_name, undefined, { sensitivity: "base" });
+          if (dn !== 0) return dn;
+          return a.user_id.localeCompare(b.user_id);
+        });
+
+      let rank = 0;
+      const withRanks = totals.map((t, i) => {
+        if (i === 0 || t.points < totals[i - 1]!.points) rank = i + 1;
+        return { rank, display_name: t.display_name, points: t.points, user_id: t.user_id };
+      });
+
+      const rows = withRanks.slice(0, 100).map((r) => ({
+        rank: r.rank,
+        display_name: r.display_name,
+        points: r.points,
+        is_me: r.user_id === me,
+      }));
+
+      return {
+        sport: "nascar" as const,
+        season_year: seasonYear,
+        total_players: totals.length,
+        rows,
+      };
+    },
+  );
+
+  typed.get(
     "/lineups",
     {
       ...authPre,

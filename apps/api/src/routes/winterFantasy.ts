@@ -25,6 +25,7 @@ import {
   uniquePlayersInMatches,
 } from "../sports/pickleball/lib/index.js";
 import { getMlpPlayersForTournament, isMlpTournament } from "../lib/mlpTournamentData.js";
+import { getCachedPickleballFantasyLeaderboard } from "../lib/pickleballFantasyLeaderboard.js";
 
 const ErrorMessage = z.object({ message: z.string() });
 
@@ -129,6 +130,43 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         roster_size: WINTER_FANTASY_ROSTER_SIZE,
         divisions: listFeaturedDivisionsFromMatches(data.matches),
       };
+    },
+  );
+
+  typed.get(
+    "/api/v1/winter-fantasy/season-leaderboard",
+    {
+      ...authPre,
+      schema: {
+        tags: ["winter-fantasy"],
+        response: {
+          200: z.object({
+            sport: z.literal("pickleball"),
+            total_players: z.number().int(),
+            rows: z.array(
+              z.object({
+                rank: z.number().int(),
+                display_name: z.string(),
+                points: z.number(),
+                is_me: z.boolean(),
+              }),
+            ),
+          }),
+          401: ErrorMessage,
+        },
+      },
+    },
+    async (req) => {
+      const userId = req.authUser!.id;
+      const ranked = await getCachedPickleballFantasyLeaderboard();
+      const total_players = ranked.length;
+      const rows = ranked.slice(0, 100).map((r) => ({
+        rank: r.rank,
+        display_name: r.display_name,
+        points: r.points,
+        is_me: r.user_id === userId,
+      }));
+      return { sport: "pickleball" as const, total_players, rows };
     },
   );
 

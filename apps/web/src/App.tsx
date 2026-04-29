@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
@@ -15,6 +15,7 @@ import {
   TermsPage,
 } from "./components/StaticPages";
 import AdminLineupsPage from "./components/AdminLineupsPage";
+import { NascarSeasonLeaderboardPage, PickleballSeasonLeaderboardPage } from "./components/SeasonLeaderboardPage";
 
 export type SessionUser = {
   user_id: string;
@@ -22,12 +23,6 @@ export type SessionUser = {
   display_name: string;
   virtual_cents?: number;
 };
-
-function normalizePathname(p: string): string {
-  const lower = p.toLowerCase();
-  if (lower.length > 1 && lower.endsWith("/")) return lower.slice(0, -1);
-  return lower;
-}
 
 function isTransientBootError(e: unknown): boolean {
   if (!(e instanceof Error)) return false;
@@ -134,9 +129,6 @@ type ShellProps = {
 };
 
 function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
-  const location = useLocation();
-  const path = normalizePathname(location.pathname);
-
   let main: ReactNode;
 
   main = (
@@ -148,6 +140,40 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
+      <Route
+        path="/pick-teams/leaderboard"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the season leaderboard.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <PickleballSeasonLeaderboardPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/nascar/leaderboard"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the season leaderboard.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <NascarSeasonLeaderboardPage user={session} />
+          )
+        }
+      />
       <Route
         path="/admin/lineups"
         element={

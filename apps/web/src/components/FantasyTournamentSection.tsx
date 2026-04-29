@@ -668,8 +668,12 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           <div className="wf-page-hero-kicker">Multi-event lineup</div>
           <h2 className="wf-page-title">Tournament Fantasy</h2>
           <p className="wf-page-lead">
-            Up to five events per tournament, one fresh <strong>100 WakiCash</strong> pool per tournament, per-event
-            locks. Same scoring engine as division fantasy; tier A/B/C adjusts prices and WakiPoints.{" "}
+            Each tournament can include up to five events. You get a fresh <strong>100 WakiCash</strong> budget for each
+            event, and once an event starts, your picks for that event are locked.
+            <br />
+            <br />
+            Scoring works the same as the division fantasy game. Players are grouped into{" "}
+            <strong>Tier A, B, or C</strong>, which affects both their price and how many WakiPoints they can earn.{" "}
             <a href="/fantasy-rules">How fantasy works (rules)</a>
           </p>
         </div>

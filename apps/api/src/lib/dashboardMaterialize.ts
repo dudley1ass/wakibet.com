@@ -4,8 +4,6 @@ import {
   buildFantasyProgressStops,
   buildFantasyRecentHits,
   buildPickRows,
-  computeFantasyLeaderboard,
-  type FantasyRosterDbRow,
   buildWhatIfScenarios,
   fantasyRosterTotalPoints,
   filterMatchesForDivision,
@@ -15,11 +13,11 @@ import {
   listTournamentOptions,
   parseStoredDivisionKey,
   parseDivisionKey,
-  toStoredDivisionKey,
   TOURNAMENT_KEYS,
   type TournamentKey,
 } from "../sports/pickleball/lib/index.js";
 import type { AuthUser } from "./requireAuthUser.js";
+import { rankPickleballFantasyFromLoaded } from "./pickleballFantasyLeaderboard.js";
 
 const SEASON_TOURNAMENTS_PLANNED = TOURNAMENT_KEYS.length;
 
@@ -343,36 +341,12 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
     note: "",
   };
 
-  const winterRowsForLeaderboard = allFantasyRows.filter((r) => {
-    const p = parseStoredDivisionKey(r.divisionKey);
-    if (!p) return false;
-    return !allFantasyTourneys.some((l) => l.userId === r.userId && l.tournamentKey === p.tournament_key);
-  });
-  const tourneyRowsForLeaderboard: FantasyRosterDbRow[] = allFantasyTourneys.flatMap((L) =>
-    L.eventPicks
-      .filter((ep) => catMap.has(ep.eventKey))
-      .filter((ep) => ep.slots.length === WINTER_FANTASY_ROSTER_SIZE)
-      .map((ep) => {
-        const tk = L.tournamentKey as TournamentKey;
-        const cat = catMap.get(ep.eventKey);
-        return {
-          userId: L.userId,
-          divisionKey: toStoredDivisionKey(tk, ep.scheduleDivisionKey),
-          user: L.user,
-          picks: ep.slots.map((s) => ({
-            slotIndex: s.slotIndex,
-            playerName: s.playerName,
-            isCaptain: s.isCaptain,
-          })),
-          wakipointsMultiplier: Number(cat?.wakipointsMultiplier ?? 1),
-        };
-      }),
-  );
-
-  const leaderboardRanked = computeFantasyLeaderboard(
-    [...winterRowsForLeaderboard, ...tourneyRowsForLeaderboard] as FantasyRosterDbRow[],
+  const leaderboardRanked = rankPickleballFantasyFromLoaded({
+    allFantasyRows,
+    allFantasyTourneys,
+    catalogAll,
     tournamentDataByKey,
-  );
+  });
   const rank_players_count = leaderboardRanked.length;
   const myLb = leaderboardRanked.find((r) => r.user_id === userId);
   const my_rank = myLb?.rank ?? null;
