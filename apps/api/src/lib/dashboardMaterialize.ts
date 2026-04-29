@@ -216,7 +216,9 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
   const winter_fantasy_rosters_from_tourney = myFantasyTourneys.flatMap((lineup) => {
     const tk = lineup.tournamentKey as TournamentKey;
     const tournamentData = tournamentDataByKey[tk];
-    return lineup.eventPicks.map((ep) => {
+    return lineup.eventPicks
+      .filter((ep) => catMap.has(ep.eventKey))
+      .map((ep) => {
       const parsed = parseDivisionKey(ep.scheduleDivisionKey);
       const cat = catMap.get(ep.eventKey);
       const skill = parsed?.skill_level ?? cat?.skillLevel ?? "";
@@ -348,6 +350,7 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
   });
   const tourneyRowsForLeaderboard: FantasyRosterDbRow[] = allFantasyTourneys.flatMap((L) =>
     L.eventPicks
+      .filter((ep) => catMap.has(ep.eventKey))
       .filter((ep) => ep.slots.length === WINTER_FANTASY_ROSTER_SIZE)
       .map((ep) => {
         const tk = L.tournamentKey as TournamentKey;

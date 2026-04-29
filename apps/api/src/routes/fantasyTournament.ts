@@ -75,6 +75,11 @@ function normName(n: string): string {
   return n.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+function isAtlantaProMainDrawRow(params: { tournamentKey: TournamentKey; eventType: string }): boolean {
+  if (params.tournamentKey !== "atlanta_weekend") return true;
+  return params.eventType.toLowerCase().includes("pro main draw");
+}
+
 function sameSlots(
   a: { slots: { slotIndex: number; playerName: string; isCaptain: boolean }[] },
   b: { picks: { player_name: string; is_captain?: boolean }[] },
@@ -189,13 +194,16 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         where: { tournamentKey },
         orderBy: [{ eventType: "asc" }, { skillLevel: "asc" }, { ageBracket: "asc" }],
       });
+      const filteredRows = rows.filter((r) =>
+        isAtlantaProMainDrawRow({ tournamentKey, eventType: r.eventType }),
+      );
       return {
         tournament_key: tournamentKey,
         tournament_name: data.summary.tournament_name,
         roster_size: rules.rosterSize,
         required_men: rules.requiredMen,
         required_women: rules.requiredWomen,
-        events: rows.map((r) => ({
+        events: filteredRows.map((r) => ({
           event_key: r.eventKey,
           schedule_division_key: r.scheduleDivisionKey,
           label: displayLabelForCatalogRow(r),
@@ -284,9 +292,14 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       const catalogRows = await prisma.tournamentEventCatalog.findMany({
         where: { tournamentKey },
       });
-      const catalogByKey = new Map(catalogRows.map((c) => [c.eventKey, c]));
+      const filteredCatalogRows = catalogRows.filter((c) =>
+        isAtlantaProMainDrawRow({ tournamentKey, eventType: c.eventType }),
+      );
+      const catalogByKey = new Map(filteredCatalogRows.map((c) => [c.eventKey, c]));
       const pools = await Promise.all(
-        catalogRows.map(async (c) => [c.eventKey, await playerPoolForEvent(tournamentKey, c.scheduleDivisionKey, data)] as const),
+        filteredCatalogRows.map(
+          async (c) => [c.eventKey, await playerPoolForEvent(tournamentKey, c.scheduleDivisionKey, data)] as const,
+        ),
       );
       const poolByEvent = new Map(pools);
 
@@ -298,7 +311,9 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         required_women: rules.requiredWomen,
         wakicash_budget: lineup.wakicashBudget,
         wakicash_spent: lineup.wakicashSpent,
-        events: lineup.eventPicks.map((ep) => {
+        events: lineup.eventPicks
+          .filter((ep) => catalogByKey.has(ep.eventKey))
+          .map((ep) => {
           const cat = catalogByKey.get(ep.eventKey);
           const locked = isEventLocked(ep.firstMatchStartsAt ?? cat?.firstMatchStartsAt ?? null, ep.lockedAt);
           const costMap = new Map((poolByEvent.get(ep.eventKey) ?? []).map((p) => [normName(p.player_name), p.waki_cash]));
@@ -393,7 +408,10 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       const catalogRows = await prisma.tournamentEventCatalog.findMany({
         where: { tournamentKey },
       });
-      const catalogByKey = new Map(catalogRows.map((c) => [c.eventKey, c]));
+      const filteredCatalogRows = catalogRows.filter((c) =>
+        isAtlantaProMainDrawRow({ tournamentKey, eventType: c.eventType }),
+      );
+      const catalogByKey = new Map(filteredCatalogRows.map((c) => [c.eventKey, c]));
 
       const existing = await prisma.fantasyTournamentLineup.findUnique({
         where: { userId_tournamentKey_seasonKey: { userId: uid, tournamentKey, seasonKey } },
@@ -573,9 +591,12 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       const refreshedCatalog = await prisma.tournamentEventCatalog.findMany({
         where: { tournamentKey },
       });
-      const catMap = new Map(refreshedCatalog.map((c) => [c.eventKey, c]));
+      const filteredRefreshedCatalog = refreshedCatalog.filter((c) =>
+        isAtlantaProMainDrawRow({ tournamentKey, eventType: c.eventType }),
+      );
+      const catMap = new Map(filteredRefreshedCatalog.map((c) => [c.eventKey, c]));
       const pools = await Promise.all(
-        refreshedCatalog.map(async (c) => [
+        filteredRefreshedCatalog.map(async (c) => [
           c.eventKey,
           new Map(
             (await playerPoolForEvent(tournamentKey, c.scheduleDivisionKey, data)).map((p) => [

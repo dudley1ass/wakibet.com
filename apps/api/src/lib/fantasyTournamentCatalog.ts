@@ -147,10 +147,16 @@ export async function syncTournamentEventCatalog(
   tournamentKey: TournamentKey,
   data: WinterData,
 ): Promise<void> {
+  const isAtlanta = tournamentKey === "atlanta_weekend";
   const divisions = listDivisionsFromMatches(data.matches);
+  const allowedEventKeys = new Set<string>();
   for (const d of divisions) {
+    if (isAtlanta && !d.event_type.toLowerCase().includes("pro main draw")) {
+      continue;
+    }
     const fmt: EventFormatSlug = inferFormatFromEventType(d.event_type);
     const eventKey = buildEventKeyV1(tournamentKey, d.event_type, d.skill_level, d.age_bracket, fmt);
+    allowedEventKeys.add(eventKey);
     const divMatches = filterMatchesForDivision(data.matches, d.division_key);
     const eventPlayers = uniquePlayersInMatches(divMatches);
     const firstAt = firstMatchStartsAt(divMatches);
@@ -198,6 +204,20 @@ export async function syncTournamentEventCatalog(
         matchCount: d.match_count,
         entityCount: d.player_count,
         firstMatchStartsAt: firstAt,
+      },
+    });
+  }
+  if (isAtlanta) {
+    await prisma.tournamentEventCatalog.deleteMany({
+      where: {
+        tournamentKey,
+        eventKey: { notIn: [...allowedEventKeys] },
+      },
+    });
+    await prisma.fantasyTournamentEventPick.deleteMany({
+      where: {
+        lineup: { tournamentKey },
+        eventKey: { notIn: [...allowedEventKeys] },
       },
     });
   }

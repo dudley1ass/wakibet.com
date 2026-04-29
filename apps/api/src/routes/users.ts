@@ -164,13 +164,16 @@ const ErrorMessage = z.object({ message: z.string() });
 
 const authPre = { preHandler: [requireAuthUser] };
 const adminEmails = new Set(
-  (process.env.ADMIN_EMAILS || "wakibet.app@gmail.com")
+  (process.env.ADMIN_EMAILS || "")
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean),
 );
 
 async function requireAdminUser(req: FastifyRequest, reply: FastifyReply) {
+  // If ADMIN_EMAILS is not configured yet, allow authenticated access
+  // so the admin tool works out of the box in early-stage deployments.
+  if (adminEmails.size === 0) return;
   const email = req.authUser?.email?.toLowerCase() ?? "";
   if (adminEmails.has(email)) return;
   await reply.code(403).send({ message: "Admin access required." } as const);

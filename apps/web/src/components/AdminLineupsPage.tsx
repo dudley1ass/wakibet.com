@@ -97,7 +97,9 @@ export default function AdminLineupsPage({ user }: Props) {
           <strong>{totals.nascar}</strong>
         </p>
 
-        {users.length === 0 && !query.isLoading ? <p className="dash-empty">No users with saved lineups found.</p> : null}
+        {users.length === 0 && !query.isLoading && !query.error ? (
+          <p className="dash-empty">No users with saved lineups found.</p>
+        ) : null}
 
         <ul className="rost-list">
           {users.map((u) => (
