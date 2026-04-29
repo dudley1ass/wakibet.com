@@ -1,9 +1,12 @@
+const PROD_API_FALLBACK = "https://wakibet-com-2.onrender.com";
 const API_BASE =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) || "";
+  (typeof import.meta !== "undefined" &&
+    (import.meta.env?.VITE_API_BASE || (import.meta.env.PROD ? PROD_API_FALLBACK : ""))) ||
+  "";
 
 const MISSING_BASE_HELP =
-  "This production build has no VITE_API_BASE, so /api requests go to the static site and never reach the API. " +
-  "In Render → your Static Site → Environment, add VITE_API_BASE = https://YOUR-API.onrender.com (no trailing slash), " +
+  "This production build has no VITE_API_BASE, so it is using a built-in API fallback origin. " +
+  "In Render → your Static Site → Environment, set VITE_API_BASE = your API origin (no trailing slash), " +
   "then redeploy with Clear build cache.";
 
 const DEFAULT_FETCH_MS = import.meta.env.PROD ? 60_000 : 20_000;

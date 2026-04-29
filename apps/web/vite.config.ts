@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
   if (mode === "production" && !viteApiBase) {
     console.warn(
       "[wakibet-web] VITE_API_BASE is missing at build time. The site will deploy, " +
-        "but auth/API calls will fail until you set VITE_API_BASE in Render Static Site env and redeploy.",
+        "and will use the in-app fallback API origin. Set VITE_API_BASE in Render Static Site env and redeploy.",
     );
   }
 
