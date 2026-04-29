@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Admin UI should not be crawled.
+Disallow: /admin/
+
+# Canonical sitemap — update the host if your live site uses a different origin (e.g. www).
+Sitemap: https://wakibet.com/sitemap.xml

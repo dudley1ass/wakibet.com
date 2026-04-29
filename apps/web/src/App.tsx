@@ -4,6 +4,7 @@ import LoginPage from "./components/LoginPage";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
 import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
+import Seo from "./components/Seo";
 import { Dashboard, DashboardDataProvider, PickTeamsPage, RostersPage } from "./sports/pickleball";
 import { NascarHubPage, NascarRostersPage, NascarScoringTablePage } from "./sports/nascar";
 import {
@@ -107,6 +108,7 @@ function App() {
 
   return (
     <DashboardDataProvider enabled={dashboardFetchEnabled}>
+      <Seo />
       <GoogleAnalyticsRouteListener />
       <AppShell
         session={session}
