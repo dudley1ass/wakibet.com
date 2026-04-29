@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import bcrypt from "bcryptjs";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../lib/prisma.js";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { SIGNUP_BONUS_DILLS } from "@wakibet/shared";

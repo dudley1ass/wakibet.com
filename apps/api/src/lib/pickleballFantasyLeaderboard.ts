@@ -1,5 +1,6 @@
 import { WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import { prisma } from "./prisma.js";
+import { isMlpTournament } from "./mlpTournamentData.js";
 import { computeFantasyLeaderboard, type FantasyRosterDbRow } from "./fantasyPulse.js";
 import {
   getTournamentData,
@@ -33,6 +34,7 @@ export function rankPickleballFantasyFromLoaded(args: {
     eventPicks: {
       eventKey: string;
       scheduleDivisionKey: string;
+      mlpTeamName: string | null;
       slots: { slotIndex: number; playerName: string; isCaptain: boolean }[];
     }[];
   }[];
@@ -50,7 +52,10 @@ export function rankPickleballFantasyFromLoaded(args: {
   const tourneyRowsForLeaderboard: FantasyRosterDbRow[] = args.allFantasyTourneys.flatMap((L) =>
     L.eventPicks
       .filter((ep) => catMap.has(ep.eventKey))
-      .filter((ep) => ep.slots.length === WINTER_FANTASY_ROSTER_SIZE)
+      .filter((ep) => {
+        const need = isMlpTournament(L.tournamentKey) ? 4 : WINTER_FANTASY_ROSTER_SIZE;
+        return ep.slots.length === need;
+      })
       .map((ep) => {
         const tk = L.tournamentKey as TournamentKey;
         const cat = catMap.get(ep.eventKey);
@@ -64,6 +69,7 @@ export function rankPickleballFantasyFromLoaded(args: {
             isCaptain: s.isCaptain,
           })),
           wakipointsMultiplier: Number(cat?.wakipointsMultiplier ?? 1),
+          mlpTeamName: ep.mlpTeamName ?? null,
         };
       }),
   );

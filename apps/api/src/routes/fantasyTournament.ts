@@ -100,6 +100,18 @@ function sameSlots(
   return true;
 }
 
+function normTeamStr(s: string | null | undefined): string {
+  return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function sameEventPayload(
+  ex: { slots: { slotIndex: number; playerName: string; isCaptain: boolean }[]; mlpTeamName: string | null },
+  inc: { picks: { player_name: string; is_captain?: boolean }[]; mlp_team_name?: string },
+): boolean {
+  if (!sameSlots(ex, inc)) return false;
+  return normTeamStr(ex.mlpTeamName) === normTeamStr(inc.mlp_team_name);
+}
+
 function validateEventPicksShape(
   picks: { player_name: string; is_captain?: boolean; waki_cash: number }[],
   eventBudget: number,
@@ -136,6 +148,8 @@ const EventPickIn = z.object({
   slot_index: z.number().int().min(0).max(4),
   event_key: z.string().min(1),
   picks: z.array(PickIn).min(1).max(8),
+  /** Required for `mlp_*` tournaments: one franchise bonus pick per event. */
+  mlp_team_name: z.string().min(1).optional(),
 });
 
 const PutLineupBody = z.object({
@@ -160,6 +174,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
             roster_size: z.number().int(),
             required_men: z.number().int().nullable(),
             required_women: z.number().int().nullable(),
+            mlp_teams: z.array(z.string()),
             events: z.array(
               z.object({
                 event_key: z.string(),
@@ -197,12 +212,18 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       const filteredRows = rows.filter((r) =>
         isAtlantaProMainDrawRow({ tournamentKey, eventType: r.eventType }),
       );
+      const mlp_teams = isMlpTournament(tournamentKey)
+        ? [...new Set((await getMlpPlayersForTournament(tournamentKey)).map((p) => p.team))].sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: "base" }),
+          )
+        : [];
       return {
         tournament_key: tournamentKey,
         tournament_name: data.summary.tournament_name,
         roster_size: rules.rosterSize,
         required_men: rules.requiredMen,
         required_women: rules.requiredWomen,
+        mlp_teams,
         events: filteredRows.map((r) => ({
           event_key: r.eventKey,
           schedule_division_key: r.scheduleDivisionKey,
@@ -246,6 +267,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
                 label: z.string(),
                 tier_code_at_save: z.string().nullable(),
                 is_locked: z.boolean(),
+                mlp_team_name: z.string().nullable(),
                 picks: z.array(
                   z.object({
                     slot_index: z.number().int(),
@@ -329,6 +351,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
               }),
             tier_code_at_save: ep.tierCodeAtSave,
             is_locked: locked,
+            mlp_team_name: ep.mlpTeamName ?? null,
             picks: ep.slots.map((s) => ({
               slot_index: s.slotIndex,
               player_name: s.playerName,
@@ -366,6 +389,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
                 label: z.string(),
                 tier_code_at_save: z.string().nullable(),
                 is_locked: z.boolean(),
+                mlp_team_name: z.string().nullable(),
                 picks: z.array(
                   z.object({
                     slot_index: z.number().int(),
@@ -430,7 +454,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       for (const inc of incoming) {
         const ex = existingPicks.find((x) => x.eventKey === inc.event_key);
         if (ex && isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
-          if (!sameSlots(ex, inc)) {
+          if (!sameEventPayload({ slots: ex.slots, mlpTeamName: ex.mlpTeamName }, inc)) {
             return reply.code(409).send({
               message: "This event is locked; picks cannot be changed.",
               code: "EVENT_LOCKED" as const,
@@ -446,6 +470,14 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           message: "At most 5 events per tournament (including locked events you keep).",
         } as const);
       }
+
+      const mlpFranchiseNormSet = isMlpTournament(tournamentKey)
+        ? new Set(
+            [...new Set((await getMlpPlayersForTournament(tournamentKey)).map((p) => p.team))].map((t) =>
+              normName(t),
+            ),
+          )
+        : null;
 
       for (const inc of incoming) {
         const cat = catalogByKey.get(inc.event_key);
@@ -490,6 +522,19 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
           if (!allowed.has(normName(p.player_name))) {
             return reply.code(400).send({
               message: `Player "${p.player_name}" is not in the pool for this event.`,
+            } as const);
+          }
+        }
+        if (isMlpTournament(tournamentKey)) {
+          const tname = inc.mlp_team_name?.trim();
+          if (!tname) {
+            return reply.code(400).send({
+              message: `${inc.event_key}: pick one MLP franchise for the team bonus layer (your player roster stays primary).`,
+            } as const);
+          }
+          if (mlpFranchiseNormSet && !mlpFranchiseNormSet.has(normName(tname))) {
+            return reply.code(400).send({
+              message: `${inc.event_key}: "${tname}" is not in this tournament’s official franchise list.`,
             } as const);
           }
         }
@@ -555,6 +600,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
               tierCodeAtSave: cat.tierCode,
               firstMatchStartsAt: firstAt,
               lockedAt: lockedNow ? now : null,
+              mlpTeamName: isMlpTournament(tournamentKey) ? inc.mlp_team_name?.trim() ?? null : null,
               slots: {
                 create: inc.picks.map((p, idx) => ({
                   slotIndex: idx,
@@ -632,6 +678,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
               }),
             tier_code_at_save: ep.tierCodeAtSave,
             is_locked: locked,
+            mlp_team_name: ep.mlpTeamName ?? null,
             picks: ep.slots.map((s) => ({
               slot_index: s.slotIndex,
               player_name: s.playerName,

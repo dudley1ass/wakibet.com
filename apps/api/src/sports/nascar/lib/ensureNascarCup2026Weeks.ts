@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../../lib/prisma.js";
 import { CUP_2026_SCHEDULE } from "./nascarCup2026Schedule.js";
 
 const LOCK_MS = 60 * 60 * 1000;

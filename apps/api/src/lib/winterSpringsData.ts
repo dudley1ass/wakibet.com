@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getMlpPlayersForTournament } from "./mlpTournamentData.js";
 
 /** Schedule JSON lives under `apps/api/data` regardless of process cwd (turbo/monorepo, Render, etc.). */
 function tournamentScheduleDataDir(): string {
@@ -32,7 +33,13 @@ export type WinterData = {
   summary: { tournament_name: string; matches_generated: number };
   matches: WinterMatch[];
   per_player_matches: Record<string, WinterPerPlayer[]>;
+  /** Populated for `mlp_*` keys: normalized player name → MLP franchise label (team bonus scoring). */
+  mlp_player_to_team?: Record<string, string>;
 };
+
+function normPlayerKeyForMlp(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 export const TOURNAMENT_KEYS = ["atlanta_weekend", "mlp_dallas_2026"] as const;
 export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
@@ -207,7 +214,18 @@ export function getTournamentData(tournamentKey: TournamentKey): Promise<WinterD
   if (cached) return cached;
   const jsonPath = path.join(tournamentScheduleDataDir(), TOURNAMENT_FILES[tournamentKey]);
   const promise = readFile(jsonPath, "utf-8")
-    .then((raw) => JSON.parse(raw) as WinterData)
+    .then(async (raw) => {
+      const data = JSON.parse(raw) as WinterData;
+      if ((tournamentKey as string).startsWith("mlp_")) {
+        const rows = await getMlpPlayersForTournament(tournamentKey);
+        const m: Record<string, string> = {};
+        for (const p of rows) {
+          m[normPlayerKeyForMlp(p.player_name)] = p.team;
+        }
+        data.mlp_player_to_team = m;
+      }
+      return data;
+    })
     .catch(() => null);
   tournamentDataPromises.set(tournamentKey, promise);
   return promise;

@@ -9,4 +9,5 @@ build
 apps/mobile/.expo
 apps/mobile/dist
 apps/web/dist
+apps/api/src/generated/prisma
 openapi.json

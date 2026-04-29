@@ -1,4 +1,4 @@
-import { WINTER_FANTASY_RULES } from "@wakibet/shared";
+import { MLP_TEAM_FANTASY_RULES, WINTER_FANTASY_RULES } from "@wakibet/shared";
 import { FormEvent, useState, type ReactNode } from "react";
 import { apiPost } from "../api";
 
@@ -220,6 +220,7 @@ function ScoringBlock({ title, rows }: { title: string; rows: { label: string; p
 
 export function ScoringTablePage() {
   const r = WINTER_FANTASY_RULES;
+  const mlpT = MLP_TEAM_FANTASY_RULES;
   return (
     <StaticLayout title="WakiPoints — Full Table (v3)">
       <p className="scoring-lede">
@@ -235,6 +236,11 @@ export function ScoringTablePage() {
         <br />
         <br />
         All of these combine to create a player&apos;s total score.
+        <br />
+        <br />
+        <strong>PPA-style events</strong> use only this player table. <strong>MLP tournament fantasy</strong> keeps the
+        same player rules, and adds a small <strong>team bonus layer</strong> (one franchise pick per event) so you
+        capture both individual performance and team outcomes — see the MLP team block below.
         <br />
         <br />
         You can also assign a Captain on your roster -
@@ -327,6 +333,23 @@ export function ScoringTablePage() {
           rows={[
             { label: "Early elimination (0 wins, 4+ finished matches)", pts: `${r.earlyEliminationPenalty}` },
             { label: "Favorite upset loss (seeds + upset flag)", pts: `${r.favoriteUpsetLossPenalty}` },
+          ]}
+        />
+        <ScoringBlock
+          title="MLP team bonus (tournament fantasy — bonus layer)"
+          rows={[
+            {
+              label: "Team credited when your franchise wins a finished match row",
+              pts: `+${mlpT.teamMatchWinPoints} each`,
+            },
+            {
+              label: "Team event win (clincher flag on schedule, or gold medal + final/championship stage — once per event)",
+              pts: `+${mlpT.teamEventWinPoints}`,
+            },
+            {
+              label: "Team undefeated in this event division (every match decided, zero losses)",
+              pts: `+${mlpT.teamUndefeatedBonusPoints}`,
+            },
           ]}
         />
       </div>

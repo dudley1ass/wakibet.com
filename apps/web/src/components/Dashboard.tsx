@@ -16,6 +16,7 @@ export type FantasyRosterRow = {
   waki_cash_budget: number;
   waki_lineup_complete: boolean;
   picks: { slot_index: number; player_name: string; is_captain: boolean; waki_cash: number }[];
+  mlp_team_name?: string | null;
 };
 
 type FantasyPulse = {

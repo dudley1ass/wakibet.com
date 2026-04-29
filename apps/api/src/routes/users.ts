@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { getCachedDashboardFull } from "../lib/dashboardMaterialize.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
-import { TOURNAMENT_KEYS } from "../sports/pickleball/lib/index.js";
 import { prisma } from "../lib/prisma.js";
 
 const FantasyRosterPick = z.object({
@@ -67,6 +67,7 @@ const DashboardResponse = z.object({
       waki_cash_budget: z.number().int(),
       waki_lineup_complete: z.boolean(),
       picks: z.array(FantasyRosterPick),
+      mlp_team_name: z.string().nullable().optional(),
     }),
   ),
   fantasy_season: z.object({
@@ -253,6 +254,11 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
                 user_id: z.string(),
                 email: z.string(),
                 display_name: z.string(),
+                created_at: z.string(),
+                is_banned: z.boolean(),
+                /** True when a bcrypt password is stored — false means password login will fail until reset. */
+                password_set: z.boolean(),
+                count_winter_fantasy_rosters: z.number().int(),
                 pickleball_lineups: z.array(
                   z.object({
                     tournament_key: z.string(),
@@ -297,11 +303,19 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           id: true,
           email: true,
           displayName: true,
-          fantasyTournamentLineups: {
-            where: {
-              tournamentKey: { in: [...TOURNAMENT_KEYS] },
+          createdAt: true,
+          isBanned: true,
+          passwordHash: true,
+          _count: {
+            select: {
+              winterFantasyRosters: true,
+              fantasyTournamentLineups: true,
+              nascarWeeklyLineups: true,
             },
+          },
+          fantasyTournamentLineups: {
             orderBy: { updatedAt: "desc" },
+            take: 30,
             select: {
               tournamentKey: true,
               seasonKey: true,
@@ -312,6 +326,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
           },
           nascarWeeklyLineups: {
             orderBy: { updatedAt: "desc" },
+            take: 30,
             select: {
               week: { select: { weekKey: true, raceName: true } },
               updatedAt: true,
@@ -321,27 +336,61 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
         },
       });
       return {
-        users: users
-          .map((u) => ({
-            user_id: u.id,
-            email: u.email,
-            display_name: u.displayName,
-            pickleball_lineups: u.fantasyTournamentLineups.map((l) => ({
-              tournament_key: l.tournamentKey,
-              season_key: l.seasonKey,
-              event_count: l.eventPicks.length,
-              wakicash_spent: l.wakicashSpent,
-              updated_at: l.updatedAt.toISOString(),
-            })),
-            nascar_lineups: u.nascarWeeklyLineups.map((l) => ({
-              week_key: l.week.weekKey,
-              race_name: l.week.raceName,
-              pick_count: l.picks.length,
-              updated_at: l.updatedAt.toISOString(),
-            })),
-          }))
-          .filter((u) => u.pickleball_lineups.length > 0 || u.nascar_lineups.length > 0),
+        users: users.map((u) => ({
+          user_id: u.id,
+          email: u.email,
+          display_name: u.displayName,
+          created_at: u.createdAt.toISOString(),
+          is_banned: u.isBanned,
+          password_set: Boolean(u.passwordHash),
+          count_winter_fantasy_rosters: u._count.winterFantasyRosters,
+          pickleball_lineups: u.fantasyTournamentLineups.map((l) => ({
+            tournament_key: l.tournamentKey,
+            season_key: l.seasonKey,
+            event_count: l.eventPicks.length,
+            wakicash_spent: l.wakicashSpent,
+            updated_at: l.updatedAt.toISOString(),
+          })),
+          nascar_lineups: u.nascarWeeklyLineups.map((l) => ({
+            week_key: l.week.weekKey,
+            race_name: l.week.raceName,
+            pick_count: l.picks.length,
+            updated_at: l.updatedAt.toISOString(),
+          })),
+        })),
       };
+    },
+  );
+
+  typed.post(
+    "/api/v1/admin/users/reset-password",
+    {
+      preHandler: [requireAuthUser, requireAdminUser],
+      schema: {
+        tags: ["users", "admin"],
+        body: z.object({
+          user_id: z.string().min(1),
+          new_password: z.string().min(8).max(200),
+        }),
+        response: {
+          200: z.object({ ok: z.literal(true) }),
+          400: ErrorMessage,
+          403: ErrorMessage,
+          404: ErrorMessage,
+        },
+      },
+    },
+    async (req, reply) => {
+      const { user_id, new_password } = req.body;
+      const passwordHash = await bcrypt.hash(new_password, 10);
+      const updated = await prisma.user.updateMany({
+        where: { id: user_id },
+        data: { passwordHash },
+      });
+      if (updated.count === 0) {
+        return reply.code(404).send({ message: "User not found." } as const);
+      }
+      return { ok: true as const };
     },
   );
 

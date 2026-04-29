@@ -1,5 +1,7 @@
 generator client {
   provider = "prisma-client-js"
+  // Avoid hoisted root node_modules/.prisma on Windows (EPERM renaming query_engine DLL when another process locks it).
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -103,6 +105,8 @@ model FantasyTournamentEventPick {
   tierCodeAtSave       String?
   firstMatchStartsAt   DateTime?
   lockedAt             DateTime?
+  /// MLP-only: single franchise bonus pick for this event (player roster stays primary).
+  mlpTeamName          String?
   slots                FantasyTournamentEventPickSlot[]
 
   createdAt DateTime @default(now())

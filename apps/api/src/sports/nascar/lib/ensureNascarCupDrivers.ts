@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../../lib/prisma.js";
 import { NASCAR_CUP_DRIVER_SEED_ROWS } from "./nascarCupDriverSeed.js";
 
 /** Idempotent upsert of the full Cup driver pool (same as `db:seed:nascar`). */

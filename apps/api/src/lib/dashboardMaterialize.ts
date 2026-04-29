@@ -17,6 +17,7 @@ import {
   type TournamentKey,
 } from "../sports/pickleball/lib/index.js";
 import type { AuthUser } from "./requireAuthUser.js";
+import { isMlpTournament } from "./mlpTournamentData.js";
 import { rankPickleballFantasyFromLoaded } from "./pickleballFantasyLeaderboard.js";
 
 const SEASON_TOURNAMENTS_PLANNED = TOURNAMENT_KEYS.length;
@@ -229,6 +230,7 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
         waki_cash: Math.ceil(playerWakiCashCost(skill, p.playerName) * wakiMult),
       }));
       const waki_cash_spent = picks.reduce((s, p) => s + p.waki_cash, 0);
+      const rosterNeed = isMlpTournament(tk) ? 4 : WINTER_FANTASY_ROSTER_SIZE;
       return {
         tournament_key: tk,
         tournament_name: tournamentData?.summary.tournament_name ?? tk,
@@ -238,9 +240,10 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
         age_bracket: parsed?.age_bracket ?? "",
         waki_cash_spent,
         waki_cash_budget: lineup.wakicashBudget,
-        waki_lineup_complete: ep.slots.length === WINTER_FANTASY_ROSTER_SIZE,
+        waki_lineup_complete: ep.slots.length === rosterNeed,
         picks,
         wakipoints_multiplier: wpsMult,
+        mlp_team_name: ep.mlpTeamName ?? null,
       };
     });
   });
@@ -273,28 +276,37 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
           ) / 100
         : 0,
     })),
-    ...winter_fantasy_rosters_from_tourney.map((roster) => ({
-      tournament_key: roster.tournament_key,
-      tournament_name: roster.tournament_name,
-      division_key: roster.division_key,
-      event_type: roster.event_type,
-      skill_level: roster.skill_level,
-      age_bracket: roster.age_bracket,
-      roster_points: tournamentDataByKey[roster.tournament_key]
-        ? Math.round(
-            fantasyRosterTotalPoints(
-              tournamentDataByKey[roster.tournament_key]?.matches ?? [],
-              roster.division_key,
-              roster.picks.map((p) => ({
-                playerName: p.player_name,
-                isCaptain: p.is_captain,
-              })),
-            ) *
-              roster.wakipoints_multiplier *
-              100,
-          ) / 100
-        : 0,
-    })),
+    ...winter_fantasy_rosters_from_tourney.map((roster) => {
+      const td = tournamentDataByKey[roster.tournament_key];
+      const mlpMap = td?.mlp_player_to_team;
+      const mlpOpts =
+        roster.tournament_key.startsWith("mlp_") && roster.mlp_team_name && mlpMap
+          ? { mlpTeamName: roster.mlp_team_name, mlpPlayerToTeam: mlpMap }
+          : undefined;
+      return {
+        tournament_key: roster.tournament_key,
+        tournament_name: roster.tournament_name,
+        division_key: roster.division_key,
+        event_type: roster.event_type,
+        skill_level: roster.skill_level,
+        age_bracket: roster.age_bracket,
+        roster_points: td
+          ? Math.round(
+              fantasyRosterTotalPoints(
+                td.matches ?? [],
+                roster.division_key,
+                roster.picks.map((p) => ({
+                  playerName: p.player_name,
+                  isCaptain: p.is_captain,
+                })),
+                mlpOpts,
+              ) *
+                roster.wakipoints_multiplier *
+                100,
+            ) / 100
+          : 0,
+      };
+    }),
   ];
   const total_fantasy_points = Math.round(by_division.reduce((s, d) => s + d.roster_points, 0) * 100) / 100;
   const waki_cash_spent_total =

@@ -1,4 +1,5 @@
 import {
+  mlpTeamLayerPointsFromMatches,
   nextUndecidedMatchForPlayer,
   replaceMatchWithOutcome,
   scoreWinterPlayerFromMatches,
@@ -9,6 +10,26 @@ import {
   type WinterJsonMatch,
 } from "@wakibet/shared";
 import { filterMatchesForDivision, type TournamentKey, type WinterData } from "./winterSpringsData.js";
+
+function normKey(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function rosterSliceTotalWithMlp(
+  divMatches: WinterJsonMatch[],
+  picksDb: { playerName: string; isCaptain: boolean }[],
+  mult: number,
+  mlpTeam: string | null | undefined,
+  mlpMap: Record<string, string> | undefined,
+): number {
+  let base = winterFantasyRosterTotalFromPicks(divMatches, picksDb);
+  const team = mlpTeam?.trim();
+  if (team && mlpMap && Object.keys(mlpMap).length > 0) {
+    const m = new Map(Object.entries(mlpMap).map(([k, v]) => [normKey(k), v] as const));
+    base += mlpTeamLayerPointsFromMatches(divMatches, team, m).total;
+  }
+  return Math.round(base * mult * 100) / 100;
+}
 
 export type WhatIfScenario = {
   scenario_key: string;
@@ -81,6 +102,8 @@ export function buildWhatIfScenarios(
     picks: { player_name: string; is_captain: boolean }[];
     /** Optional tier multiplier (fantasy tournament events). */
     wakipoints_multiplier?: number;
+    /** MLP fantasy tournament event: franchise bonus pick. */
+    mlp_team_name?: string | null;
   }[],
   tournamentDataByKey: Record<TournamentKey, WinterData | null | undefined>,
   leaderboardRows: { user_id: string; display_name: string; points: number; rank: number }[],
@@ -113,8 +136,13 @@ export function buildWhatIfScenarios(
     }));
 
     const mult = roster.wakipoints_multiplier ?? 1;
-    const baseRoster =
-      Math.round(winterFantasyRosterTotalFromPicks(divMatches, picksDb) * mult * 100) / 100;
+    const baseRoster = rosterSliceTotalWithMlp(
+      divMatches,
+      picksDb,
+      mult,
+      roster.mlp_team_name,
+      data.mlp_player_to_team,
+    );
     const divLabel = `${roster.event_type} / ${roster.skill_level} · ${roster.age_bracket}`;
 
     for (const pick of roster.picks) {
@@ -135,8 +163,7 @@ export function buildWhatIfScenarios(
       ) => {
         const syn = syntheticMatchWithWinner(next, side);
         const aug = replaceMatchWithOutcome(divMatches, next.match_id, syn);
-        const rosterAfter =
-          Math.round(winterFantasyRosterTotalFromPicks(aug, picksDb) * mult * 100) / 100;
+        const rosterAfter = rosterSliceTotalWithMlp(aug, picksDb, mult, roster.mlp_team_name, data.mlp_player_to_team);
         const rosterDelta = Math.round((rosterAfter - baseRoster) * 100) / 100;
 
         let scenarioPlayerDelta = 0;

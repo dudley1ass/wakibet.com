@@ -37,6 +37,17 @@ export const WINTER_FANTASY_RULES = {
   favoriteUpsetLossPenalty: -3,
 } as const;
 
+/** MLP tournament fantasy — team bonus layer (applied on top of player scoring). */
+export const MLP_TEAM_FANTASY_RULES = {
+  version: 1,
+  /** Each schedule row your franchise wins (via the winning player’s team). */
+  teamMatchWinPoints: 20,
+  /** Once per event when the schedule marks a clincher (see `mlp_team_event_win` or gold final). */
+  teamEventWinPoints: 40,
+  /** When your franchise finishes every in-division match with zero losses (and at least one win). */
+  teamUndefeatedBonusPoints: 15,
+} as const;
+
 export type WinterJsonMatch = {
   match_id: string;
   event_type: string;
@@ -61,6 +72,8 @@ export type WinterJsonMatch = {
   undefeated_run?: boolean;
   /** Pipeline can set when win came via forfeit / walkover. */
   forfeit?: boolean;
+  /** MLP: when true, the winning player’s franchise clinches the team “event win” bonus (+40 by default). */
+  mlp_team_event_win?: boolean;
   /** Optional seeds (1 = top seed). Used for upset / beat-top-3 / favorite-loss penalties. */
   player_a_seed?: number;
   player_b_seed?: number;
@@ -397,6 +410,89 @@ export function winterFantasyRosterTotalFromPicks(
     is_captain: p.isCaptain,
   }));
   return scoreWinterFantasyRoster(rows);
+}
+
+function normFantasyKey(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function teamForPlayerNorm(
+  playerName: string,
+  playerToTeamByNormPlayer: Map<string, string>,
+): string | null {
+  const t = playerToTeamByNormPlayer.get(normFantasyKey(playerName));
+  return t ? t.trim() : null;
+}
+
+/**
+ * MLP-only: WakiPoints from the single franchise “team pick” for one event division slice.
+ * `playerToTeamByNormPlayer` maps normalized player names → official franchise label (must match pick UI).
+ */
+export function mlpTeamLayerPointsFromMatches(
+  divisionMatches: WinterJsonMatch[],
+  pickedTeamRaw: string | null | undefined,
+  playerToTeamByNormPlayer: Map<string, string>,
+): { total: number; breakdown: WinterFantasyScoreBreakdown[] } {
+  const picked = pickedTeamRaw?.trim();
+  if (!picked) return { total: 0, breakdown: [] };
+  const pickedN = normFantasyKey(picked);
+  const sorted = [...divisionMatches].sort((a, b) => (a.event_date || "").localeCompare(b.event_date || ""));
+
+  const r = MLP_TEAM_FANTASY_RULES;
+  let matchRowsWon = 0;
+  let eventWinGranted = false;
+
+  for (const m of sorted) {
+    const wn = winnerDisplayName(m);
+    if (!wn) continue;
+    const winTeam = teamForPlayerNorm(wn, playerToTeamByNormPlayer);
+    if (!winTeam || normFantasyKey(winTeam) !== pickedN) continue;
+    matchRowsWon += 1;
+
+    const st = String(m.stage ?? m.bracket_stage ?? "").toLowerCase();
+    const clinch =
+      m.mlp_team_event_win === true ||
+      (m.medal_for_winner === "gold" && (/\bfinal\b/.test(st) || st.includes("championship")));
+    if (clinch && !eventWinGranted) eventWinGranted = true;
+  }
+
+  const matchPts = matchRowsWon * r.teamMatchWinPoints;
+  const eventPts = eventWinGranted ? r.teamEventWinPoints : 0;
+
+  let pickedWins = 0;
+  let pickedLosses = 0;
+  let pickedPending = 0;
+  for (const m of sorted) {
+    const ta = teamForPlayerNorm(m.player_a, playerToTeamByNormPlayer);
+    const tb = teamForPlayerNorm(m.player_b, playerToTeamByNormPlayer);
+    if (!ta || !tb) continue;
+    if (normFantasyKey(ta) === normFantasyKey(tb)) continue;
+    const touches = normFantasyKey(ta) === pickedN || normFantasyKey(tb) === pickedN;
+    if (!touches) continue;
+    const wn = winnerDisplayName(m);
+    if (!wn) {
+      pickedPending += 1;
+      continue;
+    }
+    const wt = teamForPlayerNorm(wn, playerToTeamByNormPlayer);
+    const loser = wn === m.player_a ? m.player_b : m.player_a;
+    const lt = teamForPlayerNorm(loser, playerToTeamByNormPlayer);
+    if (wt && normFantasyKey(wt) === pickedN) pickedWins += 1;
+    if (lt && normFantasyKey(lt) === pickedN) pickedLosses += 1;
+  }
+
+  const und =
+    pickedPending === 0 && pickedWins > 0 && pickedLosses === 0 ? r.teamUndefeatedBonusPoints : 0;
+
+  const breakdown: WinterFantasyScoreBreakdown[] = [];
+  if (matchPts > 0) {
+    breakdown.push({ label: `MLP team match wins (${matchRowsWon}×)`, points: round2(matchPts) });
+  }
+  if (eventPts > 0) breakdown.push({ label: "MLP team event win", points: round2(eventPts) });
+  if (und > 0) breakdown.push({ label: "MLP team undefeated (event)", points: round2(und) });
+
+  const total = round2(breakdown.reduce((s, b) => s + b.points, 0));
+  return { total, breakdown };
 }
 
 export type MatchWinnerSide = "player_a" | "player_b";

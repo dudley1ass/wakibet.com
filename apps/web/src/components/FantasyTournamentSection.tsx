@@ -24,6 +24,8 @@ type EventsResponse = {
   roster_size: number;
   required_men: number | null;
   required_women: number | null;
+  /** MLP tournaments: official franchise labels for the bonus team pick. */
+  mlp_teams?: string[];
   events: CatalogEvent[];
 };
 
@@ -47,6 +49,7 @@ type LineupEvent = {
   label: string;
   tier_code_at_save: string | null;
   is_locked: boolean;
+  mlp_team_name: string | null;
   picks: { slot_index: number; player_name: string; is_captain: boolean; waki_cash: number }[];
 };
 
@@ -95,6 +98,8 @@ type SlotDraft = {
   players: DivisionPlayer[];
   picks: string[];
   captainSlot: number | null;
+  /** MLP: one franchise bonus pick per event (optional until save). */
+  mlpTeamName: string | null;
 };
 
 type FantasyTournamentProps = {
@@ -113,6 +118,8 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [actionOk, setActionOk] = useState<string | null>(null);
   const rosterSize = lineup?.roster_size ?? eventsMeta?.roster_size ?? WINTER_FANTASY_ROSTER_SIZE;
+  const mlpTeams = eventsMeta?.mlp_teams ?? [];
+  const isMlpTournamentUi = tournamentKey.startsWith("mlp_");
 
   /** Eligible divisions the user can still attach to a slot (not past first-match lock). */
   const pickableEvents = useMemo(
@@ -163,6 +170,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           players,
           picks,
           captainSlot: cap,
+          mlpTeamName: row.mlp_team_name ?? null,
         };
       }
       setSlots(next);
@@ -226,7 +234,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           tone: "warn" as const,
           title: "No events offered for fantasy",
           lines: [
-            "This schedule loaded, but no divisions passed the fantasy gates (enough distinct players plus a valid 100 WakiCash five-player roster at tier multipliers). Try another tournament.",
+            "This schedule loaded, but no divisions passed the fantasy gates (enough distinct players plus a valid 100 WakiCash roster at tier multipliers). Try another tournament.",
           ],
         };
       }
@@ -274,6 +282,18 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           lines: [`Event slot ${s + 1} needs a captain — pick exactly one checkbox.`],
         };
       }
+      if (
+        isMlpTournamentUi &&
+        trimmed.every((x) => x) &&
+        sl.captainSlot !== null &&
+        (!sl.mlpTeamName || !sl.mlpTeamName.trim())
+      ) {
+        return {
+          tone: "warn" as const,
+          title: "Team pick",
+          lines: [`Event slot ${s + 1}: choose your MLP franchise for bonus WakiPoints.`],
+        };
+      }
     }
     if (actionOk) return { tone: "success" as const, title: "All set", lines: [actionOk] };
     let lastPick = "";
@@ -296,7 +316,9 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       tone: "info" as const,
       title: "Build your lineup",
       lines: [
-        "Choose up to five events. Each event needs five different players and one captain. Same player can play multiple events — just not twice in the same event.",
+        isMlpTournamentUi
+          ? `Choose up to five events. Each MLP event needs ${rosterSize} different players (2M / 2F), one captain, plus one franchise team pick for bonus WakiPoints — same player can appear in multiple events, not twice in the same event.`
+          : `Choose up to five events. Each event needs ${rosterSize} different players and one captain. Same player can play multiple events — just not twice in the same event.`,
       ],
     };
   }, [
@@ -309,6 +331,8 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     eventsMeta,
     pickableEvents.length,
     lockedSelectableEvents.length,
+    isMlpTournamentUi,
+    rosterSize,
   ]);
 
   async function attachEventToSlot(slotIndex: number, event_key: string) {
@@ -333,6 +357,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           players: pl.players ?? [],
           picks: emptyPicks(rosterSize),
           captainSlot: null,
+          mlpTeamName: null,
         };
         return next;
       });
@@ -376,6 +401,16 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     });
   }
 
+  function setMlpTeam(slotIndex: number, team: string) {
+    setSlots((prev) => {
+      const next = [...prev];
+      const sl = next[slotIndex];
+      if (!sl) return prev;
+      next[slotIndex] = { ...sl, mlpTeamName: team };
+      return next;
+    });
+  }
+
   async function handleSave() {
     setActionErr(null);
     setActionOk(null);
@@ -384,6 +419,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       slot_index: number;
       event_key: string;
       picks: { player_name: string; is_captain: boolean }[];
+      mlp_team_name?: string;
     }[] = [];
 
     for (let s = 0; s < 5; s++) {
@@ -400,6 +436,10 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       }
       if (sl.captainSlot === null) {
         setActionErr(`Event slot ${s + 1}: choose a captain.`);
+        return;
+      }
+      if (tournamentKey.startsWith("mlp_") && !(sl.mlpTeamName || "").trim()) {
+        setActionErr(`Event slot ${s + 1}: choose your MLP franchise team pick (bonus layer).`);
         return;
       }
       const eventSpend = filled.reduce(
@@ -429,11 +469,14 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           player_name,
           is_captain: sl.captainSlot === slot_index,
         })),
+        ...(tournamentKey.startsWith("mlp_")
+          ? { mlp_team_name: (sl.mlpTeamName ?? "").trim() }
+          : {}),
       });
     }
 
     if (payloadEvents.length === 0) {
-      setActionErr("Add at least one event with 5 picks before saving.");
+      setActionErr(`Add at least one event with ${rosterSize} picks before saving.`);
       return;
     }
 
@@ -626,6 +669,27 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                         );
                       })}
                     </div>
+                    {isMlpTournamentUi && mlpTeams.length > 0 ? (
+                      <div className="wf-mlp-team-block" style={{ marginTop: 14 }}>
+                        <div className="wf-label" style={{ marginBottom: 8 }}>
+                          Team pick (bonus WakiPoints)
+                        </div>
+                        <div className="wf-mlp-team-list" role="radiogroup" aria-label="MLP franchise bonus pick">
+                          {mlpTeams.map((team) => (
+                            <label key={team} className="wf-mlp-team-option">
+                              <input
+                                type="radio"
+                                name={`mlp-team-slot-${slotIndex}`}
+                                checked={normPlayerName(sl.mlpTeamName ?? "") === normPlayerName(team)}
+                                onChange={() => setMlpTeam(slotIndex, team)}
+                                disabled={busy}
+                              />
+                              <span>{team}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </div>
@@ -675,6 +739,16 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
             Scoring works the same as the division fantasy game. Players are grouped into{" "}
             <strong>Tier A, B, or C</strong>, which affects both their price and how many WakiPoints they can earn.{" "}
             <a href="/fantasy-rules">How fantasy works (rules)</a>
+            {isMlpTournamentUi ? (
+              <>
+                <br />
+                <br />
+                For <strong>MLP</strong>, you also pick <strong>one franchise team</strong> per event. Player scoring
+                uses the full WakiPoints table; team bonuses (match wins, event win, undefeated) are added on top so
+                lineups stay player-first — see the{" "}
+                <a href="/scoring-table">scoring table</a>.
+              </>
+            ) : null}
           </p>
         </div>
       ) : (

@@ -22,6 +22,8 @@ export type FantasyRosterDbRow = {
   picks: PickRow[];
   /** Phase 2: tier weight on catalog rows (default 1). */
   wakipointsMultiplier?: number;
+  /** MLP fantasy tournament: single franchise bonus pick for this event. */
+  mlpTeamName?: string | null;
 };
 
 function headlineForBreakdownLabel(label: string, pts: number): string {
@@ -124,12 +126,18 @@ export function computeFantasyLeaderboard(
     if (!data?.matches) continue;
     if (!isDivisionFeaturedFromMatches(data.matches, parsedStored.division_key)) continue;
     const mult = r.wakipointsMultiplier ?? 1;
+    const mlpMap = data.mlp_player_to_team;
+    const mlpOpts =
+      parsedStored.tournament_key.startsWith("mlp_") && r.mlpTeamName?.trim() && mlpMap
+        ? { mlpTeamName: r.mlpTeamName, mlpPlayerToTeam: mlpMap }
+        : undefined;
     const pts =
       Math.round(
         fantasyRosterTotalPoints(
           data.matches,
           parsedStored.division_key,
           r.picks.map((p) => ({ playerName: p.playerName, isCaptain: p.isCaptain })),
+          mlpOpts,
         ) *
           mult *
           100,
