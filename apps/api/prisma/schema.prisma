@@ -836,3 +836,75 @@ model Job {
 
   @@index([type, status])
 }
+
+// ============ PPA TOUR RESULTS (append-only; Wakibet stats / pricing source) ============
+// Separate from DFS `Player` / `Tournament`: one row per real-world result row, never overwritten.
+
+model PpaResultPlayer {
+  id         Int    @id @default(autoincrement())
+  playerKey  String @unique
+  playerName String
+  gender     String?
+  homeCity   String?
+  homeState  String?
+  active     String @default("yes")
+
+  results PpaResultPlayerEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([playerName])
+}
+
+model PpaResultTournament {
+  id        String    @id
+  name      String
+  tour      String    @default("PPA")
+  location  String?
+  startDate DateTime?
+  endDate   DateTime?
+
+  events  PpaResultEvent[]
+  results PpaResultPlayerEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PpaResultEvent {
+  id             String @id
+  tournamentId   String
+  tournament     PpaResultTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  eventName      String
+  eventType      String
+  genderDivision String
+
+  results PpaResultPlayerEvent[]
+
+  @@index([tournamentId])
+}
+
+/// One append-only fact row per player per event (doubles → two rows, same rank/wins/pd).
+model PpaResultPlayerEvent {
+  id           String @id @default(cuid())
+  playerId     Int
+  player       PpaResultPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournamentId String
+  tournament   PpaResultTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  eventId      String
+  event        PpaResultEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  partnerName  String?
+  rank         Int
+  roundsPlayed Int
+  wins         Int
+  pd           Int
+  medal        String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([playerId, eventId])
+  @@index([tournamentId, eventId])
+  @@index([playerId, createdAt])
+}

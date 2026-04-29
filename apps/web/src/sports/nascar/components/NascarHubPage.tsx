@@ -11,6 +11,8 @@ import {
 } from "../lib/nascarLineupRules";
 import { nascarFocusWeek } from "../lib/dashboardNascar";
 import type { NascarWeekRow } from "../lib/dashboardNascar";
+import WeekPicksHelpCue from "../../../components/WeekPicksHelpCue";
+import WeekPicksPromoBanner from "../../../components/WeekPicksPromoBanner";
 import NascarHubHero from "./NascarHubHero";
 import NascarHubLineupPanel, { type HubDriverRow } from "./NascarHubLineupPanel";
 
@@ -125,6 +127,8 @@ export default function NascarHubPage({ user }: Props) {
         </div>
       </div>
 
+      <WeekPicksPromoBanner sport="nascar" />
+
       <NascarHubHero
         user={user}
         weeks={weeks}
@@ -135,12 +139,15 @@ export default function NascarHubPage({ user }: Props) {
       />
 
       {user && activeWeek && drivers.length > 0 ? (
-        <NascarHubLineupPanel
-          weekKey={activeWeek.week_key}
-          week={activeWeek}
-          drivers={driversByWakiCashDesc}
-          wakicashBudget={driversQ.data?.budget_wakicash ?? NASCAR_LINEUP_WAKICASH_BUDGET}
-        />
+        <>
+          <WeekPicksHelpCue sport="nascar" />
+          <NascarHubLineupPanel
+            weekKey={activeWeek.week_key}
+            week={activeWeek}
+            drivers={driversByWakiCashDesc}
+            wakicashBudget={driversQ.data?.budget_wakicash ?? NASCAR_LINEUP_WAKICASH_BUDGET}
+          />
+        </>
       ) : null}
 
       <section className="dash-section" aria-labelledby="nascar-drivers-title">

@@ -12,6 +12,7 @@ import {
 } from "../../sports/nascar/lib/dashboardNascar";
 import DashboardPrizeHero from "./DashboardPrizeHero";
 import SportCard from "./SportCard";
+import ThisWeekPicksHomeSection from "../ThisWeekPicksHomeSection";
 
 type FantasyPulseLite = NonNullable<DashboardData["fantasy_pulse"]>;
 
@@ -119,6 +120,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
 
   return (
     <>
+      <ThisWeekPicksHomeSection />
+
       <section className="dash-ms-section dash-ms-section--sports-top" aria-labelledby="dash-ms-hero-title">
         <h2 id="dash-ms-hero-title" className="dash-ms-section-title">
           Your Sports

@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 *,
 *::before,
 *::after {
@@ -331,4 +333,10 @@ body {
   .site-footer-right {
     width: 100%;
   }
+}
+
+.app-main:has(.picks-root) {
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
 }

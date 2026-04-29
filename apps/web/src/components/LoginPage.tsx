@@ -1,5 +1,7 @@
 import { FormEvent, useState } from "react";
 import { apiPost, finalizeAuthFromLoginResponse } from "../api";
+import ThisWeekPicksHomeSection from "./ThisWeekPicksHomeSection";
+import "./dashboard.css";
 
 type Props = {
   onAuthSuccess: (payload: {
@@ -84,6 +86,16 @@ export default function LoginPage({ onAuthSuccess }: Props) {
   }
 
   return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        width: "100%",
+        maxWidth: "420px",
+        gap: "0",
+      }}
+    >
     <div
       style={{
         width: "100%",
@@ -295,6 +307,8 @@ export default function LoginPage({ onAuthSuccess }: Props) {
           <div style={{ color: "#b91c1c", fontWeight: "600", whiteSpace: "pre-wrap" }}>{error}</div>
         )}
       </div>
+    </div>
+    <ThisWeekPicksHomeSection variant="login" />
     </div>
   );
 }

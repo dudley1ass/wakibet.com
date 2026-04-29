@@ -2269,6 +2269,121 @@ a.rost-dash-link {
   background: rgba(251, 191, 36, 0.12);
 }
 
+/* —— This week’s picks (home + hub CTAs) —— */
+.dash-week-picks-home {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: linear-gradient(135deg, rgba(28, 25, 23, 0.95), rgba(17, 24, 39, 0.88));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+.dash-week-picks-home--login {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 420px;
+}
+.dash-week-picks-home__title {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fde68a;
+  letter-spacing: 0.02em;
+}
+.dash-week-picks-home__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dash-week-picks-home__link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fffbeb;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.dash-week-picks-home__link:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.08);
+}
+.dash-week-picks-home__emoji {
+  font-size: 1.1rem;
+}
+.dash-week-picks-home__label {
+  font-weight: 800;
+  color: #fef3c7;
+}
+.dash-week-picks-home__arrow {
+  color: rgba(253, 230, 138, 0.85);
+  font-weight: 800;
+}
+.dash-week-picks-home__venue {
+  margin-left: auto;
+  font-weight: 600;
+  color: #e7e5e4;
+  font-size: 13px;
+}
+
+.week-picks-promo-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+}
+.week-picks-promo-banner__fire {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+.week-picks-promo-banner__text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fef3c7;
+  line-height: 1.45;
+}
+.week-picks-promo-banner__link {
+  color: #fde68a;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.week-picks-promo-banner__link:hover {
+  color: #fff;
+}
+
+.week-picks-help-cue {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  font-weight: 600;
+  color: #d6d3d1;
+}
+.week-picks-help-cue__link {
+  color: #fcd34d;
+  font-weight: 800;
+}
+.week-picks-help-cue__link:hover {
+  color: #fde68a;
+}
+
 @media (max-width: 820px) {
   .dash-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dash-mid-grid { grid-template-columns: 1fr; }

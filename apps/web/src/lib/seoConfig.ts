@@ -53,6 +53,16 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "WakiBet fantasy rules: WakiCash budgets, roster sizes, captains, gender mix for MLP, locks, and fair play.",
   },
+  "/ppa-atlanta-picks": {
+    title: `PPA Atlanta fantasy picks — top plays & value | ${SITE}`,
+    description:
+      "Pickleball fantasy picks for PPA Atlanta: top targets, value plays, sleepers, and lineup strategy with WakiCash.",
+  },
+  "/nascar-texas-picks": {
+    title: `NASCAR Texas fantasy picks — TMS lineup ideas | ${SITE}`,
+    description:
+      "NASCAR fantasy picks for Texas Motor Speedway: drivers to target, value plays, sleepers, and weekly lineup tips.",
+  },
   "/scoring-table": {
     title: `Pickleball scoring table | ${SITE}`,
     description:

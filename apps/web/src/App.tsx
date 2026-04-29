@@ -17,6 +17,8 @@ import {
 } from "./components/StaticPages";
 import AdminLineupsPage from "./components/AdminLineupsPage";
 import { NascarSeasonLeaderboardPage, PickleballSeasonLeaderboardPage } from "./components/SeasonLeaderboardPage";
+import NascarTexasPicksPage from "./components/picks/NascarTexasPicksPage";
+import PpaAtlantaPicksPage from "./components/picks/PpaAtlantaPicksPage";
 
 export type SessionUser = {
   user_id: string;
@@ -141,6 +143,10 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
+      <Route path="/nascar-texas-picks" element={<NascarTexasPicksPage />} />
+      <Route path="/ppa-atlanta-picks" element={<PpaAtlantaPicksPage />} />
+      <Route path="/picks/ppa-atlanta" element={<Navigate to="/ppa-atlanta-picks" replace />} />
+      <Route path="/picks/nascar-texas" element={<Navigate to="/nascar-texas-picks" replace />} />
       <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
       <Route
         path="/pick-teams/leaderboard"

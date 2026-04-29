@@ -24,6 +24,18 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Editorial picks (shareable) -->
+  <url>
+    <loc>https://wakibet.com/nascar-texas-picks</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://wakibet.com/ppa-atlanta-picks</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
   <!-- NASCAR -->
   <url>
     <loc>https://wakibet.com/nascar</loc>
