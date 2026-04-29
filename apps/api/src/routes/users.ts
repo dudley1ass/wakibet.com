@@ -1,9 +1,10 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { getCachedDashboardFull } from "../lib/dashboardMaterialize.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 import { TOURNAMENT_KEYS } from "../sports/pickleball/lib/index.js";
+import { prisma } from "../lib/prisma.js";
 
 const FantasyRosterPick = z.object({
   slot_index: z.number().int(),
@@ -162,6 +163,18 @@ const DashboardInsightsResponse = DashboardResponse.pick({
 const ErrorMessage = z.object({ message: z.string() });
 
 const authPre = { preHandler: [requireAuthUser] };
+const adminEmails = new Set(
+  (process.env.ADMIN_EMAILS || "wakibet.app@gmail.com")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+async function requireAdminUser(req: FastifyRequest, reply: FastifyReply) {
+  const email = req.authUser?.email?.toLowerCase() ?? "";
+  if (adminEmails.has(email)) return;
+  await reply.code(403).send({ message: "Admin access required." } as const);
+}
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -217,6 +230,111 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       return {
         fantasy_pulse: full.fantasy_pulse,
         fantasy_what_if: full.fantasy_what_if,
+      };
+    },
+  );
+
+  typed.get(
+    "/api/v1/admin/users/lineups",
+    {
+      preHandler: [requireAuthUser, requireAdminUser],
+      schema: {
+        tags: ["users", "admin"],
+        querystring: z.object({
+          q: z.string().trim().optional().default(""),
+        }),
+        response: {
+          200: z.object({
+            users: z.array(
+              z.object({
+                user_id: z.string(),
+                email: z.string(),
+                display_name: z.string(),
+                pickleball_lineups: z.array(
+                  z.object({
+                    tournament_key: z.string(),
+                    season_key: z.string(),
+                    event_count: z.number().int(),
+                    wakicash_spent: z.number().int(),
+                    updated_at: z.string(),
+                  }),
+                ),
+                nascar_lineups: z.array(
+                  z.object({
+                    week_key: z.string(),
+                    race_name: z.string(),
+                    pick_count: z.number().int(),
+                    updated_at: z.string(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+          401: ErrorMessage,
+          403: ErrorMessage,
+        },
+      },
+    },
+    async (req) => {
+      const q = req.query.q.trim();
+      const where =
+        q.length === 0
+          ? {}
+          : {
+              OR: [
+                { email: { contains: q, mode: "insensitive" as const } },
+                { displayName: { contains: q, mode: "insensitive" as const } },
+              ],
+            };
+      const users = await prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          fantasyTournamentLineups: {
+            orderBy: { updatedAt: "desc" },
+            select: {
+              tournamentKey: true,
+              seasonKey: true,
+              wakicashSpent: true,
+              updatedAt: true,
+              eventPicks: { select: { id: true } },
+            },
+          },
+          nascarWeeklyLineups: {
+            orderBy: { updatedAt: "desc" },
+            select: {
+              week: { select: { weekKey: true, raceName: true } },
+              updatedAt: true,
+              picks: { select: { id: true } },
+            },
+          },
+        },
+      });
+      return {
+        users: users
+          .map((u) => ({
+            user_id: u.id,
+            email: u.email,
+            display_name: u.displayName,
+            pickleball_lineups: u.fantasyTournamentLineups.map((l) => ({
+              tournament_key: l.tournamentKey,
+              season_key: l.seasonKey,
+              event_count: l.eventPicks.length,
+              wakicash_spent: l.wakicashSpent,
+              updated_at: l.updatedAt.toISOString(),
+            })),
+            nascar_lineups: u.nascarWeeklyLineups.map((l) => ({
+              week_key: l.week.weekKey,
+              race_name: l.week.raceName,
+              pick_count: l.picks.length,
+              updated_at: l.updatedAt.toISOString(),
+            })),
+          }))
+          .filter((u) => u.pickleball_lineups.length > 0 || u.nascar_lineups.length > 0),
       };
     },
   );

@@ -1,4 +1,5 @@
 ﻿import type { SessionUser } from "../App";
+import { Link } from "react-router-dom";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
 import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
@@ -128,6 +129,9 @@ export default function Dashboard({ user, onLogout }: Props) {
           </p>
         </div>
         <div className="dash-head-actions">
+          <Link className="dash-ghost-btn" to="/admin/lineups">
+            Admin
+          </Link>
           <button type="button" onClick={() => void loadDashboard()} disabled={loading} className="dash-ghost-btn">
             {loading ? "Updating…" : "Refresh"}
           </button>

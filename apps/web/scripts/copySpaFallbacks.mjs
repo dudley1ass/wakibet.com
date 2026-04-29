@@ -29,6 +29,7 @@ const routes = [
   "pick-teams",
   "rosters",
   "fantasy-rules",
+  "admin",
 ];
 for (const r of routes) {
   const dir = path.join(dist, r);
@@ -36,7 +37,7 @@ for (const r of routes) {
   fs.writeFileSync(path.join(dir, "index.html"), html);
 }
 
-const nestedRoutes = [["nascar"], ["nascar", "rosters"], ["nascar", "scoring"]];
+const nestedRoutes = [["nascar"], ["nascar", "rosters"], ["nascar", "scoring"], ["admin", "lineups"]];
 for (const segments of nestedRoutes) {
   const dir = path.join(dist, ...segments);
   fs.mkdirSync(dir, { recursive: true });

@@ -81,16 +81,44 @@ function isEventLineupFeasible(params: {
   return cheapestFive <= WAKICASH_BUDGET_PER_LINEUP;
 }
 
+function isAllowedProPickleballDivision(row: {
+  event_type: string;
+  skill_level: string;
+}): boolean {
+  const event = row.event_type.toLowerCase();
+  const skill = row.skill_level.toLowerCase();
+  const isProSkill = skill.includes("open") || skill.includes("pro");
+  if (!isProSkill) return false;
+
+  const hasSingles = event.includes("singles");
+  const hasMixed = event.includes("mixed");
+  const hasMens = event.includes("mens") || event.includes("men");
+  const hasWomens = event.includes("womens") || event.includes("women");
+  const hasDoubles = event.includes("doubles") || event === "mens" || event === "womens" || event === "mixed";
+
+  // Allowed only:
+  // - Men's Pro Singles / Women's Pro Singles
+  // - Men's Pro Doubles / Women's Pro Doubles
+  // - Mixed Pro Doubles
+  if (hasSingles) return (hasMens || hasWomens) && !hasMixed;
+  if (hasDoubles) return (hasMens || hasWomens) || hasMixed;
+  return false;
+}
+
 /**
  * Phase 2: tier + multipliers + selectable flag from division shape (featured gate matches winter fantasy).
  */
 export function assignTierForDivision(row: {
+  tournament_key?: TournamentKey;
   event_type: string;
   skill_level: string;
   age_bracket: string;
   match_count: number;
   player_count: number;
 }): TierAssignment {
+  if (row.tournament_key && !row.tournament_key.startsWith("mlp_") && !isAllowedProPickleballDivision(row)) {
+    return { tierCode: "C", wakicashMultiplier: 0.85, wakipointsMultiplier: 0.9, isSelectable: false };
+  }
   const featured = isFeaturedWinterDivision({
     player_count: row.player_count,
     match_count: row.match_count,
@@ -126,7 +154,7 @@ export async function syncTournamentEventCatalog(
     const divMatches = filterMatchesForDivision(data.matches, d.division_key);
     const eventPlayers = uniquePlayersInMatches(divMatches);
     const firstAt = firstMatchStartsAt(divMatches);
-    const tier = assignTierForDivision(d);
+    const tier = assignTierForDivision({ ...d, tournament_key: tournamentKey });
     const feasible = isEventLineupFeasible({
       skillLevel: d.skill_level,
       wakicashMultiplier: tier.wakicashMultiplier,

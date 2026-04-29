@@ -431,6 +431,25 @@
   gap: 12px;
   margin-bottom: 8px;
 }
+@media (max-width: 720px) {
+  .wf-cascade {
+    grid-template-columns: 1fr;
+  }
+  .wf-pick-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .wf-slot {
+    min-width: 0;
+  }
+  .wf-pick-row .wf-select {
+    width: 100%;
+  }
+  .wf-cap {
+    white-space: normal;
+  }
+}
 .wf-score-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

@@ -14,6 +14,7 @@ import {
   ScoringTablePage,
   TermsPage,
 } from "./components/StaticPages";
+import AdminLineupsPage from "./components/AdminLineupsPage";
 
 export type SessionUser = {
   user_id: string;
@@ -147,6 +148,23 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
+      <Route
+        path="/admin/lineups"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to access admin tools.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <AdminLineupsPage user={session} />
+          )
+        }
+      />
       <Route
         path="/nascar/rosters"
         element={
