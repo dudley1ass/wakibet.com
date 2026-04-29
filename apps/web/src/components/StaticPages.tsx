@@ -49,7 +49,7 @@ export function TermsPage() {
       <p>We may update these terms at any time. Continued use of the platform constitutes acceptance.</p>
       <h3>8. Contact</h3>
       <p>
-        For questions, contact <a href="mailto:support@wakibet.com">support@wakibet.com</a>.
+        For questions, contact <a href="mailto:wakibet.app@gmail.com">wakibet.app@gmail.com</a>.
       </p>
     </StaticLayout>
   );
@@ -80,11 +80,11 @@ export function PrivacyPage() {
       <h3>6. Your Rights</h3>
       <p>
         You may request deletion of your data by contacting{" "}
-        <a href="mailto:support@wakibet.com">support@wakibet.com</a>.
+        <a href="mailto:wakibet.app@gmail.com">wakibet.app@gmail.com</a>.
       </p>
       <h3>7. Contact</h3>
       <p>
-        <a href="mailto:support@wakibet.com">support@wakibet.com</a>
+        <a href="mailto:wakibet.app@gmail.com">wakibet.app@gmail.com</a>
       </p>
     </StaticLayout>
   );
@@ -111,7 +111,7 @@ export function ResponsiblePlayPage() {
       </p>
       <h3>5. Contact</h3>
       <p>
-        If you have concerns about your usage, contact <a href="mailto:support@wakibet.com">support@wakibet.com</a>.
+        If you have concerns about your usage, contact <a href="mailto:wakibet.app@gmail.com">wakibet.app@gmail.com</a>.
       </p>
     </StaticLayout>
   );
@@ -163,7 +163,7 @@ export function ContactPage() {
       <p>Send us a message and we will reply to your email.</p>
       <p className="contact-fallback">
         If sending fails, email us directly at{" "}
-        <a href="mailto:support@wakibet.com">support@wakibet.com</a>.
+        <a href="mailto:wakibet.app@gmail.com">wakibet.app@gmail.com</a>.
       </p>
       <form className="contact-form" onSubmit={onSubmit}>
         <label>

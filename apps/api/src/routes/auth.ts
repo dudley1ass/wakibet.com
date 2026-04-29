@@ -16,7 +16,7 @@ async function sendNewAccountAlert(params: {
   const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) return;
 
-  const toEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.SUPPORT_EMAIL || "support@wakibet.com";
+  const toEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.SUPPORT_EMAIL || "wakibet.app@gmail.com";
   const fromEmail = process.env.CONTACT_FROM_EMAIL || "WakiBet Contact <onboarding@resend.dev>";
 
   const text = [

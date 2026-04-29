@@ -53,7 +53,7 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-const SUPPORT_FALLBACK = "support@wakibet.com";
+const SUPPORT_FALLBACK = "wakibet.app@gmail.com";
 
 /** Shown to visitors; operator hints go to logs only. */
 const CONTACT_MAIL_DOWN_MESSAGE = `We could not deliver through email right now. Please write to ${SUPPORT_FALLBACK} with the same details.`;
