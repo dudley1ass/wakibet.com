@@ -28,9 +28,6 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
           <Link className="dash-ghost-btn" to="/scoring-table">
             Scoring table
           </Link>
-          <Link className="dash-ghost-btn" to="/wakiodds">
-            WakiOdds
-          </Link>
           <Link className="dash-ghost-btn" to="/pick-teams/leaderboard">
             Season leaderboard
           </Link>
