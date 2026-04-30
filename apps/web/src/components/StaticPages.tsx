@@ -422,3 +422,78 @@ export function FantasyRulesPage() {
     </StaticLayout>
   );
 }
+
+export function WakiOddsPage() {
+  return (
+    <StaticLayout title="WakiOdds — Calculation Table">
+      <p>
+        WakiOdds is Wakibet&apos;s in-house line engine. It converts player ratings into win probability, American odds,
+        spread, and confidence.
+      </p>
+
+      <h3>1) Base Player Rating</h3>
+      <p>
+        Every player starts at <strong>R0 = 1500</strong>.
+      </p>
+
+      <h3>2) Team Rating (Doubles)</h3>
+      <p>
+        <code>Rteam = (R1 + R2) / 2 + C + F - P</code>
+      </p>
+      <ul>
+        <li>
+          <strong>C</strong>: chemistry bonus (0 to +50)
+        </li>
+        <li>
+          <strong>F</strong>: recent form (-50 to +50)
+        </li>
+        <li>
+          <strong>P</strong>: uncertainty penalty (0 to 50)
+        </li>
+      </ul>
+
+      <h3>3) Win Probability (Elo)</h3>
+      <p>
+        <code>E = 1 / (1 + 10^(-(RA - RB) / 400))</code>
+      </p>
+
+      <h3>4) Probability to American Odds</h3>
+      <ul>
+        <li>
+          Favorite (P &gt; 0.5): <code>-100 * P / (1 - P)</code>
+        </li>
+        <li>
+          Underdog (P &lt; 0.5): <code>+100 * (1 - P) / P</code>
+        </li>
+      </ul>
+
+      <h3>5) Spread</h3>
+      <p>
+        <code>Spread = (RA - RB) / 50</code>, rounded to half-points.
+      </p>
+
+      <h3>6) Confidence</h3>
+      <p>
+        <code>Confidence = abs(P - 0.5) * 100</code>
+      </p>
+
+      <h3>7) Rating Update After Match</h3>
+      <p>
+        <code>R&apos; = R + K * (S - E)</code> where S is 1 for win and 0 for loss.
+      </p>
+      <p>
+        Optional margin boost: <code>R&apos; = R + K * (S - E) * log(|scoreDiff| + 1)</code>
+      </p>
+
+      <h3>Example Output</h3>
+      <ul>
+        <li>Team A rating: 1640</li>
+        <li>Team B rating: 1510</li>
+        <li>Win probability: Team A 68%, Team B 32%</li>
+        <li>American odds: Team A -213, Team B +213</li>
+        <li>Spread: Team A -2.5</li>
+        <li>Confidence: 18</li>
+      </ul>
+    </StaticLayout>
+  );
+}

@@ -1,24 +1,48 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
 import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
 import Seo from "./components/Seo";
-import { Dashboard, DashboardDataProvider, PickTeamsPage, RostersPage } from "./sports/pickleball";
-import { NascarHubPage, NascarRostersPage, NascarScoringTablePage } from "./sports/nascar";
-import {
-  ContactPage,
-  FantasyRulesPage,
-  PrivacyPage,
-  ResponsiblePlayPage,
-  ScoringTablePage,
-  TermsPage,
-} from "./components/StaticPages";
-import AdminLineupsPage from "./components/AdminLineupsPage";
-import { NascarSeasonLeaderboardPage, PickleballSeasonLeaderboardPage } from "./components/SeasonLeaderboardPage";
-import NascarTexasPicksPage from "./components/picks/NascarTexasPicksPage";
-import PpaAtlantaPicksPage from "./components/picks/PpaAtlantaPicksPage";
+import { DashboardDataProvider } from "./sports/pickleball/context/DashboardDataContext";
+
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const PickTeamsPage = lazy(() => import("./sports/pickleball/components/PickTeamsPage"));
+const RostersPage = lazy(() => import("./sports/pickleball/components/RostersPage"));
+const NascarHubPage = lazy(() => import("./sports/nascar/components/NascarHubPage"));
+const NascarRostersPage = lazy(() => import("./sports/nascar/components/NascarRostersPage"));
+const NascarScoringTablePage = lazy(() => import("./sports/nascar/components/NascarScoringTablePage"));
+const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
+const NascarTexasPicksPage = lazy(() => import("./components/picks/NascarTexasPicksPage"));
+const PpaAtlantaPicksPage = lazy(() => import("./components/picks/PpaAtlantaPicksPage"));
+const PickleballSeasonLeaderboardPage = lazy(() =>
+  import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.PickleballSeasonLeaderboardPage })),
+);
+const NascarSeasonLeaderboardPage = lazy(() =>
+  import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.NascarSeasonLeaderboardPage })),
+);
+const TermsPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.TermsPage })),
+);
+const PrivacyPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.PrivacyPage })),
+);
+const ResponsiblePlayPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.ResponsiblePlayPage })),
+);
+const ContactPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.ContactPage })),
+);
+const ScoringTablePage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.ScoringTablePage })),
+);
+const FantasyRulesPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.FantasyRulesPage })),
+);
+const WakiOddsPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.WakiOddsPage })),
+);
 
 export type SessionUser = {
   user_id: string;
@@ -42,7 +66,8 @@ function isTransientBootError(e: unknown): boolean {
 }
 
 async function loadSessionWithRetry(): Promise<SessionUser> {
-  const delaysMs = [0, 800, 1500];
+  // Keep resilience for transient failures, but avoid multi-second boot stalls.
+  const delaysMs = [0, 250, 750];
   let lastErr: unknown = null;
   for (let i = 0; i < delaysMs.length; i++) {
     const delay = delaysMs[i]!;
@@ -136,12 +161,20 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
   let main: ReactNode;
 
   main = (
-    <Routes>
-      <Route path="/terms" element={<TermsPage />} />
+    <Suspense
+      fallback={
+        <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+          Loading…
+        </p>
+      }
+    >
+      <Routes>
+        <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/responsible-play" element={<ResponsiblePlayPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/scoring-table" element={<ScoringTablePage />} />
+      <Route path="/wakiodds" element={<WakiOddsPage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/nascar-texas-picks" element={<NascarTexasPicksPage />} />
       <Route path="/ppa-atlanta-picks" element={<PpaAtlantaPicksPage />} />
@@ -219,13 +252,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route
         path="/nascar"
         element={
-          booting ? (
-            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-              Loading…
-            </p>
-          ) : (
-            <NascarHubPage user={session} />
-          )
+          <NascarHubPage user={session} />
         }
       />
       <Route
@@ -276,8 +303,9 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
           )
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 
   return (

@@ -68,6 +68,11 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "WakiPoints table for pickleball fantasy: match wins, game margins, upsets, tiers, and MLP franchise bonuses.",
   },
+  "/wakiodds": {
+    title: `WakiOdds calculation table | ${SITE}`,
+    description:
+      "How Wakibet calculates WakiOdds: Elo win probability, American odds conversion, spread mapping, confidence, and rating updates.",
+  },
   "/terms": {
     title: `Terms of Service | ${SITE}`,
     description: "Terms of Service governing your use of WakiBet accounts, fantasy games, and the website.",

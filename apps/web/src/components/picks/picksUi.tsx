@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, LayoutDashboard } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { computeWakiOdds, doublesTeamRating, WAKIODDS_BASE_RATING } from "../../lib/wakiOdds";
+import { apiGet } from "../../api";
 
 export function PickCard({
   icon: Icon,
@@ -89,4 +91,98 @@ export function PicksDashboardBar() {
       </Link>
     </div>
   );
+}
+
+export function WakiOddsPanel({
+  labelA,
+  labelB,
+  ratingA,
+  ratingB,
+  market,
+}: {
+  labelA: string;
+  labelB: string;
+  ratingA: number;
+  ratingB: number;
+  market?: "nascar" | "pickleball";
+}) {
+  const [live, setLive] = useState<{
+    labelA: string;
+    labelB: string;
+    ratingA: number;
+    ratingB: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!market) return;
+    let cancelled = false;
+    void apiGet<{
+      markets: {
+        nascar: { team_a: { players: string[]; rating: number }; team_b: { players: string[]; rating: number } };
+        pickleball: { team_a: { players: string[]; rating: number }; team_b: { players: string[]; rating: number } };
+      };
+    }>("/api/v1/wakiodds/featured")
+      .then((data) => {
+        if (cancelled) return;
+        const m = market === "nascar" ? data.markets.nascar : data.markets.pickleball;
+        setLive({
+          labelA: m.team_a.players.join(" + "),
+          labelB: m.team_b.players.join(" + "),
+          ratingA: m.team_a.rating,
+          ratingB: m.team_b.rating,
+        });
+      })
+      .catch(() => {
+        // keep static fallback passed via props
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [market]);
+
+  const finalA = live?.labelA ?? labelA;
+  const finalB = live?.labelB ?? labelB;
+  const finalRatingA = live?.ratingA ?? ratingA;
+  const finalRatingB = live?.ratingB ?? ratingB;
+  const odds = computeWakiOdds(finalRatingA, finalRatingB);
+  return (
+    <section className="rounded-2xl border border-yellow-500/30 bg-slate-950/80 p-5 shadow-xl">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-black text-yellow-300">WakiOdds</h2>
+        <Link to="/wakiodds" className="text-sm font-bold text-yellow-200 underline underline-offset-2">
+          How we calculate
+        </Link>
+      </div>
+      <p className="mb-4 text-sm text-slate-300">
+        {finalA} vs {finalB}
+      </p>
+      <div className="grid gap-3 text-sm text-slate-200 md:grid-cols-2">
+        <div className="rounded-xl border border-slate-700 bg-slate-900/70 p-3">
+          <p className="font-bold">{finalA}</p>
+          <p>{Math.round(odds.probabilityA * 100)}% win</p>
+          <p>{odds.oddsA > 0 ? `+${odds.oddsA}` : odds.oddsA} American</p>
+        </div>
+        <div className="rounded-xl border border-slate-700 bg-slate-900/70 p-3">
+          <p className="font-bold">{finalB}</p>
+          <p>{Math.round(odds.probabilityB * 100)}% win</p>
+          <p>{odds.oddsB > 0 ? `+${odds.oddsB}` : odds.oddsB} American</p>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-2 text-sm text-slate-300 md:grid-cols-3">
+        <p>Spread: {finalA} {odds.spreadA > 0 ? `-${odds.spreadA}` : `+${Math.abs(odds.spreadA)}`}</p>
+        <p>Confidence: {odds.confidence}</p>
+        <p>Rating diff: {Math.round(odds.ratingDiff)}</p>
+      </div>
+    </section>
+  );
+}
+
+export function buildFeaturedDoublesRating(playerA: number, playerB: number, form = 0) {
+  return doublesTeamRating({
+    player1Rating: WAKIODDS_BASE_RATING + playerA,
+    player2Rating: WAKIODDS_BASE_RATING + playerB,
+    chemistryBonus: 20,
+    recentForm: form,
+    uncertaintyPenalty: 10,
+  });
 }

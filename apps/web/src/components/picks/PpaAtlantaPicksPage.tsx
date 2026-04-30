@@ -1,6 +1,6 @@
 import { Bomb, CircleDot, Target, Trophy, Zap } from "lucide-react";
 
-import { Hero, PickCard, PicksDashboardBar, PlayerRow } from "./picksUi";
+import { Hero, PickCard, PicksDashboardBar, PlayerRow, WakiOddsPanel } from "./picksUi";
 
 export default function PpaAtlantaPicksPage() {
   return (
@@ -15,6 +15,13 @@ export default function PpaAtlantaPicksPage() {
           ctaHref="/pick-teams"
           ctaText="Build Pickleball Lineup"
           icon={CircleDot}
+        />
+        <WakiOddsPanel
+          labelA="Anna Leigh Waters + Ben Johns"
+          labelB="Anna Bright + Federico Staksrud"
+          ratingA={1665}
+          ratingB={1535}
+          market="pickleball"
         />
 
         <div className="grid gap-5 md:grid-cols-3">

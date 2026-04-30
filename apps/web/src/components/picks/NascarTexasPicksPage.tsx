@@ -1,6 +1,6 @@
 import { Bomb, DollarSign, Flag, Target, Trophy } from "lucide-react";
 
-import { Hero, PickCard, PicksDashboardBar, PlayerRow } from "./picksUi";
+import { Hero, PickCard, PicksDashboardBar, PlayerRow, WakiOddsPanel } from "./picksUi";
 
 export default function NascarTexasPicksPage() {
   return (
@@ -15,6 +15,13 @@ export default function NascarTexasPicksPage() {
           ctaHref="/nascar"
           ctaText="Build NASCAR Lineup"
           icon={Flag}
+        />
+        <WakiOddsPanel
+          labelA="Byron + Larson"
+          labelB="Hamlin + Chastain"
+          ratingA={1640}
+          ratingB={1510}
+          market="nascar"
         />
 
         <div className="grid gap-5 md:grid-cols-3">

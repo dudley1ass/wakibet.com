@@ -23,6 +23,7 @@ fs.writeFileSync(path.join(dist, "404.html"), html);
 const routes = [
   "contact",
   "scoring-table",
+  "wakiodds",
   "terms",
   "privacy",
   "responsible-play",
