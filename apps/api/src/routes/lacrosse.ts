@@ -36,7 +36,11 @@ function probabilityToOdds(p: number): number {
 }
 
 function spreadFromDiff(diff: number): number {
-  return Math.round((diff / 50) * 2) / 2;
+  const sign = diff >= 0 ? 1 : -1;
+  const raw = Math.abs(diff) / 8;
+  const rounded = Math.round(raw * 2) / 2;
+  const spread = Math.max(0.5, rounded);
+  return spread * sign;
 }
 
 function confidenceFromP(p: number): number {
@@ -111,6 +115,67 @@ async function loadTeamRatings(): Promise<TeamRow[]> {
       return { team: r.team, rating };
     })
     .sort((a, b) => b.rating - a.rating);
+}
+
+type PllPlayerLite = { team: string; displayName: string; displayNameNorm: string; ppg: number };
+
+function normPlayerName(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+async function loadPllPlayers(): Promise<PllPlayerLite[]> {
+  const csvPath = path.resolve(process.cwd(), "data", "pll-player-stats.csv");
+  const raw = await fs.readFile(csvPath, "utf8");
+  const lines = raw.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const head = lines[0]!.split(",");
+  const idx = new Map(head.map((h, i) => [h.trim(), i]));
+  const gi = (row: string[], k: string): string => row[idx.get(k) ?? -1] ?? "";
+  const num = (row: string[], k: string): number => {
+    const n = Number(gi(row, k));
+    return Number.isFinite(n) ? n : 0;
+  };
+  const out: PllPlayerLite[] = [];
+  for (const line of lines.slice(1)) {
+    const row = line.split(",");
+    const team = gi(row, "Team");
+    if (!team) continue;
+    const first = gi(row, "First Name").trim();
+    const last = gi(row, "Last Name").trim();
+    const displayName = `${first} ${last}`.trim();
+    if (!displayName) continue;
+    const gp = Math.max(1, num(row, "Games Played"));
+    const pts = num(row, "Points");
+    out.push({
+      team,
+      displayName,
+      displayNameNorm: normPlayerName(displayName),
+      ppg: pts / gp,
+    });
+  }
+  return out;
+}
+
+type StackPayloadV1 = { v: 1; winner_line_id: string; side: "A" | "B"; players: string[] };
+const PICK_SLOT_ORDER = ["winner", "spread", "total", "wild"] as const;
+
+function parseStackJson(raw: string | null | undefined): StackPayloadV1 | null {
+  if (!raw) return null;
+  try {
+    const x = JSON.parse(raw) as StackPayloadV1;
+    if (x?.v !== 1 || typeof x.winner_line_id !== "string") return null;
+    if (x.side !== "A" && x.side !== "B") return null;
+    if (!Array.isArray(x.players) || x.players.length !== 3) return null;
+    return x;
+  } catch {
+    return null;
+  }
+}
+
+function stackResponseFromJson(raw: string | null | undefined): { winner_line_id: string; side: "A" | "B"; players: string[] } | null {
+  const s = parseStackJson(raw);
+  if (!s) return null;
+  return { winner_line_id: s.winner_line_id, side: s.side, players: s.players };
 }
 
 async function ensureCurrentSlate() {
@@ -225,15 +290,23 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
+  const StackBody = z.object({
+    winner_line_id: z.string().min(1),
+    side: z.enum(["A", "B"]),
+    players: z.array(z.string().min(2)).length(3),
+  });
+
   const LineupBody = z.object({
     slate_key: z.string().min(1),
     picks: z.array(
       z.object({
+        slot: z.enum(["winner", "spread", "total", "wild"]),
         line_id: z.string(),
         side: z.enum(["A", "B"]),
         stake: z.number().int().min(0).max(40),
       }),
-    ),
+    ).length(4),
+    stack: StackBody.nullable().optional(),
   });
 
   typed.get(
@@ -250,6 +323,7 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
             est_return: z.number(),
             picks: z.array(
               z.object({
+                slot: z.enum(PICK_SLOT_ORDER),
                 line_id: z.string(),
                 side: z.string(),
                 stake: z.number().int(),
@@ -257,6 +331,13 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
                 est_return: z.number(),
               }),
             ),
+            stack: z
+              .object({
+                winner_line_id: z.string(),
+                side: z.enum(["A", "B"]),
+                players: z.array(z.string()),
+              })
+              .nullable(),
           }),
           404: ErrorMessage,
         },
@@ -269,19 +350,21 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
         where: { userId_slateId: { userId: req.authUser!.id, slateId: slate.id } },
         create: { userId: req.authUser!.id, slateId: slate.id },
         update: {},
-        include: { picks: true },
+        include: { picks: { orderBy: { createdAt: "asc" } } },
       });
       return {
         slate_key: slate.slateKey,
         spent_wakicash: lineup.spentWakiCash,
         est_return: Number(lineup.estReturn),
-        picks: lineup.picks.map((p) => ({
+        picks: lineup.picks.map((p, i) => ({
+          slot: PICK_SLOT_ORDER[i] ?? "wild",
           line_id: p.lineId,
           side: p.side,
           stake: p.stake,
           odds_at_save: p.oddsAtSave,
           est_return: Number(p.estReturn),
         })),
+        stack: stackResponseFromJson(lineup.stackJson),
       };
     },
   );
@@ -308,12 +391,70 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
         return reply.code(409).send({ message: "This lacrosse slate is locked." } as const);
       }
       const total = req.body.picks.reduce((s, p) => s + p.stake, 0);
-      if (total > 100) return reply.code(400).send({ message: "Total stake exceeds 100 WakiCash." } as const);
+      if (total !== 100) return reply.code(400).send({ message: "Total stake must equal exactly 100 WakiCash." } as const);
 
-      const lines = await prisma.lacrosseSlateLine.findMany({ where: { slateId: slate.id } });
-      const byId = new Map(lines.map((l) => [l.id, l]));
+      const slateLines = await prisma.lacrosseSlateLine.findMany({
+        where: { slateId: slate.id },
+        orderBy: { lineKey: "asc" },
+      });
+      const byId = new Map(slateLines.map((l) => [l.id, l]));
+      const seenLineIds = new Set<string>();
+      const seenSlots = new Set<string>();
       for (const p of req.body.picks) {
         if (!byId.has(p.line_id)) return reply.code(400).send({ message: "Invalid line_id for slate." } as const);
+        if (seenLineIds.has(p.line_id)) {
+          return reply.code(400).send({ message: "Each slot must use a different matchup." } as const);
+        }
+        seenLineIds.add(p.line_id);
+        if (seenSlots.has(p.slot)) {
+          return reply.code(400).send({ message: "Duplicate slot in picks payload." } as const);
+        }
+        seenSlots.add(p.slot);
+      }
+      const winnerPick = req.body.picks.find((p) => p.slot === "winner");
+      if (!winnerPick) return reply.code(400).send({ message: "Winner slot pick is required." } as const);
+
+      const winnerLine = byId.get(winnerPick.line_id);
+      let stackJsonUpdate: string | null | undefined = undefined;
+      if (req.body.stack !== undefined) {
+        if (req.body.stack === null) {
+          stackJsonUpdate = null;
+        } else {
+          if (!winnerLine) {
+            return reply.code(400).send({ message: "No featured winner line exists for this slate." } as const);
+          }
+          if (req.body.stack.winner_line_id !== winnerLine.id) {
+            return reply.code(400).send({ message: "Stack winner_line_id must match your Winner slot matchup." } as const);
+          }
+          if (req.body.stack.side !== winnerPick.side) {
+            return reply.code(400).send({ message: "Stack side must match your Winner slot side." } as const);
+          }
+          const team = req.body.stack.side === "A" ? winnerLine.teamA : winnerLine.teamB;
+          const roster = await loadPllPlayers();
+          const allowed = new Map(
+            roster.filter((r) => r.team === team).map((r) => [r.displayNameNorm, r.displayName] as const),
+          );
+          const seen = new Set<string>();
+          const normalizedPlayers: string[] = [];
+          for (const pl of req.body.stack.players) {
+            const key = normPlayerName(pl);
+            if (!allowed.has(key)) {
+              return reply.code(400).send({ message: `Player is not on ${team}: ${pl}` } as const);
+            }
+            if (seen.has(key)) {
+              return reply.code(400).send({ message: "Stack players must be three different players." } as const);
+            }
+            seen.add(key);
+            normalizedPlayers.push(allowed.get(key)!);
+          }
+          const payload: StackPayloadV1 = {
+            v: 1,
+            winner_line_id: winnerLine.id,
+            side: req.body.stack.side,
+            players: normalizedPlayers,
+          };
+          stackJsonUpdate = JSON.stringify(payload);
+        }
       }
 
       const lineup = await prisma.lacrosseLineup.upsert({
@@ -342,7 +483,11 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
       }
       await prisma.lacrosseLineup.update({
         where: { id: lineup.id },
-        data: { spentWakiCash: total, estReturn: est },
+        data: {
+          spentWakiCash: total,
+          estReturn: est,
+          ...(stackJsonUpdate === undefined ? {} : { stackJson: stackJsonUpdate }),
+        },
       });
       return { ok: true as const };
     },
@@ -365,6 +510,7 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
                 est_return: z.number(),
                 picks: z.array(
                   z.object({
+                    slot: z.enum(PICK_SLOT_ORDER),
                     line_id: z.string(),
                     team_a: z.string(),
                     team_b: z.string(),
@@ -372,8 +518,17 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
                     stake: z.number().int(),
                     odds_at_save: z.number().int(),
                     est_return: z.number(),
+                    confidence: z.number().int(),
+                    spread_a: z.number(),
                   }),
                 ),
+                stack: z
+                  .object({
+                    winner_line_id: z.string(),
+                    side: z.enum(["A", "B"]),
+                    players: z.array(z.string()),
+                  })
+                  .nullable(),
               }),
             ),
           }),
@@ -396,7 +551,8 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
           lock_at: l.slate.lockAt.toISOString(),
           spent_wakicash: l.spentWakiCash,
           est_return: Number(l.estReturn),
-          picks: l.picks.map((p) => ({
+          picks: l.picks.map((p, i) => ({
+            slot: PICK_SLOT_ORDER[i] ?? "wild",
             line_id: p.lineId,
             team_a: p.line.teamA,
             team_b: p.line.teamB,
@@ -404,7 +560,10 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
             stake: p.stake,
             odds_at_save: p.oddsAtSave,
             est_return: Number(p.estReturn),
+            confidence: p.line.confidence,
+            spread_a: Number(p.line.spreadA),
           })),
+          stack: stackResponseFromJson(l.stackJson),
         })),
       };
     },

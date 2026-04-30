@@ -291,6 +291,8 @@ model LacrosseLineup {
   status   String @default("active")
   spentWakiCash Int @default(0)
   estReturn     Decimal @default(0) @db.Decimal(10, 2)
+  /** JSON: winner_line_id, side, players[] — 3-player stack tied to winner pick */
+  stackJson String? @db.Text
 
   picks LacrossePick[]
 

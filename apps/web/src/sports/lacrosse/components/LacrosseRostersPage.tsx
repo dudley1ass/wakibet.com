@@ -16,6 +16,7 @@ type Payload = {
     spent_wakicash: number;
     est_return: number;
     picks: Array<{
+      slot: "winner" | "spread" | "total" | "wild";
       line_id: string;
       team_a: string;
       team_b: string;
@@ -23,11 +24,15 @@ type Payload = {
       stake: number;
       odds_at_save: number;
       est_return: number;
+      confidence: number;
+      spread_a: number;
     }>;
+    stack: { winner_line_id: string; side: "A" | "B"; players: string[] } | null;
   }>;
 };
 
 const SLOT_LABELS = ["Winner", "Spread", "Total", "Wild Card"] as const;
+const SLOT_KEYS = ["winner", "spread", "total", "wild"] as const;
 
 function fmtOdds(v: number): string {
   return v > 0 ? `+${v}` : String(v);
@@ -104,19 +109,52 @@ export default function LacrosseRostersPage({ user }: Props) {
                 <div className="rost-players">
                   <span className="rost-players-label">Lineup Slots</span>
                   <ol className="rost-pick-list">
-                    {row.picks.map((p, i) => (
-                      <li key={`${p.line_id}-${i}`} className="rost-pick-row">
-                        <span className="rost-slot">#{i + 1}</span>
-                        <span className="rost-cap">{SLOT_LABELS[i] ?? `Pick ${i + 1}`}</span>
-                        <span className="rost-name">
-                          {p.team_a} vs {p.team_b} — pick {p.side === "A" ? p.team_a : p.team_b}
-                        </span>
-                        <span className="rost-odds">
-                          {p.stake} @ {fmtOdds(p.odds_at_save)}
-                        </span>
-                      </li>
-                    ))}
+                    {SLOT_KEYS.map((slot, i) => {
+                      const p = row.picks.find((x) => x.slot === slot);
+                      return (
+                        <li key={`${row.slate_key}-${slot}`} className="rost-pick-row">
+                          <span className="rost-slot">#{i + 1}</span>
+                          <span className="rost-cap">{SLOT_LABELS[i] ?? `Pick ${i + 1}`}</span>
+                          {p ? (
+                            <>
+                              <span className="rost-name">
+                                {p.team_a} vs {p.team_b} — pick {p.side === "A" ? p.team_a : p.team_b}
+                              </span>
+                              <span className="rost-odds">
+                                {p.stake} @ {fmtOdds(p.odds_at_save)}
+                              </span>
+                              <span className="rost-odds">Est {p.est_return.toFixed(1)}</span>
+                              <span className="rost-odds">Conf {p.confidence}</span>
+                            </>
+                          ) : (
+                            <span className="rost-name" style={{ opacity: 0.7 }}>
+                              Not saved for this slot.
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ol>
+                  {row.stack ? (
+                    <div style={{ marginTop: 12 }}>
+                      <span className="rost-players-label">Winner stack</span>
+                      <p className="dash-sub" style={{ margin: "6px 0 0", fontSize: 12 }}>
+                        {(() => {
+                          const winnerPick = row.picks.find((p) => p.slot === "winner");
+                          const team = winnerPick ? (row.stack.side === "A" ? winnerPick.team_a : winnerPick.team_b) : "Winner team";
+                          return team;
+                        })()}{" "}
+                        —{" "}
+                        {row.stack.players.join(", ")}
+                      </p>
+                    </div>
+                  ) : null}
+                  <div style={{ marginTop: 12 }}>
+                    <span className="rost-players-label">Lineup stats</span>
+                    <p className="dash-sub" style={{ margin: "6px 0 0", fontSize: 12 }}>
+                      Picks saved: {row.picks.length}/4 · Potential profit: {(row.est_return - row.spent_wakicash).toFixed(1)}
+                    </p>
+                  </div>
                 </div>
               </article>
             </li>
