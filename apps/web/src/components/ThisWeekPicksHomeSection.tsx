@@ -33,6 +33,16 @@ export default function ThisWeekPicksHomeSection({ variant = "dashboard" }: { va
             <span className="dash-week-picks-home__venue">PPA Atlanta</span>
           </Link>
         </li>
+        <li>
+          <Link className="dash-week-picks-home__link" to="/lacrosse">
+            <span className="dash-week-picks-home__emoji" aria-hidden>
+              🥍
+            </span>
+            <span className="dash-week-picks-home__label">Lacrosse Slate</span>
+            <span className="dash-week-picks-home__arrow">→</span>
+            <span className="dash-week-picks-home__venue">PLL Power + WakiCash</span>
+          </Link>
+        </li>
       </ul>
     </section>
   );

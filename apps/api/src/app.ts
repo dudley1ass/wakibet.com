@@ -16,6 +16,7 @@ import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
 import { usersRoutes } from "./routes/users.js";
 import { wakiOddsRoutes } from "./routes/wakiodds.js";
+import { lacrosseRoutes } from "./routes/lacrosse.js";
 import { fantasyTournamentRoutes, winterFantasyRoutes } from "./sports/pickleball/routes/index.js";
 import { nascarRoutes } from "./sports/nascar/routes/index.js";
 import { publicContactRoutes } from "./routes/publicContact.js";
@@ -106,6 +107,7 @@ export async function buildApp() {
   await app.register(publicContactRoutes);
   await app.register(usersRoutes);
   await app.register(wakiOddsRoutes);
+  await app.register(lacrosseRoutes, { prefix: "/api/v1/lacrosse" });
   await app.register(winterFantasyRoutes);
   await app.register(fantasyTournamentRoutes, { prefix: "/api/v1/fantasy-tournament" });
   await app.register(nascarRoutes, { prefix: "/api/v1/nascar" });

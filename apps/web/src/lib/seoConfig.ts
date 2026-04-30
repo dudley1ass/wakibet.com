@@ -48,6 +48,20 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "Season-long NASCAR fantasy standings and WakiPoints leaderboard for WakiBet weekly picks.",
   },
+  "/lacrosse": {
+    title: `PLL lacrosse hub — ratings, lines, and WakiCash | ${SITE}`,
+    description:
+      "Wakibet lacrosse slate hub with team power ratings, spread/odds outputs, and 100-point WakiCash confidence allocation.",
+  },
+  "/lacrosse/scoring": {
+    title: `Lacrosse scoring and rating table | ${SITE}`,
+    description:
+      "How Wakibet calculates PLL lacrosse team ratings and WakiCash slate payouts from offense, defense, goalie, form, possession, schedule, and venue factors.",
+  },
+  "/lacrosse/rosters": {
+    title: `My lacrosse rosters | ${SITE}`,
+    description: "Your saved Wakibet lacrosse WakiCash allocations and projected return by slate.",
+  },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,
     description:

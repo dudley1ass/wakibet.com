@@ -13,6 +13,9 @@ const RostersPage = lazy(() => import("./sports/pickleball/components/RostersPag
 const NascarHubPage = lazy(() => import("./sports/nascar/components/NascarHubPage"));
 const NascarRostersPage = lazy(() => import("./sports/nascar/components/NascarRostersPage"));
 const NascarScoringTablePage = lazy(() => import("./sports/nascar/components/NascarScoringTablePage"));
+const LacrosseHubPage = lazy(() => import("./sports/lacrosse/components/LacrosseHubPage"));
+const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components/LacrosseScoringTablePage"));
+const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
 const NascarTexasPicksPage = lazy(() => import("./components/picks/NascarTexasPicksPage"));
 const PpaAtlantaPicksPage = lazy(() => import("./components/picks/PpaAtlantaPicksPage"));
@@ -176,6 +179,25 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/wakiodds" element={<WakiOddsPage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
+      <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
+      <Route path="/lacrosse/scoring" element={<LacrosseScoringTablePage />} />
+      <Route
+        path="/lacrosse/rosters"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your lacrosse rosters.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <LacrosseRostersPage user={session} />
+          )
+        }
+      />
       <Route path="/nascar-texas-picks" element={<NascarTexasPicksPage />} />
       <Route path="/ppa-atlanta-picks" element={<PpaAtlantaPicksPage />} />
       <Route path="/picks/ppa-atlanta" element={<Navigate to="/ppa-atlanta-picks" replace />} />
