@@ -76,10 +76,11 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
 
   const lines = slateQ.data?.lines ?? [];
   const l1 = lines[0];
-  const l2 = lines[1] ?? l1;
-  const l3 = lines[2] ?? l1;
+  const l2 = lines[1];
+  const l3 = lines[2];
+  const l4 = lines[3];
   const slots: SlotDef[] =
-    l1 && l2 && l3
+    l1 && l2 && l3 && l4
       ? [
           {
             key: "winner",
@@ -114,12 +115,12 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
           {
             key: "wild",
             title: "Wild Card Pick",
-            subtitle: `${l1.team_a} vs ${l1.team_b}`,
-            lineId: l1.line_id,
-            optionA: `${l1.team_a} by 3+`,
-            optionB: `${l1.team_b} upset`,
-            oddsA: l1.odds_a,
-            oddsB: l1.odds_b,
+            subtitle: `${l4.team_a} vs ${l4.team_b}`,
+            lineId: l4.line_id,
+            optionA: `${l4.team_a} by 3+`,
+            optionB: `${l4.team_b} upset`,
+            oddsA: l4.odds_a,
+            oddsB: l4.odds_b,
           },
         ]
       : [];
@@ -241,8 +242,18 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
       <section className="dash-section">
         <h2 className="dash-section-title">Build / Edit Lacrosse Picks</h2>
         <p className="dash-section-lead">Set your 4-slot lineup: Winner, Spread, Total, and Wild Card. Allocate exactly 100 WakiCash.</p>
+        <div className="dash-card" style={{ marginTop: 10, marginBottom: 12, padding: "10px 12px" }}>
+          <p style={{ margin: 0, fontWeight: 800, color: "#fef3c7" }}>Make Your Picks</p>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: "#e5e7eb" }}>Choose one option in each category:</p>
+          <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "#e5e7eb", fontSize: 13, lineHeight: 1.5 }}>
+            <li>🟢 Winner - Who wins the game</li>
+            <li>🟡 Spread - Who covers the point spread</li>
+            <li>🔵 Total - Over or Under total goals</li>
+            <li>🔥 Wild Card - Bonus prediction (bigger payoff)</li>
+          </ul>
+        </div>
         {slots.length === 0 ? (
-          <p className="dash-empty">Need team ratings to build featured matchups.</p>
+          <p className="dash-empty">Need at least 4 featured matchups to build this lineup format.</p>
         ) : (
           <div className="scoring-board">
             {slots.map((slot) => {

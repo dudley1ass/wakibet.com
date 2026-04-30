@@ -27,6 +27,8 @@ type Payload = {
   }>;
 };
 
+const SLOT_LABELS = ["Winner", "Spread", "Total", "Wild Card"] as const;
+
 function fmtOdds(v: number): string {
   return v > 0 ? `+${v}` : String(v);
 }
@@ -67,7 +69,9 @@ export default function LacrosseRostersPage({ user }: Props) {
       {!isPending && rows.length === 0 ? (
         <div className="rost-empty dash-card">
           <p className="rost-empty-title">No lacrosse lineups saved yet</p>
-          <p className="rost-empty-body">Allocate WakiCash on the Lacrosse hub and save to track your slate confidence.</p>
+          <p className="rost-empty-body">
+            Build all 4 lineup slots (Winner, Spread, Total, Wild Card), allocate WakiCash, and save to track your slate confidence.
+          </p>
           <Link className="dash-main-btn" to="/lacrosse">
             Open Lacrosse Hub
           </Link>
@@ -92,14 +96,18 @@ export default function LacrosseRostersPage({ user }: Props) {
                       {row.est_return.toFixed(1)}
                       <span className="rost-pts-label">Est return</span>
                     </div>
+                    <p className="dash-sub" style={{ margin: "4px 0 0", fontSize: 11, textAlign: "right" }}>
+                      If every pick hits
+                    </p>
                   </div>
                 </div>
                 <div className="rost-players">
-                  <span className="rost-players-label">Picks</span>
+                  <span className="rost-players-label">Lineup Slots</span>
                   <ol className="rost-pick-list">
                     {row.picks.map((p, i) => (
                       <li key={`${p.line_id}-${i}`} className="rost-pick-row">
                         <span className="rost-slot">#{i + 1}</span>
+                        <span className="rost-cap">{SLOT_LABELS[i] ?? `Pick ${i + 1}`}</span>
                         <span className="rost-name">
                           {p.team_a} vs {p.team_b} — pick {p.side === "A" ? p.team_a : p.team_b}
                         </span>

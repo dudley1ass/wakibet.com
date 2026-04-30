@@ -126,7 +126,7 @@ async function ensureCurrentSlate() {
 
   const teams = await loadTeamRatings();
   const pairs: Array<{ a: TeamRow; b: TeamRow }> = [];
-  for (let i = 0; i + 1 < teams.length && pairs.length < 3; i += 2) {
+  for (let i = 0; i + 1 < teams.length && pairs.length < 4; i += 2) {
     pairs.push({ a: teams[i]!, b: teams[i + 1]! });
   }
 
