@@ -54,6 +54,8 @@ export type SessionUser = {
   virtual_cents?: number;
 };
 
+const SESSION_CACHE_KEY = "wakibet_session_user";
+
 function isTransientBootError(e: unknown): boolean {
   if (!(e instanceof Error)) return false;
   const m = e.message.toLowerCase();
@@ -100,18 +102,34 @@ function App() {
       return;
     }
     setAccessToken(token);
+    // Optimistic dashboard boot: hydrate immediately from last known session while /auth/me refreshes.
+    const cachedRaw = localStorage.getItem(SESSION_CACHE_KEY);
+    if (cachedRaw) {
+      try {
+        const cached = JSON.parse(cachedRaw) as SessionUser;
+        if (cached?.user_id && cached?.email) {
+          setSession(cached);
+          setBooting(false);
+        }
+      } catch {
+        // ignore cache parse errors
+      }
+    }
     loadSessionWithRetry()
-      .then((me) =>
-        setSession({
+      .then((me) => {
+        const next = {
           user_id: me.user_id,
           email: me.email,
           display_name: me.display_name,
           virtual_cents: me.virtual_cents,
-        }),
-      )
+        };
+        setSession(next);
+        localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
+      })
       .catch(() => {
         setAccessToken(null);
         setSession(null);
+        localStorage.removeItem(SESSION_CACHE_KEY);
       })
       .finally(() => setBooting(false));
   }, []);
@@ -121,17 +139,20 @@ function App() {
     user: { user_id: string; email: string; display_name: string; virtual_cents?: number };
   }) {
     setAccessToken(payload.access_token);
-    setSession({
+    const next = {
       user_id: payload.user.user_id,
       email: payload.user.email,
       display_name: payload.user.display_name,
       virtual_cents: payload.user.virtual_cents,
-    });
+    };
+    setSession(next);
+    localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
   }
 
   function handleLogout() {
     setAccessToken(null);
     setSession(null);
+    localStorage.removeItem(SESSION_CACHE_KEY);
   }
 
   const dashboardFetchEnabled = Boolean(session && !booting);
