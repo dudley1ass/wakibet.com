@@ -106,11 +106,13 @@ function App() {
     }
     setAccessToken(token);
     // Optimistic dashboard boot: hydrate immediately from last known session while /auth/me refreshes.
+    let hadCachedSession = false;
     const cachedRaw = localStorage.getItem(SESSION_CACHE_KEY);
     if (cachedRaw) {
       try {
         const cached = JSON.parse(cachedRaw) as SessionUser;
         if (cached?.user_id && cached?.email) {
+          hadCachedSession = true;
           setSession(cached);
           setBooting(false);
         }
@@ -135,8 +137,12 @@ function App() {
         setSession(next);
         localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
       })
-      .catch(() => {
+      .catch((e) => {
         if (cancelled) return;
+        if (isTransientBootError(e) && hadCachedSession) {
+          // Keep the last good session during backend cold starts.
+          return;
+        }
         setAccessToken(null);
         setSession(null);
         localStorage.removeItem(SESSION_CACHE_KEY);
