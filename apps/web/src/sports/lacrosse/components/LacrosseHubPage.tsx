@@ -101,6 +101,12 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
           <h1>
             Lacrosse <span className="brand-jp">WakiBet</span>
           </h1>
+          {slateQ.data ? (
+            <p className="dash-section-lead" style={{ marginTop: 6, marginBottom: 8 }}>
+              Featured slate: <strong>{slateQ.data.name}</strong>
+              <span style={{ opacity: 0.85 }}> · PLL {slateQ.data.season_year}</span>
+            </p>
+          ) : null}
           <p>
             Allocate <strong>100 WakiCash</strong> across lines by confidence. Max per pick is <strong>40</strong>.
           </p>

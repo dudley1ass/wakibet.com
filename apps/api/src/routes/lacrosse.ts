@@ -6,6 +6,11 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 
+/** Current featured PLL slate (tournament) shown in the app. */
+const LACROSSE_SLATE_KEY = "pll_utah_open_2026";
+const LACROSSE_SLATE_NAME = "Utah Open";
+const LACROSSE_SEASON_YEAR = 2026;
+
 type TeamRow = {
   team: string;
   rating: number;
@@ -109,14 +114,14 @@ async function loadTeamRatings(): Promise<TeamRow[]> {
 }
 
 async function ensureCurrentSlate() {
-  const seasonYear = new Date().getUTCFullYear();
-  const slateKey = `pll_week_${seasonYear}`;
+  const seasonYear = LACROSSE_SEASON_YEAR;
+  const slateKey = LACROSSE_SLATE_KEY;
   const lockAt = new Date();
-  lockAt.setUTCDate(lockAt.getUTCDate() + 3);
+  lockAt.setUTCDate(lockAt.getUTCDate() + 14);
   const slate = await prisma.lacrosseSlate.upsert({
     where: { slateKey },
-    create: { slateKey, seasonYear, lockAt, name: `PLL Week ${seasonYear}` },
-    update: { name: `PLL Week ${seasonYear}`, lockAt },
+    create: { slateKey, seasonYear, lockAt, name: LACROSSE_SLATE_NAME },
+    update: { name: LACROSSE_SLATE_NAME },
   });
 
   const teams = await loadTeamRatings();

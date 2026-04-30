@@ -49,9 +49,9 @@ const ROUTES: Record<string, SeoEntry> = {
       "Season-long NASCAR fantasy standings and WakiPoints leaderboard for WakiBet weekly picks.",
   },
   "/lacrosse": {
-    title: `PLL lacrosse hub — ratings, lines, and WakiCash | ${SITE}`,
+    title: `Utah Open — PLL lacrosse hub, ratings & WakiCash | ${SITE}`,
     description:
-      "Wakibet lacrosse slate hub with team power ratings, spread/odds outputs, and 100-point WakiCash confidence allocation.",
+      "Utah Open PLL slate on WakiBet: team power ratings, spread and odds lines, and 100-point WakiCash allocation.",
   },
   "/lacrosse/scoring": {
     title: `Lacrosse scoring and rating table | ${SITE}`,
