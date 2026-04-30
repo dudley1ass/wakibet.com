@@ -27,20 +27,20 @@ function isTimedOut(e: unknown): boolean {
   return e instanceof Error && e.name === "AbortError";
 }
 
-async function apiFetch(path: string, init: RequestInit, attempt = 1): Promise<Response> {
+async function apiFetch(path: string, init: RequestInit, attempt = 1, timeoutMs = DEFAULT_FETCH_MS): Promise<Response> {
   try {
     return await fetch(`${baseUrl()}${path}`, {
       ...init,
-      signal: createTimeoutSignal(DEFAULT_FETCH_MS),
+      signal: createTimeoutSignal(timeoutMs),
     });
   } catch (e) {
     if (isTimedOut(e)) {
       // Render cold starts can exceed typical request budgets; retry idempotent reads once.
       if ((init.method == null || init.method.toUpperCase() === "GET") && attempt < 2) {
-        return apiFetch(path, init, attempt + 1);
+        return apiFetch(path, init, attempt + 1, timeoutMs);
       }
       throw new Error(
-        `Request to ${path} timed out after ${DEFAULT_FETCH_MS / 1000}s. Check VITE_API_BASE, that the API is running, and your network.`,
+        `Request to ${path} timed out after ${timeoutMs / 1000}s. Check VITE_API_BASE, that the API is running, and your network.`,
       );
     }
     throw e;
@@ -185,10 +185,18 @@ export async function finalizeAuthFromLoginResponse(raw: Record<string, unknown>
   };
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const res = await apiFetch(path, {
-    headers: authHeaders(),
-  });
+export type ApiGetOpts = { timeoutMs?: number };
+
+export async function apiGet<T>(path: string, opts?: ApiGetOpts): Promise<T> {
+  const timeoutMs = opts?.timeoutMs ?? DEFAULT_FETCH_MS;
+  const res = await apiFetch(
+    path,
+    {
+      headers: authHeaders(),
+    },
+    1,
+    timeoutMs,
+  );
   assertJsonResponse(res, path);
   let data: Record<string, unknown> = {};
   try {

@@ -1,5 +1,6 @@
 ﻿import type { SessionUser } from "../App";
 import { Link } from "react-router-dom";
+import { EMPTY_FANTASY_PULSE } from "../sports/pickleball/lib/dashboardQuery";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
 import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
@@ -116,7 +117,7 @@ export default function Dashboard({ user, onLogout }: Props) {
   const { preview, loading, error, reload: loadDashboard } = useDashboardDataRequired();
 
   const joined = preview ? new Date(preview.profile.joined_at).toLocaleDateString() : "--";
-  const pulse = preview?.fantasy_pulse;
+  const pulse = preview?.fantasy_pulse ?? EMPTY_FANTASY_PULSE;
 
   return (
     <div className="dash-shell">
@@ -150,7 +151,7 @@ export default function Dashboard({ user, onLogout }: Props) {
         </p>
       )}
 
-      {preview && pulse && (
+      {preview && (
         <>
           <DashboardMultiSportLayout preview={preview} pulse={pulse} />
 

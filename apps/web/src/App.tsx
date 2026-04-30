@@ -70,9 +70,11 @@ function isTransientBootError(e: unknown): boolean {
   );
 }
 
+/** Short reads — cold API boots should fail fast instead of blocking the SPA for ~90s. */
+const BOOT_AUTH_TIMEOUT_MS = 12_000;
+
 async function loadSessionWithRetry(): Promise<SessionUser> {
-  // Keep resilience for transient failures, but avoid multi-second boot stalls.
-  const delaysMs = [0, 250, 750];
+  const delaysMs = [0, 400];
   let lastErr: unknown = null;
   for (let i = 0; i < delaysMs.length; i++) {
     const delay = delaysMs[i]!;
@@ -80,7 +82,7 @@ async function loadSessionWithRetry(): Promise<SessionUser> {
       await new Promise((r) => setTimeout(r, delay));
     }
     try {
-      return await apiGet<SessionUser>("/api/v1/auth/me");
+      return await apiGet<SessionUser>("/api/v1/auth/me", { timeoutMs: BOOT_AUTH_TIMEOUT_MS });
     } catch (e) {
       lastErr = e;
       if (!isTransientBootError(e) || i === delaysMs.length - 1) {
@@ -96,10 +98,11 @@ function App() {
   const [booting, setBooting] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const token = loadStoredToken();
     if (!token) {
       setBooting(false);
-      return;
+      return undefined;
     }
     setAccessToken(token);
     // Optimistic dashboard boot: hydrate immediately from last known session while /auth/me refreshes.
@@ -115,8 +118,14 @@ function App() {
         // ignore cache parse errors
       }
     }
+
+    const watchdog = window.setTimeout(() => {
+      if (!cancelled) setBooting(false);
+    }, 20_000);
+
     loadSessionWithRetry()
       .then((me) => {
+        if (cancelled) return;
         const next = {
           user_id: me.user_id,
           email: me.email,
@@ -127,11 +136,21 @@ function App() {
         localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
       })
       .catch(() => {
+        if (cancelled) return;
         setAccessToken(null);
         setSession(null);
         localStorage.removeItem(SESSION_CACHE_KEY);
       })
-      .finally(() => setBooting(false));
+      .finally(() => {
+        if (cancelled) return;
+        window.clearTimeout(watchdog);
+        setBooting(false);
+      });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(watchdog);
+    };
   }, []);
 
   function handleAuthSuccess(payload: {
