@@ -32,9 +32,32 @@ type SavedLineupPayload = {
   picks: Array<{ line_id: string; side: string; stake: number; odds_at_save: number; est_return: number }>;
 };
 
+type SlotKey = "winner" | "spread" | "total" | "wild";
+
+type SlotDef = {
+  key: SlotKey;
+  title: string;
+  subtitle: string;
+  lineId: string;
+  optionA: string;
+  optionB: string;
+  oddsA: number;
+  oddsB: number;
+};
+
 export default function LacrosseHubPage({ user }: { user: SessionUser | null }) {
-  const [stakes, setStakes] = useState<number[]>([40, 30, 30]);
-  const [sides, setSides] = useState<Array<"A" | "B">>(["A", "A", "A"]);
+  const [stakes, setStakes] = useState<Record<SlotKey, number>>({
+    winner: 30,
+    spread: 40,
+    total: 20,
+    wild: 10,
+  });
+  const [sides, setSides] = useState<Record<SlotKey, "A" | "B">>({
+    winner: "A",
+    spread: "A",
+    total: "A",
+    wild: "A",
+  });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [saveErr, setSaveErr] = useState<string | null>(null);
@@ -51,38 +74,86 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
     enabled: Boolean(user && slateQ.data?.slate_key),
   });
 
+  const lines = slateQ.data?.lines ?? [];
+  const l1 = lines[0];
+  const l2 = lines[1] ?? l1;
+  const l3 = lines[2] ?? l1;
+  const slots: SlotDef[] =
+    l1 && l2 && l3
+      ? [
+          {
+            key: "winner",
+            title: "Winner Pick",
+            subtitle: `${l1.team_a} vs ${l1.team_b}`,
+            lineId: l1.line_id,
+            optionA: l1.team_a,
+            optionB: l1.team_b,
+            oddsA: l1.odds_a,
+            oddsB: l1.odds_b,
+          },
+          {
+            key: "spread",
+            title: "Spread Pick",
+            subtitle: `${l2.team_a} vs ${l2.team_b}`,
+            lineId: l2.line_id,
+            optionA: `${l2.team_a} ${l2.spread_a > 0 ? `-${l2.spread_a}` : `+${Math.abs(l2.spread_a)}`}`,
+            optionB: `${l2.team_b} ${l2.spread_a > 0 ? `+${l2.spread_a}` : `-${Math.abs(l2.spread_a)}`}`,
+            oddsA: l2.odds_a,
+            oddsB: l2.odds_b,
+          },
+          {
+            key: "total",
+            title: "Total Pick",
+            subtitle: `${l3.team_a} vs ${l3.team_b} · O/U 22.5`,
+            lineId: l3.line_id,
+            optionA: "Over 22.5",
+            optionB: "Under 22.5",
+            oddsA: l3.odds_a,
+            oddsB: l3.odds_b,
+          },
+          {
+            key: "wild",
+            title: "Wild Card Pick",
+            subtitle: `${l1.team_a} vs ${l1.team_b}`,
+            lineId: l1.line_id,
+            optionA: `${l1.team_a} by 3+`,
+            optionB: `${l1.team_b} upset`,
+            oddsA: l1.odds_a,
+            oddsB: l1.odds_b,
+          },
+        ]
+      : [];
+
   useEffect(() => {
     const picks = lineupQ.data?.picks ?? [];
-    if (picks.length === 0 || !slateQ.data) return;
-    const byLine = new Map(picks.map((p) => [p.line_id, p]));
-    const nextStakes = [...stakes];
-    const nextSides = [...sides];
-    slateQ.data.lines.forEach((line, i) => {
-      const p = byLine.get(line.line_id);
-      if (!p) return;
-      nextStakes[i] = p.stake;
-      nextSides[i] = p.side === "B" ? "B" : "A";
-    });
-    setStakes(nextStakes);
+    if (picks.length === 0 || slots.length === 0) return;
+    const nextSides = { ...sides };
+    const nextStakes = { ...stakes };
+    for (const slot of slots) {
+      const p = picks.find((x) => x.line_id === slot.lineId);
+      if (!p) continue;
+      nextSides[slot.key] = p.side === "B" ? "B" : "A";
+      nextStakes[slot.key] = p.stake;
+    }
     setSides(nextSides);
+    setStakes(nextStakes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lineupQ.data, slateQ.data]);
+  }, [lineupQ.data, slots.length]);
 
-  const lines = slateQ.data?.lines ?? [];
-  const totalStake = stakes.reduce((s, n) => s + n, 0);
+  const totalStake = Object.values(stakes).reduce((s, n) => s + n, 0);
 
   async function saveLineup(): Promise<void> {
-    if (!slateQ.data) return;
+    if (!slateQ.data || slots.length === 0) return;
     setSaving(true);
     setSaveMsg(null);
     setSaveErr(null);
     try {
       await apiPut("/api/v1/lacrosse/lineup", {
         slate_key: slateQ.data.slate_key,
-        picks: slateQ.data.lines.map((line, i) => ({
-          line_id: line.line_id,
-          side: sides[i] ?? "A",
-          stake: Math.max(0, Math.min(40, stakes[i] ?? 0)),
+        picks: slots.map((slot) => ({
+          line_id: slot.lineId,
+          side: sides[slot.key] ?? "A",
+          stake: Math.max(0, Math.min(40, stakes[slot.key] ?? 0)),
         })),
       });
       setSaveMsg("Lacrosse lineup saved.");
@@ -168,54 +239,60 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
       </section>
 
       <section className="dash-section">
-        <h2 className="dash-section-title">WakiCash Allocation (100-point slate)</h2>
-        <p className="dash-section-lead">Confidence allocation model with true odds-based return estimate.</p>
-        {lines.length === 0 ? (
+        <h2 className="dash-section-title">Build / Edit Lacrosse Picks</h2>
+        <p className="dash-section-lead">Set your 4-slot lineup: Winner, Spread, Total, and Wild Card. Allocate exactly 100 WakiCash.</p>
+        {slots.length === 0 ? (
           <p className="dash-empty">Need team ratings to build featured matchups.</p>
         ) : (
           <div className="scoring-board">
-            {lines.map((m, i) => {
-              const stake = stakes[i] ?? 0;
+            {slots.map((slot) => {
+              const stake = stakes[slot.key] ?? 0;
               const maxStake = 40;
               const clamped = Math.min(maxStake, Math.max(0, stake));
-              const side = sides[i] ?? "A";
-              const odds = side === "A" ? m.odds_a : m.odds_b;
+              const side = sides[slot.key] ?? "A";
+              const odds = side === "A" ? slot.oddsA : slot.oddsB;
               const implied = odds < 0 ? 1 + 100 / Math.abs(odds) : 1 + Math.abs(odds) / 100;
               const returnIfWin = clamped * implied;
               return (
-                <section className="scoring-block" key={m.line_id}>
-                  <h3 className="scoring-block-title">
-                    {m.team_a} vs {m.team_b}
-                  </h3>
+                <section className="scoring-block" key={slot.key}>
+                  <h3 className="scoring-block-title">{slot.title}</h3>
+                  <p className="dash-sub" style={{ marginTop: 0, marginBottom: 8 }}>{slot.subtitle}</p>
                   <div className="scoring-rows">
                     <div className="scoring-row">
-                      <span className="scoring-label">{m.team_a} odds</span>
-                      <span className="scoring-pts">{fmtOdds(m.odds_a)}</span>
+                      <span className="scoring-label">{slot.optionA} odds</span>
+                      <span className="scoring-pts">{fmtOdds(slot.oddsA)}</span>
                     </div>
                     <div className="scoring-row">
-                      <span className="scoring-label">{m.team_b} odds</span>
-                      <span className="scoring-pts">{fmtOdds(m.odds_b)}</span>
+                      <span className="scoring-label">{slot.optionB} odds</span>
+                      <span className="scoring-pts">{fmtOdds(slot.oddsB)}</span>
                     </div>
                     <div className="scoring-row">
-                      <span className="scoring-label">Line (spread)</span>
-                      <span className="scoring-pts">
-                        {m.team_a} {m.spread_a > 0 ? `-${m.spread_a}` : `+${Math.abs(m.spread_a)}`}
-                      </span>
-                    </div>
-                    <div className="scoring-row">
-                      <span className="scoring-label">Pick side</span>
-                      <span className="scoring-pts">
-                        <select
-                          value={side}
-                          onChange={(e) => {
-                            const next = [...sides];
-                            next[i] = e.target.value === "B" ? "B" : "A";
+                      <span className="scoring-label">Pick team</span>
+                      <span className="scoring-pts" style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          className={side === "A" ? "dash-main-btn" : "dash-ghost-btn"}
+                          style={{ minHeight: 30, padding: "4px 10px", fontSize: 12 }}
+                          onClick={() => {
+                            const next = { ...sides };
+                            next[slot.key] = "A";
                             setSides(next);
                           }}
                         >
-                          <option value="A">{m.team_a}</option>
-                          <option value="B">{m.team_b}</option>
-                        </select>
+                          {slot.optionA}
+                        </button>
+                        <button
+                          type="button"
+                          className={side === "B" ? "dash-main-btn" : "dash-ghost-btn"}
+                          style={{ minHeight: 30, padding: "4px 10px", fontSize: 12 }}
+                          onClick={() => {
+                            const next = { ...sides };
+                            next[slot.key] = "B";
+                            setSides(next);
+                          }}
+                        >
+                          {slot.optionB}
+                        </button>
                       </span>
                     </div>
                     <div className="scoring-row">
@@ -227,8 +304,8 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
                           max={40}
                           value={clamped}
                           onChange={(e) => {
-                            const next = [...stakes];
-                            next[i] = Number(e.target.value) || 0;
+                            const next = { ...stakes };
+                            next[slot.key] = Number(e.target.value) || 0;
                             setStakes(next);
                           }}
                           style={{ width: 68 }}
