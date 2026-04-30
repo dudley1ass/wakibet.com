@@ -1,0 +1,13 @@
+---
+description: Enforce exact, literal execution with no assumptions.
+alwaysApply: true
+---
+
+# No Assuming
+
+- Follow user instructions literally.
+- Do not add, change, rename, or remove anything not explicitly requested.
+- If any instruction is ambiguous, ask one concise clarification question before editing.
+- Make the smallest possible change set that satisfies the exact request.
+- Do not include extra "helpful" refactors, copy edits, UI tweaks, or side fixes unless explicitly asked.
+
