@@ -708,6 +708,24 @@ a.rost-dash-link {
   flex-direction: column;
   gap: 4px;
 }
+.rost-pick-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 6px 4px 28px;
+}
+.rost-pick-head-player,
+.rost-pick-head-odds {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+.rost-pick-head-odds {
+  text-align: right;
+}
 .rost-pick-row {
   display: flex;
   align-items: center;
@@ -730,6 +748,13 @@ a.rost-dash-link {
   font-size: 12px;
   color: #fffbeb;
   min-width: 0;
+}
+.rost-odds {
+  font-weight: 800;
+  font-size: 11px;
+  color: #fde68a;
+  min-width: 3.7rem;
+  text-align: right;
 }
 .rost-cap {
   font-size: 9px;

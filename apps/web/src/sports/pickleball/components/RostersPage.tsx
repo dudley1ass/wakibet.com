@@ -4,6 +4,7 @@ import { apiGet } from "../../../api";
 import type { SessionUser } from "../../../App";
 import type { DashboardData, FantasyRosterRow } from "../../../components/Dashboard";
 import { dashboardQueryKeys, type DashboardRostersPayload } from "../lib/dashboardQuery";
+import { expectedScore, probabilityToAmericanOdds } from "../../../lib/wakiOdds";
 import "../../../components/dashboard.css";
 
 type Props = {
@@ -176,11 +177,16 @@ function RosterCard({
 
       <div className="rost-players">
         <span className="rost-players-label">Players</span>
+        <div className="rost-pick-head">
+          <span className="rost-pick-head-player">Player</span>
+          <span className="rost-pick-head-odds">Odds to win</span>
+        </div>
         <ol className="rost-pick-list">
           {sortedPicks.map((p) => (
             <li key={p.slot_index} className="rost-pick-row">
               <span className="rost-slot">#{p.slot_index + 1}</span>
               <span className="rost-name">{p.player_name}</span>
+              <span className="rost-odds">{formatAmericanOdds(estimatePickOdds(p.waki_cash))}</span>
               {p.is_captain ? <span className="rost-cap">Captain</span> : null}
             </li>
           ))}
@@ -188,4 +194,15 @@ function RosterCard({
       </div>
     </article>
   );
+}
+
+function estimatePickOdds(wakiCash: number): number {
+  // Higher WakiCash generally represents stronger players in the current pricing model.
+  const rating = 1400 + wakiCash * 8;
+  const p = expectedScore(rating, 1500);
+  return probabilityToAmericanOdds(p);
+}
+
+function formatAmericanOdds(odds: number): string {
+  return odds > 0 ? `+${odds}` : String(odds);
 }
