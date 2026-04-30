@@ -10,7 +10,8 @@ import {
   type NascarLineupPayload,
   type NascarWeekRow,
 } from "../../sports/nascar/lib/dashboardNascar";
-import DashboardPrizeHero from "./DashboardPrizeHero";
+import DashboardSeasonPrizesStrip from "./DashboardSeasonPrizesStrip";
+import DashboardSeasonStandingsHero from "./DashboardSeasonStandingsHero";
 import SportCard from "./SportCard";
 import ThisWeekPicksHomeSection from "../ThisWeekPicksHomeSection";
 
@@ -136,7 +137,10 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
 
   return (
     <>
-      <ThisWeekPicksHomeSection />
+      <div className="dash-top-picks-prizes-row">
+        <ThisWeekPicksHomeSection compact />
+        <DashboardSeasonPrizesStrip />
+      </div>
 
       <section className="dash-ms-section dash-ms-section--sports-top" aria-labelledby="dash-ms-hero-title">
         <h2 id="dash-ms-hero-title" className="dash-ms-section-title">
@@ -192,8 +196,16 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
       </section>
 
       <div className="dash-prize-contests-split">
-        <div className="dash-prize-contests-split__prize">
-          <DashboardPrizeHero />
+        <div className="dash-prize-contests-split__standings">
+          <DashboardSeasonStandingsHero
+            pickleballRank={pulse.my_rank}
+            pickleballPts={preview.fantasy_season.total_fantasy_points}
+            nascarRank={nascarRank ?? null}
+            nascarPts={nascarPts}
+            nascarLoading={seasonQ.isLoading}
+            lacrosseSeasonYear={lacrosseQ.data?.season_year ?? null}
+            lacrosseLoading={lacrosseQ.isLoading}
+          />
         </div>
         <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">
           <h2 id="dash-ms-contests-title" className="dash-ms-section-title dash-ms-section-title--sm">
@@ -296,42 +308,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
           </ul>
         </section>
       </div>
-
-      <section className="dash-ms-section dash-ms-section--rank" aria-labelledby="dash-ms-rank-title">
-        <h2 id="dash-ms-rank-title" className="dash-ms-section-title">
-          Season Standings
-        </h2>
-        <p className="dash-ms-section-lead">
-          Never mixed across sports — each line is its own game.{" "}
-          <Link className="dash-ms-inline-link" to="/pick-teams/leaderboard">
-            Full pickleball leaderboard
-          </Link>
-          {" · "}
-          <Link className="dash-ms-inline-link" to="/nascar/leaderboard">
-            Full NASCAR leaderboard
-          </Link>
-        </p>
-        <ul className="dash-season-rank-list">
-          <li className="dash-season-rank-row dash-season-rank-row--pickleball">
-            <span className="dash-season-rank-ico" aria-hidden>
-              🏓
-            </span>
-            <span className="dash-season-rank-sport">Pickleball</span>
-            <span className="dash-season-rank-val">
-              {pulse.my_rank != null ? `#${pulse.my_rank}` : "—"} · {Math.round(preview.fantasy_season.total_fantasy_points)} pts
-            </span>
-          </li>
-          <li className="dash-season-rank-row dash-season-rank-row--nascar">
-            <span className="dash-season-rank-ico" aria-hidden>
-              🏁
-            </span>
-            <span className="dash-season-rank-sport">NASCAR</span>
-            <span className="dash-season-rank-val">
-              {seasonQ.isLoading ? "…" : nascarRank != null ? `#${nascarRank}` : "—"} · {Math.round(nascarPts)} pts
-            </span>
-          </li>
-        </ul>
-      </section>
     </>
   );
 }

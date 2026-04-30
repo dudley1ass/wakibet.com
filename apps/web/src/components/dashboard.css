@@ -79,23 +79,61 @@
 .dash-footnote { margin-top: 12px; color: #fcd34d; font-size: 11px; }
 .dash-loading { margin-top: 20px; text-align: center; color: #fde68a; font-size: 14px; }
 
-/* Rotating season prize hero (compact; sits beside active contests on wide screens) */
-.dash-prize-hero {
-  margin-top: 0;
+.dash-top-picks-prizes-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+.dash-top-picks-prizes-row > * {
+  min-height: 0;
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .dash-top-picks-prizes-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact week picks (top row) */
+.dash-week-picks-home--compact {
+  margin-bottom: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 9.5rem;
+}
+.dash-week-picks-home--compact .dash-week-picks-home__title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+.dash-week-picks-home--compact .dash-week-picks-home__list {
+  gap: 6px;
+  flex: 1;
+}
+.dash-week-picks-home--compact .dash-week-picks-home__link {
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+.dash-week-picks-home--compact .dash-week-picks-home__venue {
+  font-size: 11px;
+}
+
+/* Season prize strip (top row, beside week picks) */
+.dash-season-prizes-strip {
+  margin: 0;
   border-radius: 12px;
   border: 1px solid rgba(252, 211, 77, 0.4);
   background: linear-gradient(145deg, rgba(92, 36, 20, 0.98), rgba(38, 16, 10, 0.96), rgba(67, 20, 7, 0.94));
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
-  overflow: hidden;
-  height: 100%;
+  padding: 10px 12px 9px;
+  min-height: 9.5rem;
+  display: flex;
+  flex-direction: column;
 }
-.dash-prize-hero-inner {
-  padding: 12px 14px 10px;
-  text-align: center;
-  max-width: 22rem;
-  margin: 0 auto;
-}
-.dash-prize-hero-kicker {
+.dash-season-prizes-strip-kicker {
   margin: 0 0 6px;
   font-size: 9px;
   font-weight: 800;
@@ -103,85 +141,101 @@
   text-transform: uppercase;
   color: #fbbf24;
 }
-.dash-prize-hero-stage {
-  min-height: 4.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.dash-prize-hero-slide {
-  width: 100%;
-  animation: dash-prize-hero-in 0.5s ease-out both;
-}
-@keyframes dash-prize-hero-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .dash-prize-hero-slide {
-    animation: none;
-  }
-}
-.dash-prize-hero-emoji {
-  display: block;
-  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
-  line-height: 1;
-  margin-bottom: 6px;
-}
-.dash-prize-hero-headline {
-  margin: 0 0 4px;
-  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
-  font-weight: 900;
-  color: #fffbeb;
-  line-height: 1.15;
-}
-.dash-prize-hero-prize {
-  margin: 0 0 4px;
-  font-size: clamp(0.75rem, 2vw, 0.88rem);
-  font-weight: 700;
-  color: #fde68a;
-  line-height: 1.35;
-}
-.dash-prize-hero-tag {
+.dash-season-prizes-strip-list {
+  list-style: none;
   margin: 0;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #fcd34d;
-  opacity: 0.92;
-}
-.dash-prize-hero-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 2px;
-}
-.dash-prize-hero-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(251, 191, 36, 0.45);
-  background: rgba(0, 0, 0, 0.25);
   padding: 0;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  justify-content: center;
 }
-.dash-prize-hero-dot:hover {
-  border-color: #fde68a;
-  transform: scale(1.08);
+.dash-season-prizes-strip-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: 6px 8px;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #fffbeb;
 }
-.dash-prize-hero-dot--active {
-  background: linear-gradient(135deg, #f59e0b, #b45309);
-  border-color: #fde68a;
-  box-shadow: 0 0 0 2px rgba(253, 230, 138, 0.25);
+.dash-season-prizes-strip-ico {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.dash-season-prizes-strip-sport {
+  font-weight: 800;
+  color: #fef3c7;
+  min-width: 4.5rem;
+}
+.dash-season-prizes-strip-prize {
+  font-weight: 600;
+  color: #fde68a;
+  text-align: right;
+}
+
+/* Compact season standings (beside active contests) */
+.dash-standings-hero {
+  margin-top: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: linear-gradient(145deg, rgba(12, 30, 48, 0.95), rgba(8, 18, 32, 0.98));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  padding: 10px 12px 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-standings-hero-kicker {
+  margin: 0 0 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+.dash-standings-hero-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.dash-standings-hero-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 6px 8px;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.2;
+  color: #fffbeb;
+}
+.dash-standings-hero-ico {
+  font-size: 0.95rem;
+}
+.dash-standings-hero-sport {
+  font-weight: 800;
+  color: #e2e8f0;
+  font-size: 11px;
+}
+.dash-standings-hero-val {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fde68a;
+  font-size: 11px;
+  text-align: right;
+}
+.dash-standings-hero-links {
+  margin: 8px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  line-height: 1.35;
+  color: #94a3b8;
 }
 
 .dash-prize-contests-split {
@@ -191,11 +245,11 @@
   align-items: stretch;
   margin-top: 12px;
 }
-.dash-prize-contests-split__prize {
+.dash-prize-contests-split__standings {
   min-width: 0;
   display: flex;
 }
-.dash-prize-contests-split__prize .dash-prize-hero {
+.dash-prize-contests-split__standings .dash-standings-hero {
   flex: 1;
 }
 @media (max-width: 840px) {
