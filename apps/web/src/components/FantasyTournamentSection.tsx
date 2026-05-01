@@ -144,35 +144,37 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       setEventsMeta(ev);
       setLineup(lu);
       const next: (SlotDraft | null)[] = [null, null, null, null, null];
-      for (const row of lu.events) {
-        const i = row.slot_index;
-        if (i < 0 || i > 4) continue;
-        const cat = ev.events.find((c) => c.event_key === row.event_key);
-        const mult = cat?.wakicash_multiplier ?? 1;
-        const pl = await apiGet<PlayersResponse>(
-          `/api/v1/winter-fantasy/division-players?tournament_key=${encodeURIComponent(tk)}&division_key=${encodeURIComponent(row.schedule_division_key)}`,
-        );
-        const players = pl.players ?? [];
-        const picks = emptyPicks(lu.roster_size ?? WINTER_FANTASY_ROSTER_SIZE);
-        let cap: number | null = null;
-        for (const p of row.picks) {
-          if (p.slot_index >= 0 && p.slot_index < picks.length) {
-            picks[p.slot_index] = p.player_name;
-            if (p.is_captain) cap = p.slot_index;
+      const rowsToHydrate = lu.events.filter((row) => row.slot_index >= 0 && row.slot_index <= 4);
+      await Promise.all(
+        rowsToHydrate.map(async (row) => {
+          const i = row.slot_index;
+          const cat = ev.events.find((c) => c.event_key === row.event_key);
+          const mult = cat?.wakicash_multiplier ?? 1;
+          const pl = await apiGet<PlayersResponse>(
+            `/api/v1/winter-fantasy/division-players?tournament_key=${encodeURIComponent(tk)}&division_key=${encodeURIComponent(row.schedule_division_key)}`,
+          );
+          const players = pl.players ?? [];
+          const picks = emptyPicks(lu.roster_size ?? WINTER_FANTASY_ROSTER_SIZE);
+          let cap: number | null = null;
+          for (const p of row.picks) {
+            if (p.slot_index >= 0 && p.slot_index < picks.length) {
+              picks[p.slot_index] = p.player_name;
+              if (p.is_captain) cap = p.slot_index;
+            }
           }
-        }
-        next[i] = {
-          event_key: row.event_key,
-          schedule_division_key: row.schedule_division_key,
-          label: row.label,
-          skill_level: pl.skill_level,
-          wakicash_multiplier: mult,
-          players,
-          picks,
-          captainSlot: cap,
-          mlpTeamName: row.mlp_team_name ?? null,
-        };
-      }
+          next[i] = {
+            event_key: row.event_key,
+            schedule_division_key: row.schedule_division_key,
+            label: row.label,
+            skill_level: pl.skill_level,
+            wakicash_multiplier: mult,
+            players,
+            picks,
+            captainSlot: cap,
+            mlpTeamName: row.mlp_team_name ?? null,
+          };
+        }),
+      );
       setSlots(next);
     } catch (e) {
       setMetaErr(e instanceof Error ? e.message : "Could not load fantasy tournament.");
