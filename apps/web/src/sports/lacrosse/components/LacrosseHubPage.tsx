@@ -74,6 +74,8 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
   const slateQ = useQuery({
     queryKey: ["lacrosse", "current"] as const,
     queryFn: () => apiGet<CurrentSlatePayload>("/api/v1/lacrosse/current"),
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1200 * 2 ** attempt, 10_000),
   });
 
   const lineupQ = useQuery({

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -47,9 +48,33 @@ function confidenceFromP(p: number): number {
   return Math.round(Math.abs(p - 0.5) * 100);
 }
 
+/** Resolves PLL CSV across dev, dist, and monorepo cwd (Render cold start often has cwd at repo root). */
+async function readPllPlayerStatsCsv(): Promise<string | null> {
+  const envRaw = process.env.PLL_PLAYER_STATS_CSV?.trim();
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    envRaw ? (path.isAbsolute(envRaw) ? envRaw : path.resolve(process.cwd(), envRaw)) : null,
+    path.resolve(moduleDir, "../../data/pll-player-stats.csv"),
+    path.resolve(process.cwd(), "data/pll-player-stats.csv"),
+    path.resolve(process.cwd(), "apps/api/data/pll-player-stats.csv"),
+  ].filter((p): p is string => Boolean(p));
+
+  const tried: string[] = [];
+  for (const csvPath of candidates) {
+    tried.push(csvPath);
+    try {
+      return await fs.readFile(csvPath, "utf8");
+    } catch {
+      continue;
+    }
+  }
+  console.error(`[lacrosse] pll-player-stats.csv not found (cold cwd=${process.cwd()}). Set PLL_PLAYER_STATS_CSV. Tried:\n  ${tried.join("\n  ")}`);
+  return null;
+}
+
 async function loadTeamRatings(): Promise<TeamRow[]> {
-  const csvPath = path.resolve(process.cwd(), "data", "pll-player-stats.csv");
-  const raw = await fs.readFile(csvPath, "utf8");
+  const raw = await readPllPlayerStatsCsv();
+  if (!raw) return [];
   const lines = raw.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
   const head = lines[0]!.split(",");
@@ -86,6 +111,8 @@ async function loadTeamRatings(): Promise<TeamRow[]> {
     const form = total("Points") / gPlayed;
     return { team, goalsPg, astPg, shoot, caused, pen, fo, gb, savePct, saa, form };
   });
+
+  if (rawTeams.length === 0) return [];
 
   const range = (k: keyof (typeof rawTeams)[number]) => {
     const vals = rawTeams.map((r) => r[k] as number);
@@ -124,8 +151,8 @@ function normPlayerName(s: string): string {
 }
 
 async function loadPllPlayers(): Promise<PllPlayerLite[]> {
-  const csvPath = path.resolve(process.cwd(), "data", "pll-player-stats.csv");
-  const raw = await fs.readFile(csvPath, "utf8");
+  const raw = await readPllPlayerStatsCsv();
+  if (!raw) return [];
   const lines = raw.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
   const head = lines[0]!.split(",");

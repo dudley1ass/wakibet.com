@@ -2,7 +2,7 @@ import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { getCachedDashboardFull } from "../lib/dashboardMaterialize.js";
+import { getCachedDashboardFull, getCachedDashboardSummary } from "../lib/dashboardMaterialize.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 import { prisma } from "../lib/prisma.js";
 import { TOURNAMENT_KEYS } from "../lib/winterSpringsData.js";
@@ -198,11 +198,11 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req) => {
-      const full = await getCachedDashboardFull(req.authUser!);
+      const summary = await getCachedDashboardSummary(req.authUser!);
       return {
-        profile: full.profile,
-        open_contests: full.open_contests,
-        tournament_schedules: full.tournament_schedules,
+        profile: summary.profile,
+        open_contests: summary.open_contests,
+        tournament_schedules: summary.tournament_schedules,
       };
     },
   );

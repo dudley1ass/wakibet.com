@@ -123,15 +123,99 @@ const cache = new Map<string, { at: number; data: DashboardFullPayload }>();
 const CACHE_MS = 4000;
 const inFlight = new Map<string, Promise<DashboardFullPayload>>();
 
-async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayload> {
-  const userId = user.id;
+export type DashboardSummaryOnly = Pick<DashboardFullPayload, "profile" | "open_contests" | "tournament_schedules">;
+
+const summaryCache = new Map<string, { at: number; data: DashboardSummaryOnly }>();
+const summaryInFlight = new Map<string, Promise<DashboardSummaryOnly>>();
+
+async function loadTournamentDataByKeyForDashboard(): Promise<
+  Record<(typeof TOURNAMENT_KEYS)[number], Awaited<ReturnType<typeof getTournamentData>>>
+> {
   const tournamentDataEntries = await Promise.all(
     TOURNAMENT_KEYS.map(async (k) => [k, await getTournamentData(k)] as const),
   );
-  const tournamentDataByKey = Object.fromEntries(tournamentDataEntries) as Record<
+  return Object.fromEntries(tournamentDataEntries) as Record<
     (typeof TOURNAMENT_KEYS)[number],
     Awaited<ReturnType<typeof getTournamentData>>
   >;
+}
+
+/** Profile + schedules only: no all-users Prisma fan-out (fast cold path for /dashboard/summary). */
+async function computeDashboardSummaryOnly(user: AuthUser): Promise<DashboardSummaryOnly> {
+  const tournamentDataByKey = await loadTournamentDataByKeyForDashboard();
+  const tournamentOptions = listTournamentOptions();
+  const tournament_schedules = TOURNAMENT_KEYS.map((k) => {
+    const data = tournamentDataByKey[k];
+    return {
+      tournament_key: k,
+      tournament_name:
+        data?.summary.tournament_name ?? tournamentOptions.find((t) => t.tournament_key === k)?.label ?? k,
+      generated_matches: data?.summary.matches_generated ?? 0,
+      my_upcoming_matches:
+        data?.per_player_matches[user.displayName]?.slice(0, 8).map((m) => ({
+          match_id: m.match_id,
+          event_type: m.event_type,
+          skill_level: m.skill_level,
+          age_bracket: m.age_bracket,
+          event_date: m.event_date,
+          opponent: m.opponent,
+        })) ?? [],
+      featured_matches:
+        data?.matches.slice(0, 8).map((m) => ({
+          match_id: m.match_id,
+          event_type: m.event_type,
+          event_date: m.event_date,
+          player_a: m.player_a,
+          player_b: m.player_b,
+        })) ?? [],
+    };
+  });
+  return {
+    profile: {
+      display_name: user.displayName,
+      email: user.email,
+      state: user.region,
+      country: user.country,
+      joined_at: user.createdAt.toISOString(),
+    },
+    open_contests: listTournamentOptions()
+      .filter((t) => Boolean(tournamentDataByKey[t.tournament_key]))
+      .map((t) => ({
+        id: `${t.tournament_key}-2026`,
+        name: tournamentDataByKey[t.tournament_key]?.summary.tournament_name ?? t.label,
+        entry_fee_dills: 500,
+        status: "UPCOMING",
+      })),
+    tournament_schedules,
+  };
+}
+
+/** Cached summary slice — avoids waiting on full dashboard materialization. */
+export async function getCachedDashboardSummary(user: AuthUser): Promise<DashboardSummaryOnly> {
+  const now = Date.now();
+  const hit = summaryCache.get(user.id);
+  if (hit && now - hit.at < CACHE_MS) return hit.data;
+
+  let p = summaryInFlight.get(user.id);
+  if (p) return p;
+
+  p = computeDashboardSummaryOnly(user)
+    .then((data) => {
+      summaryCache.set(user.id, { at: Date.now(), data });
+      summaryInFlight.delete(user.id);
+      return data;
+    })
+    .catch((err) => {
+      summaryInFlight.delete(user.id);
+      throw err;
+    });
+  summaryInFlight.set(user.id, p);
+  return p;
+}
+
+async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayload> {
+  const userId = user.id;
+  const tournamentDataByKey = await loadTournamentDataByKeyForDashboard();
 
   const [fantasyRows, allFantasyRows, myFantasyTourneys, allFantasyTourneys, catalogAll] = await Promise.all([
     prisma.winterFantasyRoster.findMany({
@@ -447,6 +531,14 @@ export async function getCachedDashboardFull(user: AuthUser): Promise<DashboardF
   p = computeDashboardFull(user)
     .then((data) => {
       cache.set(user.id, { at: Date.now(), data });
+      summaryCache.set(user.id, {
+        at: Date.now(),
+        data: {
+          profile: data.profile,
+          open_contests: data.open_contests,
+          tournament_schedules: data.tournament_schedules,
+        },
+      });
       inFlight.delete(user.id);
       return data;
     })

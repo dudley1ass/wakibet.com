@@ -13,6 +13,13 @@ const host = process.env.HOST ?? "0.0.0.0";
 const app = await buildApp();
 
 try {
+  await prisma.$connect();
+  app.log.info("prisma_connected");
+} catch (err) {
+  app.log.error({ err }, "prisma_connect_failed");
+}
+
+try {
   const n = await ensureNascarCup2026Weeks(prisma);
   app.log.info({ weeks: n }, "nascar_cup_2026_schedule_ensured");
 } catch (err) {
