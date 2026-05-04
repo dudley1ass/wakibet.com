@@ -12,26 +12,75 @@ import {
 import { entryDriverKeysForWeek, isDriverKeyOnWeekEntryList } from "../lib/nascarWeekEntryDriverKeys.js";
 import { computeNascarLineupPoints } from "../lib/nascarWeekResultScoring.js";
 
+/** Coerce values coming back from `$queryRaw` (drivers may differ slightly from Prisma `Float` reads). */
+function sqlFloat(v: unknown): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "bigint") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return 0;
+}
+
 async function aggregateNascarSeasonPoints(seasonYear: number): Promise<{
   pointsByUser: Map<string, number>;
   weeksPlayedByUser: Map<string, number>;
 }> {
-  const lineups = await prisma.nascarWeeklyLineup.findMany({
-    where: { week: { seasonYear } },
-    select: {
-      userId: true,
-      totalPts: true,
-      week: { select: { driverPointsByKey: true } },
-      picks: { select: { points: true, isCaptain: true, driver: { select: { driverKey: true } } } },
-    },
-  });
-  const pointsByUser = new Map<string, number>();
+  const [lineups, pickSumRows, lineupSumRows] = await Promise.all([
+    prisma.nascarWeeklyLineup.findMany({
+      where: { week: { seasonYear } },
+      select: {
+        userId: true,
+        totalPts: true,
+        week: { select: { driverPointsByKey: true } },
+        picks: { select: { points: true, isCaptain: true, driver: { select: { driverKey: true } } } },
+      },
+    }),
+    prisma.$queryRaw<Array<{ userId: string; pts: unknown }>>`
+      SELECT l."userId"::text AS "userId", COALESCE(SUM(p."points"), 0)::float8 AS pts
+      FROM "NascarWeeklyPick" p
+      INNER JOIN "NascarWeeklyLineup" l ON l.id = p."lineupId"
+      INNER JOIN "NascarWeek" w ON w.id = l."weekId"
+      WHERE w."seasonYear" = ${seasonYear}
+      GROUP BY l."userId"
+    `,
+    prisma.$queryRaw<Array<{ userId: string; pts: unknown }>>`
+      SELECT l."userId"::text AS "userId", COALESCE(SUM(l."totalPts"), 0)::float8 AS pts
+      FROM "NascarWeeklyLineup" l
+      INNER JOIN "NascarWeek" w ON w.id = l."weekId"
+      WHERE w."seasonYear" = ${seasonYear}
+      GROUP BY l."userId"
+    `,
+  ]);
+
+  const jsByUser = new Map<string, number>();
   const weeksPlayedByUser = new Map<string, number>();
   for (const L of lineups) {
     const pts = computeNascarLineupPoints(L.totalPts, L.week.driverPointsByKey, L.picks);
-    pointsByUser.set(L.userId, (pointsByUser.get(L.userId) ?? 0) + pts);
+    jsByUser.set(L.userId, (jsByUser.get(L.userId) ?? 0) + pts);
     weeksPlayedByUser.set(L.userId, (weeksPlayedByUser.get(L.userId) ?? 0) + 1);
   }
+
+  const pickSumByUser = new Map(pickSumRows.map((r) => [r.userId, sqlFloat(r.pts)]));
+  const lineupSumByUser = new Map(lineupSumRows.map((r) => [r.userId, sqlFloat(r.pts)]));
+
+  const userIds = new Set<string>();
+  for (const id of jsByUser.keys()) userIds.add(id);
+  for (const id of pickSumByUser.keys()) userIds.add(id);
+  for (const id of lineupSumByUser.keys()) userIds.add(id);
+
+  const pointsByUser = new Map<string, number>();
+  for (const uid of userIds) {
+    pointsByUser.set(
+      uid,
+      Math.max(jsByUser.get(uid) ?? 0, pickSumByUser.get(uid) ?? 0, lineupSumByUser.get(uid) ?? 0),
+    );
+  }
+
   return { pointsByUser, weeksPlayedByUser };
 }
 
