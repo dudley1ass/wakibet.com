@@ -20,6 +20,7 @@
     "db:seed:nascar": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/seed-nascar-cup-drivers.ts",
     "db:seed:nascar-schedule-2026": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/seed-nascar-cup-schedule-2026.ts",
     "db:seed:nascar-all": "pnpm run db:migrate:deploy && pnpm run db:seed:nascar && pnpm run db:seed:nascar-schedule-2026",
+    "db:apply:nascar-week-results": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/apply-nascar-week-results.ts --",
     "db:import:ppa-xlsx": "dotenv -e ../../.env -e ../../.env.example -- tsx scripts/import-ppa-results-xlsx.ts",
     "mlp:clone": "node scripts/clone-mlp-tournament.mjs",
     "dump:openapi": "tsx scripts/dump-openapi.ts",

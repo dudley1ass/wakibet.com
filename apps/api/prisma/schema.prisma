@@ -170,6 +170,8 @@ model NascarWeek {
   raceStartAt DateTime
   lockAt      DateTime
   isClosed    Boolean @default(false)
+  /// Official weekly fantasy points by `NascarDriver.driverKey` (used to score lineups + leaderboards).
+  driverPointsByKey Json?
 
   lineups NascarWeeklyLineup[]
 
