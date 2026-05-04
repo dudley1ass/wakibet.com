@@ -50,6 +50,7 @@ type LineupEvent = {
   tier_code_at_save: string | null;
   is_locked: boolean;
   mlp_team_name: string | null;
+  predicted_total_matches: number | null;
   picks: { slot_index: number; player_name: string; is_captain: boolean; waki_cash: number }[];
 };
 
@@ -100,6 +101,8 @@ type SlotDraft = {
   captainSlot: number | null;
   /** MLP: one franchise bonus pick per event (optional until save). */
   mlpTeamName: string | null;
+  /** Pickleball tiebreaker: user guess for total matches in this event. */
+  predictedMatchTotal: string;
 };
 
 type FantasyTournamentProps = {
@@ -177,6 +180,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
             picks,
             captainSlot: capUse,
             mlpTeamName: row.mlp_team_name ?? null,
+            predictedMatchTotal: row.predicted_total_matches != null ? String(row.predicted_total_matches) : "",
           };
         }),
       );
@@ -366,6 +370,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           picks: emptyPicks(rosterSize),
           captainSlot: rosterSize === 1 ? 0 : null,
           mlpTeamName: null,
+          predictedMatchTotal: "",
         };
         return next;
       });
@@ -421,6 +426,16 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     });
   }
 
+  function setPredictedMatchTotal(slotIndex: number, value: string) {
+    setSlots((prev) => {
+      const next = [...prev];
+      const sl = next[slotIndex];
+      if (!sl) return prev;
+      next[slotIndex] = { ...sl, predictedMatchTotal: value };
+      return next;
+    });
+  }
+
   async function handleSave() {
     setActionErr(null);
     setActionOk(null);
@@ -430,6 +445,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       event_key: string;
       picks: { player_name: string; is_captain: boolean }[];
       mlp_team_name?: string;
+      predicted_total_matches?: number;
     }[] = [];
 
     for (let s = 0; s < eventSlotCount; s++) {
@@ -472,6 +488,8 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           return;
         }
       }
+      const predRaw = sl.predictedMatchTotal.trim();
+      const predNum = predRaw === "" ? NaN : Number.parseInt(predRaw, 10);
       payloadEvents.push({
         slot_index: s,
         event_key: sl.event_key,
@@ -482,6 +500,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         ...(tournamentKey.startsWith("mlp_")
           ? { mlp_team_name: (sl.mlpTeamName ?? "").trim() }
           : {}),
+        ...(Number.isFinite(predNum) && predNum >= 0 ? { predicted_total_matches: predNum } : {}),
       });
     }
 
@@ -700,6 +719,24 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
                         </div>
                       </div>
                     ) : null}
+                    <div className="wf-row" style={{ marginTop: 14 }}>
+                      <label className="wf-label" htmlFor={`ft-pred-matches-${slotIndex}`}>
+                        Tiebreaker: total matches in this event (your guess)
+                      </label>
+                      <input
+                        id={`ft-pred-matches-${slotIndex}`}
+                        type="number"
+                        min={0}
+                        max={999}
+                        className="wf-select"
+                        style={{ maxWidth: 120 }}
+                        inputMode="numeric"
+                        placeholder="e.g. schedule count"
+                        value={sl.predictedMatchTotal}
+                        disabled={busy}
+                        onChange={(e) => setPredictedMatchTotal(slotIndex, e.target.value)}
+                      />
+                    </div>
                   </>
                 )}
               </div>

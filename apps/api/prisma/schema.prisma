@@ -52,6 +52,8 @@ model WinterFantasyRoster {
   user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   divisionKey String
   picks       WinterFantasyPick[]
+  /// Tiebreaker (pickleball): user guess for total matches in this division/event schedule.
+  predictedTotalMatches Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -108,6 +110,8 @@ model FantasyTournamentEventPick {
   lockedAt             DateTime?
   /// MLP-only: single franchise bonus pick for this event (player roster stays primary).
   mlpTeamName          String?
+  /// Tiebreaker (pickleball): user guess for total matches in this event.
+  predictedTotalMatches Int?
   slots                FantasyTournamentEventPickSlot[]
 
   createdAt DateTime @default(now())

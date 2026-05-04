@@ -427,21 +427,17 @@ function teamForPlayerNorm(
   return t ? t.trim() : null;
 }
 
-/**
- * MLP-only: WakiPoints from the single franchise “team pick” for one event division slice.
- * `playerToTeamByNormPlayer` maps normalized player names → official franchise label (must match pick UI).
- */
-export function mlpTeamLayerPointsFromMatches(
-  divisionMatches: WinterJsonMatch[],
-  pickedTeamRaw: string | null | undefined,
+function computeMlpFranchiseLayerCore(
+  sorted: WinterJsonMatch[],
+  pickedN: string,
   playerToTeamByNormPlayer: Map<string, string>,
-): { total: number; breakdown: WinterFantasyScoreBreakdown[] } {
-  const picked = pickedTeamRaw?.trim();
-  if (!picked) return { total: 0, breakdown: [] };
-  const pickedN = normFantasyKey(picked);
-  const sorted = [...divisionMatches].sort((a, b) => (a.event_date || "").localeCompare(b.event_date || ""));
-
-  const r = MLP_TEAM_FANTASY_RULES;
+): {
+  matchRowsWon: number;
+  eventWinGranted: boolean;
+  pickedWins: number;
+  pickedLosses: number;
+  pickedPending: number;
+} {
   let matchRowsWon = 0;
   let eventWinGranted = false;
 
@@ -458,9 +454,6 @@ export function mlpTeamLayerPointsFromMatches(
       (m.medal_for_winner === "gold" && (/\bfinal\b/.test(st) || st.includes("championship")));
     if (clinch && !eventWinGranted) eventWinGranted = true;
   }
-
-  const matchPts = matchRowsWon * r.teamMatchWinPoints;
-  const eventPts = eventWinGranted ? r.teamEventWinPoints : 0;
 
   let pickedWins = 0;
   let pickedLosses = 0;
@@ -484,12 +477,57 @@ export function mlpTeamLayerPointsFromMatches(
     if (lt && normFantasyKey(lt) === pickedN) pickedLosses += 1;
   }
 
+  return { matchRowsWon, eventWinGranted, pickedWins, pickedLosses, pickedPending };
+}
+
+/** MLP franchise layer: match wins on picked team + whether undefeated bonus would apply (tiebreaker inputs). */
+export function mlpFranchiseTiebreakMetrics(
+  divisionMatches: WinterJsonMatch[],
+  pickedTeamRaw: string | null | undefined,
+  playerToTeamByNormPlayer: Map<string, string>,
+): { franchiseMatchWins: number; undefeatedBonusApplied: boolean } {
+  const picked = pickedTeamRaw?.trim();
+  if (!picked) return { franchiseMatchWins: 0, undefeatedBonusApplied: false };
+  const pickedN = normFantasyKey(picked);
+  const sorted = [...divisionMatches].sort((a, b) => (a.event_date || "").localeCompare(b.event_date || ""));
+  const core = computeMlpFranchiseLayerCore(sorted, pickedN, playerToTeamByNormPlayer);
+  const mlpRules = MLP_TEAM_FANTASY_RULES;
+  const undPoints =
+    core.pickedPending === 0 && core.pickedWins > 0 && core.pickedLosses === 0
+      ? mlpRules.teamUndefeatedBonusPoints
+      : 0;
+  return {
+    franchiseMatchWins: core.matchRowsWon,
+    undefeatedBonusApplied: undPoints > 0,
+  };
+}
+
+/**
+ * MLP-only: WakiPoints from the single franchise “team pick” for one event division slice.
+ * `playerToTeamByNormPlayer` maps normalized player names → official franchise label (must match pick UI).
+ */
+export function mlpTeamLayerPointsFromMatches(
+  divisionMatches: WinterJsonMatch[],
+  pickedTeamRaw: string | null | undefined,
+  playerToTeamByNormPlayer: Map<string, string>,
+): { total: number; breakdown: WinterFantasyScoreBreakdown[] } {
+  const picked = pickedTeamRaw?.trim();
+  if (!picked) return { total: 0, breakdown: [] };
+  const pickedN = normFantasyKey(picked);
+  const sorted = [...divisionMatches].sort((a, b) => (a.event_date || "").localeCompare(b.event_date || ""));
+
+  const mlpRules = MLP_TEAM_FANTASY_RULES;
+  const core = computeMlpFranchiseLayerCore(sorted, pickedN, playerToTeamByNormPlayer);
+
+  const matchPts = core.matchRowsWon * mlpRules.teamMatchWinPoints;
+  const eventPts = core.eventWinGranted ? mlpRules.teamEventWinPoints : 0;
+
   const und =
-    pickedPending === 0 && pickedWins > 0 && pickedLosses === 0 ? r.teamUndefeatedBonusPoints : 0;
+    core.pickedPending === 0 && core.pickedWins > 0 && core.pickedLosses === 0 ? mlpRules.teamUndefeatedBonusPoints : 0;
 
   const breakdown: WinterFantasyScoreBreakdown[] = [];
   if (matchPts > 0) {
-    breakdown.push({ label: `MLP team match wins (${matchRowsWon}×)`, points: round2(matchPts) });
+    breakdown.push({ label: `MLP team match wins (${core.matchRowsWon}×)`, points: round2(matchPts) });
   }
   if (eventPts > 0) breakdown.push({ label: "MLP team event win", points: round2(eventPts) });
   if (und > 0) breakdown.push({ label: "MLP team undefeated (event)", points: round2(und) });

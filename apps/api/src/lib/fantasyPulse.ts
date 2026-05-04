@@ -12,6 +12,7 @@ import {
   type TournamentKey,
   type WinterData,
 } from "./winterSpringsData.js";
+import { compareTiebreakDescending, userTiebreakMapFromRosters } from "./pickleballFantasyTiebreakRank.js";
 
 type PickRow = { slotIndex: number; playerName: string; isCaptain: boolean };
 
@@ -24,6 +25,8 @@ export type FantasyRosterDbRow = {
   wakipointsMultiplier?: number;
   /** MLP fantasy tournament: single franchise bonus pick for this event. */
   mlpTeamName?: string | null;
+  /** Tiebreaker (pickleball): predicted total matches in this division/event. */
+  predictedTotalMatches?: number | null;
 };
 
 function headlineForBreakdownLabel(label: string, pts: number): string {
@@ -147,9 +150,24 @@ export function computeFantasyLeaderboard(
     map.set(r.userId, cur);
   }
 
+  const tieByUser = userTiebreakMapFromRosters(
+    allRosters.map((r) => ({
+      userId: r.userId,
+      divisionKey: r.divisionKey,
+      picks: r.picks.map((p) => ({ playerName: p.playerName, isCaptain: p.isCaptain })),
+      mlpTeamName: r.mlpTeamName ?? null,
+      predictedTotalMatches: r.predictedTotalMatches ?? null,
+    })),
+    tournamentDataByKey,
+  );
+
   const sorted = [...map.entries()].sort((a, b) => {
     const dp = b[1].points - a[1].points;
     if (dp !== 0) return dp;
+    const ta = tieByUser.get(a[0]) ?? [0, 0, 0, 0, 0];
+    const tb = tieByUser.get(b[0]) ?? [0, 0, 0, 0, 0];
+    const dt = compareTiebreakDescending(ta, tb);
+    if (dt !== 0) return dt;
     const dn = a[1].display_name.localeCompare(b[1].display_name, undefined, { sensitivity: "base" });
     if (dn !== 0) return dn;
     return a[0].localeCompare(b[0]);

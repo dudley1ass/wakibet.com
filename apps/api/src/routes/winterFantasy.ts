@@ -78,6 +78,8 @@ const PutRosterBody = z.object({
   tournament_key: z.enum(TOURNAMENT_KEYS),
   division_key: z.string().min(1),
   picks: z.array(PickRow).min(1).max(WINTER_FANTASY_ROSTER_SIZE),
+  /** Pickleball tiebreaker: guess total matches in this event (closest wins). */
+  predicted_total_matches: z.number().int().min(0).max(999).optional(),
 });
 
 export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
@@ -278,6 +280,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
                 waki_cash: z.number().int(),
               }),
             ),
+            predicted_total_matches: z.number().int().nullable(),
           }),
           401: ErrorMessage,
           400: ErrorMessage,
@@ -305,6 +308,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       return {
         tournament_key,
         division_key,
+        predicted_total_matches: roster?.predictedTotalMatches ?? null,
         picks: roster
           ? roster.picks.map((p) => ({
               slot_index: p.slotIndex,
@@ -336,6 +340,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
                 waki_cash: z.number().int(),
               }),
             ),
+            predicted_total_matches: z.number().int().nullable(),
           }),
           401: ErrorMessage,
           400: ErrorMessage,
@@ -345,7 +350,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req, reply) => {
       const uid = req.authUser!.id;
-      const { tournament_key, division_key, picks } = req.body;
+      const { tournament_key, division_key, picks, predicted_total_matches: predictedTotalMatchesIn } = req.body;
       const divParsed = parseDivisionKey(division_key);
       if (!divParsed) {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
@@ -414,14 +419,28 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         let roster = await tx.winterFantasyRoster.findFirst({
           where: { userId: uid, divisionKey: storedDivisionKey },
         });
+        const pred =
+          predictedTotalMatchesIn !== undefined ? predictedTotalMatchesIn : undefined;
         if (!roster) {
           roster = await tx.winterFantasyRoster.create({
-            data: { userId: uid, divisionKey: storedDivisionKey },
+            data: {
+              userId: uid,
+              divisionKey: storedDivisionKey,
+              ...(pred !== undefined ? { predictedTotalMatches: pred } : {}),
+            },
           });
         } else if (roster.divisionKey !== storedDivisionKey) {
           roster = await tx.winterFantasyRoster.update({
             where: { id: roster.id },
-            data: { divisionKey: storedDivisionKey },
+            data: {
+              divisionKey: storedDivisionKey,
+              ...(pred !== undefined ? { predictedTotalMatches: pred } : {}),
+            },
+          });
+        } else if (pred !== undefined) {
+          roster = await tx.winterFantasyRoster.update({
+            where: { id: roster.id },
+            data: { predictedTotalMatches: pred },
           });
         }
         await tx.winterFantasyPick.deleteMany({ where: { rosterId: roster.id } });
@@ -442,6 +461,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
       return {
         tournament_key,
         division_key,
+        predicted_total_matches: saved.predictedTotalMatches ?? null,
         picks: saved.picks.map((p) => ({
           slot_index: p.slotIndex,
           player_name: p.playerName,

@@ -33,6 +33,7 @@ type PlayersResponse = {
 type RosterResponse = {
   tournament_key: string;
   division_key: string;
+  predicted_total_matches?: number | null;
   picks: { slot_index: number; player_name: string; is_captain: boolean; waki_cash: number }[];
 };
 
@@ -79,6 +80,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
   const [players, setPlayers] = useState<DivisionPlayer[]>([]);
   const [picks, setPicks] = useState<string[]>(emptyPicks(ROSTER_SIZE));
   const [captainSlot, setCaptainSlot] = useState<number | null>(null);
+  const [predictedMatchTotal, setPredictedMatchTotal] = useState("");
 
   const [busy, setBusy] = useState(false);
   const [actionErr, setActionErr] = useState<string | null>(null);
@@ -133,6 +135,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
       setPlayers([]);
       setScore(null);
       setCaptainSlot(null);
+      setPredictedMatchTotal("");
     } catch (e) {
       setMetaErr(e instanceof Error ? e.message : "Could not load fantasy divisions.");
     } finally {
@@ -165,6 +168,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
         setPlayers([]);
         setPicks(emptyPicks(rosterSize));
         setCaptainSlot(null);
+        setPredictedMatchTotal("");
         setScore(null);
         return;
       }
@@ -189,6 +193,9 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
         }
         setPicks(next);
         setCaptainSlot(cap);
+        setPredictedMatchTotal(
+          ro.predicted_total_matches != null ? String(ro.predicted_total_matches) : "",
+        );
       } catch (e) {
         setActionErr(e instanceof Error ? e.message : "Failed to load division.");
       } finally {
@@ -246,6 +253,8 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
     }
     setBusy(true);
     try {
+      const predRaw = predictedMatchTotal.trim();
+      const predNum = predRaw === "" ? NaN : Number.parseInt(predRaw, 10);
       const body = {
         tournament_key: tournamentKey,
         division_key: resolvedDivisionKey,
@@ -253,6 +262,7 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
           player_name,
           is_captain: captainSlot === slot_index,
         })),
+        ...(Number.isFinite(predNum) && predNum >= 0 ? { predicted_total_matches: predNum } : {}),
       };
       const res = await apiPut<PutRosterResponse>("/api/v1/winter-fantasy/roster", body);
       setPicks((prev) => {
@@ -432,6 +442,25 @@ export default function WinterFantasySection({ onRosterSaved, pageLayout }: Wint
                     </label>
                   </div>
                 ))}
+              </div>
+
+              <div className="wf-row" style={{ marginTop: 12 }}>
+                <label className="wf-label" htmlFor="wf-pred-matches">
+                  Tiebreaker: total matches in this event (your guess)
+                </label>
+                <input
+                  id="wf-pred-matches"
+                  type="number"
+                  min={0}
+                  max={999}
+                  className="wf-select"
+                  style={{ maxWidth: 120 }}
+                  inputMode="numeric"
+                  placeholder="Optional"
+                  value={predictedMatchTotal}
+                  disabled={busy}
+                  onChange={(e) => setPredictedMatchTotal(e.target.value)}
+                />
               </div>
 
               <div className="wf-actions">

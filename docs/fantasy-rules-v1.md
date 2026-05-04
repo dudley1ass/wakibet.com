@@ -63,7 +63,7 @@ This document **nails down hard rules** for tournament fantasy and how they inte
 | **Season score** | **Sum of WakiPoints** across all **featured** division/event rows the user has submitted (legacy winter **or** tournament fantasy, **not both** for the same `tournament_key`—tournament lineup wins when present). |
 | **Skipped tournament** | **0 points** for that tournament (no penalty row). |
 | **Best X of Y** | **Not used in v1**; **every** planned tournament in the season order counts as **0 until played and scored**. |
-| **Tie-breakers (leaderboard)** | **1)** Higher total WakiPoints **2)** `display_name` ascending (case-insensitive) **3)** `user_id` ascending — stable ordering. **Competition ranking:** users with equal points share the same rank; next rank skips (1,1,3…). |
+| **Tie-breakers (pickleball leaderboard)** | **1)** Total WakiPoints (same as season score) **2)** Then, in order: best single-player **raw** fantasy score in any scored event → best **captain slot** score (1.5× on captain) → season sum of **MLP franchise match wins** (team bonus layer) → **any** MLP **undefeated franchise bonus** earned → closest guess for **total matches** in the event vs the division’s scheduled match list (`-abs(error)`, summed across events where a guess was saved). **Stable tail:** `display_name` ascending → `user_id` ascending. **Competition ranking:** equal points still share rank unless policy changes; tiebreak keys decide ordering among tied rows in listings. |
 | **Normalized points** | **Not used in v1**; raw summed WakiPoints only. |
 
 ---

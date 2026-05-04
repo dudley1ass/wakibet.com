@@ -25,6 +25,7 @@ export function rankPickleballFantasyFromLoaded(args: {
     userId: string;
     divisionKey: string;
     user: { displayName: string };
+    predictedTotalMatches: number | null;
     picks: { slotIndex: number; playerName: string; isCaptain: boolean }[];
   }[];
   allFantasyTourneys: {
@@ -35,6 +36,7 @@ export function rankPickleballFantasyFromLoaded(args: {
       eventKey: string;
       scheduleDivisionKey: string;
       mlpTeamName: string | null;
+      predictedTotalMatches: number | null;
       slots: { slotIndex: number; playerName: string; isCaptain: boolean }[];
     }[];
   }[];
@@ -70,6 +72,7 @@ export function rankPickleballFantasyFromLoaded(args: {
           })),
           wakipointsMultiplier: Number(cat?.wakipointsMultiplier ?? 1),
           mlpTeamName: ep.mlpTeamName ?? null,
+          predictedTotalMatches: ep.predictedTotalMatches ?? null,
         };
       }),
   );
