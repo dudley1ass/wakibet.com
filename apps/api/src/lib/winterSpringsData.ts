@@ -118,11 +118,16 @@ export function filterMatchesForDivision(
   );
 }
 
+/** Doubles schedule rows may use `Last, First / Last, First` on one side; that must not become a roster entity. */
+function isScheduleCompositeName(name: string): boolean {
+  return name.includes(" / ");
+}
+
 export function uniquePlayersInMatches(matches: WinterMatch[]): string[] {
   const s = new Set<string>();
   for (const m of matches) {
-    s.add(m.player_a);
-    s.add(m.player_b);
+    if (!isScheduleCompositeName(m.player_a)) s.add(m.player_a);
+    if (!isScheduleCompositeName(m.player_b)) s.add(m.player_b);
   }
   return [...s].sort((a, b) => a.localeCompare(b));
 }
