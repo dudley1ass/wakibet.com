@@ -2009,6 +2009,10 @@ a.rost-dash-link {
   background: linear-gradient(155deg, rgba(12, 40, 68, 0.96), rgba(8, 20, 40, 0.98));
   border-color: rgba(56, 189, 248, 0.38);
 }
+.dash-sport-card--volleyball {
+  background: linear-gradient(155deg, rgba(52, 28, 72, 0.96), rgba(24, 12, 40, 0.98));
+  border-color: rgba(196, 181, 253, 0.42);
+}
 .dash-sport-card__top {
   display: flex;
   gap: 10px;
@@ -2057,6 +2061,9 @@ a.rost-dash-link {
 .dash-sport-card--lacrosse .dash-sport-card__sub {
   color: #bae6fd;
 }
+.dash-sport-card--volleyball .dash-sport-card__sub {
+  color: #e9d5ff;
+}
 .dash-sport-card__meta {
   display: flex;
   align-items: center;
@@ -2086,6 +2093,11 @@ a.rost-dash-link {
   background: rgba(12, 74, 110, 0.55);
   color: #e0f2fe;
   border: 1px solid rgba(56, 189, 248, 0.45);
+}
+.dash-sport-card__pill--volleyball {
+  background: rgba(76, 29, 149, 0.5);
+  color: #f3e8ff;
+  border: 1px solid rgba(196, 181, 253, 0.45);
 }
 .dash-sport-card__cta {
   margin-top: auto;
@@ -2205,6 +2217,9 @@ a.rost-dash-link {
 }
 .dash-contest-card--lacrosse {
   border-color: rgba(56, 189, 248, 0.3);
+}
+.dash-contest-card--volleyball {
+  border-color: rgba(196, 181, 253, 0.35);
 }
 .dash-contest-card__icon {
   font-size: 22px;

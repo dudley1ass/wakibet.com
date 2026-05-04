@@ -62,6 +62,11 @@ const ROUTES: Record<string, SeoEntry> = {
     title: `My lacrosse rosters | ${SITE}`,
     description: "Your saved Wakibet lacrosse WakiCash allocations and projected return by slate.",
   },
+  "/volleyball": {
+    title: `AVP beach volleyball — 2026 schedule hub | ${SITE}`,
+    description:
+      "2026 AVP League, Heritage, and Contender tour stops with dates and locations on WakiBet — fantasy lineups and scoring coming soon (pickleball-style WakiCash and captains).",
+  },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,
     description:

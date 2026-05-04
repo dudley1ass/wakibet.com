@@ -48,7 +48,14 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     "Winter Fantasy";
   const pbEvent = pbEventRaw.replace(/\s*[-–—]?\s*test run\s*/i, "").replace(/[()_]/g, "").trim();
 
-  const [seasonQ, lacrosseQ] = useQueries({
+  type VolleyballStatusPayload = {
+    season_year: number;
+    event_count: number;
+    fantasy_enabled: boolean;
+    message: string;
+  };
+
+  const [seasonQ, lacrosseQ, volleyballQ] = useQueries({
     queries: [
       {
         queryKey: ["nascar", "season-summary", seasonYear] as const,
@@ -57,6 +64,10 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
       {
         queryKey: ["lacrosse", "current"] as const,
         queryFn: () => apiGet<LacrosseCurrentPayload>("/api/v1/lacrosse/current"),
+      },
+      {
+        queryKey: ["volleyball", "status"] as const,
+        queryFn: () => apiGet<VolleyballStatusPayload>("/api/v1/volleyball/status"),
       },
     ],
   });
@@ -121,8 +132,22 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             ctaLabel="Open lacrosse"
             ctaTo="/lacrosse"
           />
+          <SportCard
+            variant="volleyball"
+            icon="🏐"
+            sportLabel="Beach volleyball"
+            eventName={
+              volleyballQ.isLoading && !volleyballQ.data
+                ? "AVP"
+                : `AVP ${volleyballQ.data?.season_year ?? ""}`.trim()
+            }
+            subline="2026 tour schedule is up — fantasy picks and scoring land next (pickleball-style WakiCash + captains)."
+            statusLabel="AVP"
+            ctaLabel="Open volleyball"
+            ctaTo="/volleyball"
+          />
         </div>
-        {(seasonQ.isError || lacrosseQ.isError) && (
+        {(seasonQ.isError || lacrosseQ.isError || volleyballQ.isError) && (
           <p className="dash-ms-error" role="status">
             Some season data could not load. Open each sport for full details.
           </p>
@@ -230,6 +255,39 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
                 </div>
               </div>
               <Link className="dash-contest-card__link" to="/lacrosse">
+                Open
+              </Link>
+            </li>
+            <li className="dash-contest-card dash-contest-card--volleyball dash-contest-card--compact">
+              <div className="dash-contest-card__icon" aria-hidden>
+                🏐
+              </div>
+              <div className="dash-contest-card__body">
+                <div className="dash-contest-card__sport">Volleyball</div>
+                <div className="dash-contest-card__event">
+                  AVP {volleyballQ.data?.season_year ?? "2026"} — {volleyballQ.data?.event_count ?? "—"} stops
+                </div>
+                <div className="dash-contest-card__detail">
+                  {volleyballQ.data?.fantasy_enabled
+                    ? "Fantasy is live — build lineups from the hub."
+                    : "Schedule hub live; player pool + WakiPoints table coming soon."}
+                </div>
+              </div>
+              <div className="dash-contest-card__stats">
+                <div>
+                  <span className="dash-contest-card__stat-label">Stops</span>
+                  <span className="dash-contest-card__stat-val">
+                    {volleyballQ.isLoading ? "…" : volleyballQ.data?.event_count ?? "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="dash-contest-card__stat-label">Fantasy</span>
+                  <span className="dash-contest-card__stat-val">
+                    {volleyballQ.isLoading ? "…" : volleyballQ.data?.fantasy_enabled ? "On" : "Soon"}
+                  </span>
+                </div>
+              </div>
+              <Link className="dash-contest-card__link" to="/volleyball">
                 Open
               </Link>
             </li>

@@ -6,8 +6,11 @@
 
 export const WINTER_FANTASY_ROSTER_SIZE = 5;
 
-/** MLP multi-event fantasy: one player pick per event (plus franchise team bonus in the tournament API). */
-export const MLP_FANTASY_ROSTER_SIZE = 1;
+/** MLP tournament fantasy: four player picks per event (exactly one captain), plus franchise team bonus in the tournament API. */
+export const MLP_FANTASY_ROSTER_SIZE = 4;
+
+export const MLP_FANTASY_REQUIRED_MEN = 2;
+export const MLP_FANTASY_REQUIRED_WOMEN = 2;
 
 /** v3 scoring constants (WakiBet full table). Captain multiplier stays at roster level (×1.5). */
 export const WINTER_FANTASY_RULES = {

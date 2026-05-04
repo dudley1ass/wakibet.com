@@ -16,6 +16,7 @@ const NascarScoringTablePage = lazy(() => import("./sports/nascar/components/Nas
 const LacrosseHubPage = lazy(() => import("./sports/lacrosse/components/LacrosseHubPage"));
 const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components/LacrosseScoringTablePage"));
 const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
+const VolleyballHubPage = lazy(() => import("./sports/volleyball/components/VolleyballHubPage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
 const NascarTexasPicksPage = lazy(() => import("./components/picks/NascarTexasPicksPage"));
 const WeekPicksHubPage = lazy(() => import("./components/picks/WeekPicksHubPage"));
@@ -226,6 +227,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/wakiodds" element={<WakiOddsPage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
+      <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
       <Route path="/lacrosse/scoring" element={<LacrosseScoringTablePage />} />
       <Route
         path="/lacrosse/rosters"

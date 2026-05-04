@@ -137,11 +137,12 @@ export function NascarSeasonLeaderboardPage({ user }: { user: SessionUser }) {
         `/api/v1/nascar/season-leaderboard?season_year=${seasonYear}`,
       ),
   });
+  const kickerYear = q.data?.season_year ?? seasonYear;
   return (
     <LeaderboardShell
       user={user}
       title="NASCAR — Season leaderboard"
-      kicker={`Cup ${seasonYear} · weekly lineups`}
+      kicker={`Cup ${kickerYear} · weekly lineups`}
       backHref="/nascar"
       backLabel="NASCAR hub"
       extraNav={

@@ -2,6 +2,8 @@ import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
+  MLP_FANTASY_REQUIRED_MEN,
+  MLP_FANTASY_REQUIRED_WOMEN,
   MLP_FANTASY_ROSTER_SIZE,
   playerWakiCashCost,
   scoreWinterPlayerFromMatches,
@@ -235,8 +237,8 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           skill_level: skill,
           waki_cash_budget: 100,
           roster_size: MLP_FANTASY_ROSTER_SIZE,
-          required_men: null,
-          required_women: null,
+          required_men: MLP_FANTASY_REQUIRED_MEN,
+          required_women: MLP_FANTASY_REQUIRED_WOMEN,
           players: mlpPlayers.map((p) => ({
             player_name: p.player_name,
             waki_cash: p.waki_cash,

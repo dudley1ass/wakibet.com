@@ -1,7 +1,13 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { MLP_FANTASY_ROSTER_SIZE, playerWakiCashCost, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import {
+  MLP_FANTASY_REQUIRED_MEN,
+  MLP_FANTASY_REQUIRED_WOMEN,
+  MLP_FANTASY_ROSTER_SIZE,
+  playerWakiCashCost,
+  WINTER_FANTASY_ROSTER_SIZE,
+} from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 import {
@@ -37,7 +43,12 @@ type PoolPlayer = {
 
 function rosterRulesForTournament(tournamentKey: TournamentKey): RosterRules {
   if (isMlpTournament(tournamentKey)) {
-    return { rosterSize: MLP_FANTASY_ROSTER_SIZE, budget: 100, requiredMen: null, requiredWomen: null };
+    return {
+      rosterSize: MLP_FANTASY_ROSTER_SIZE,
+      budget: 100,
+      requiredMen: MLP_FANTASY_REQUIRED_MEN,
+      requiredWomen: MLP_FANTASY_REQUIRED_WOMEN,
+    };
   }
   return { rosterSize: WINTER_FANTASY_ROSTER_SIZE, budget: 100, requiredMen: null, requiredWomen: null };
 }

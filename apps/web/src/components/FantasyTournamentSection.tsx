@@ -782,7 +782,8 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
             {isMlpTournamentUi ? (
               <>
                 <strong>MLP</strong> uses <strong>one event slot</strong> per tournament. You get <strong>100 WakiCash</strong>{" "}
-                for that event, pick <strong>one</strong> player (your captain), then choose <strong>one franchise team</strong>{" "}
+                for that event, pick <strong>four</strong> players (exactly <strong>one</strong> captain for 1.5× WakiPoints),{" "}
+                including <strong>two men</strong> and <strong>two women</strong>, then choose <strong>one franchise team</strong>{" "}
                 for team-layer WakiPoints. Once the event starts, those picks lock.
                 <br />
                 <br />

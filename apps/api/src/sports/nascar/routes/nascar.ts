@@ -13,80 +13,43 @@ import {
 import { entryDriverKeysForWeek, isDriverKeyOnWeekEntryList } from "../lib/nascarWeekEntryDriverKeys.js";
 import { computeNascarLineupPoints } from "../lib/nascarWeekResultScoring.js";
 
-/** Coerce values coming back from `$queryRaw` (drivers may differ slightly from Prisma `Float` reads). */
-function sqlFloat(v: unknown): number {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "bigint") {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
-  }
-  if (typeof v === "string" && v.trim() !== "") {
-    const n = Number(v);
-    if (Number.isFinite(n)) return n;
-  }
-  return 0;
+/**
+ * If the UI’s default season has no saved lineups yet, aggregate the latest season that does
+ * (avoids an empty leaderboard when DB lineups use a different `seasonYear`).
+ */
+async function nascarSeasonYearWithLineups(preferred: number): Promise<number> {
+  const n = await prisma.nascarWeeklyLineup.count({
+    where: { week: { seasonYear: preferred } },
+  });
+  if (n > 0) return preferred;
+  const row = await prisma.nascarWeek.findFirst({
+    where: { lineups: { some: {} } },
+    orderBy: { seasonYear: "desc" },
+    select: { seasonYear: true },
+  });
+  return row?.seasonYear ?? preferred;
 }
 
 async function aggregateNascarSeasonPoints(seasonYear: number): Promise<{
   pointsByUser: Map<string, number>;
   weeksPlayedByUser: Map<string, number>;
 }> {
-  /**
-   * DB rollup per user: sum over lineups of GREATEST(rollup totalPts, sum of pick.points).
-   * Matches `computeNascarLineupPoints` when `driverPointsByKey` does not add extra points.
-   * Uses alias `uid` so drivers never mis-map camelCase column names from raw SQL.
-   */
-  const [lineups, sqlAggRows] = await Promise.all([
-    prisma.nascarWeeklyLineup.findMany({
-      where: { week: { seasonYear } },
-      select: {
-        userId: true,
-        totalPts: true,
-        week: { select: { driverPointsByKey: true } },
-        picks: { select: { points: true, isCaptain: true, driver: { select: { driverKey: true } } } },
-      },
-    }),
-    prisma.$queryRaw<Array<{ uid: string; pts: unknown }>>`
-      SELECT sub.uid, COALESCE(SUM(sub.line_pts), 0)::float8 AS pts
-      FROM (
-        SELECT
-          l."userId"::text AS uid,
-          GREATEST(
-            COALESCE(l."totalPts", 0),
-            COALESCE(
-              (
-                SELECT SUM(p."points")::float8
-                FROM "NascarWeeklyPick" p
-                WHERE p."lineupId" = l.id
-              ),
-              0
-            )
-          ) AS line_pts
-        FROM "NascarWeeklyLineup" l
-        INNER JOIN "NascarWeek" w ON w.id = l."weekId"
-        WHERE w."seasonYear" = ${seasonYear}
-      ) sub
-      GROUP BY sub.uid
-    `,
-  ]);
+  const lineups = await prisma.nascarWeeklyLineup.findMany({
+    where: { week: { seasonYear } },
+    select: {
+      userId: true,
+      totalPts: true,
+      week: { select: { driverPointsByKey: true } },
+      picks: { select: { points: true, isCaptain: true, driver: { select: { driverKey: true } } } },
+    },
+  });
 
-  const jsByUser = new Map<string, number>();
+  const pointsByUser = new Map<string, number>();
   const weeksPlayedByUser = new Map<string, number>();
   for (const L of lineups) {
     const pts = computeNascarLineupPoints(L.totalPts, L.week.driverPointsByKey, L.picks);
-    jsByUser.set(L.userId, (jsByUser.get(L.userId) ?? 0) + pts);
+    pointsByUser.set(L.userId, (pointsByUser.get(L.userId) ?? 0) + pts);
     weeksPlayedByUser.set(L.userId, (weeksPlayedByUser.get(L.userId) ?? 0) + 1);
-  }
-
-  const sqlAggByUser = new Map(sqlAggRows.map((r) => [r.uid, sqlFloat(r.pts)]));
-
-  const userIds = new Set<string>();
-  for (const id of jsByUser.keys()) userIds.add(id);
-  for (const id of sqlAggByUser.keys()) userIds.add(id);
-
-  const pointsByUser = new Map<string, number>();
-  for (const uid of userIds) {
-    pointsByUser.set(uid, Math.max(jsByUser.get(uid) ?? 0, sqlAggByUser.get(uid) ?? 0));
   }
 
   return { pointsByUser, weeksPlayedByUser };
@@ -326,7 +289,8 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req) => {
       const userId = req.authUser!.id;
-      const seasonYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
+      const requestedYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
+      const seasonYear = await nascarSeasonYearWithLineups(requestedYear);
 
       const { pointsByUser, weeksPlayedByUser } = await aggregateNascarSeasonPoints(seasonYear);
       const total_points = pointsByUser.get(userId) ?? 0;
@@ -371,7 +335,8 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req) => {
       const me = req.authUser!.id;
-      const seasonYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
+      const requestedYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
+      const seasonYear = await nascarSeasonYearWithLineups(requestedYear);
 
       const { pointsByUser } = await aggregateNascarSeasonPoints(seasonYear);
       if (pointsByUser.size === 0) {
