@@ -67,9 +67,28 @@ export function pickFantasyPoints(params: {
 
 function jsonNumber(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "bigint") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
   if (typeof v === "string" && v.trim() !== "") {
     const n = Number(v);
     if (Number.isFinite(n)) return n;
+  }
+  if (v != null && typeof v === "object") {
+    const withToNumber = v as { toNumber?: () => unknown };
+    if (typeof withToNumber.toNumber === "function") {
+      try {
+        const n = withToNumber.toNumber();
+        if (typeof n === "number" && Number.isFinite(n)) return n;
+        if (typeof n === "string" && n.trim() !== "") {
+          const parsed = Number(n);
+          if (Number.isFinite(parsed)) return parsed;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
   }
   return null;
 }
@@ -97,7 +116,8 @@ export function parseDriverPointsByKey(json: unknown): Record<string, number> | 
 
 export type NascarLineupPickForScoring = {
   isCaptain: boolean;
-  points: number;
+  /** Prisma `Float` is usually a number; coerce for Decimal-like runtime values. */
+  points: unknown;
   driver: { driverKey: string };
 };
 
@@ -107,7 +127,7 @@ export type NascarLineupPickForScoring = {
  * `totalPts` / `pick.points` were not backfilled.
  */
 export function computeNascarLineupPoints(
-  totalPts: number,
+  totalPts: unknown,
   weekDriverPointsJson: unknown,
   picks: NascarLineupPickForScoring[],
 ): number {
@@ -129,9 +149,6 @@ export function computeNascarLineupPoints(
   ) / 100;
   const tot = Math.round((jsonNumber(totalPts) ?? 0) * 100) / 100;
 
-  /** Prefer JSON recompute when it yields points; otherwise DB totals (script / partial writes). */
-  if (fromMap > 0) return fromMap;
-  if (fromPicks > 0) return fromPicks;
-  if (tot > 0) return tot;
-  return 0;
+  /** Use the best available total (driver map vs stored pick rows vs lineup rollup). */
+  return Math.max(fromMap, fromPicks, tot);
 }
