@@ -1,10 +1,12 @@
 import {
+  mlpFranchiseTiebreakMetrics,
+  mlpTeamLayerPointsFromMatches,
+  scoreWinterFantasyRoster,
   scoreWinterPlayerFromMatches,
   scoreWinterPlayerWinOnMatch,
   winterJsonMatchHasWinner,
   type WinterJsonMatch,
 } from "@wakibet/shared";
-import { fantasyRosterTotalPoints } from "./winterFantasyRosterScore.js";
 import {
   filterMatchesForDivision,
   isDivisionFeaturedFromMatches,
@@ -12,7 +14,15 @@ import {
   type TournamentKey,
   type WinterData,
 } from "./winterSpringsData.js";
-import { compareTiebreakDescending, userTiebreakMapFromRosters } from "./pickleballFantasyTiebreakRank.js";
+import {
+  compareTiebreakDescending,
+  mergeUserTiebreaks,
+  type PickleballTiebreakTuple,
+} from "./pickleballFantasyTiebreakRank.js";
+
+function normKeyForMlpMap(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 type PickRow = { slotIndex: number; playerName: string; isCaptain: boolean };
 
@@ -122,44 +132,71 @@ export function computeFantasyLeaderboard(
   tournamentDataByKey: Record<TournamentKey, WinterData | null | undefined>,
 ): { user_id: string; display_name: string; points: number; rank: number }[] {
   const map = new Map<string, { display_name: string; points: number }>();
+  /** One pass over rosters: tiebreak slices per user (merged after the loop). */
+  const tieSlicesByUser = new Map<string, PickleballTiebreakTuple[]>();
+
   for (const r of allRosters) {
     const parsedStored = parseStoredDivisionKey(r.divisionKey);
     if (!parsedStored) continue;
     const data = tournamentDataByKey[parsedStored.tournament_key];
     if (!data?.matches) continue;
     if (!isDivisionFeaturedFromMatches(data.matches, parsedStored.division_key)) continue;
+
+    const divMatches = filterMatchesForDivision(data.matches, parsedStored.division_key) as WinterJsonMatch[];
     const mult = r.wakipointsMultiplier ?? 1;
-    const mlpMap = data.mlp_player_to_team;
-    const mlpOpts =
-      parsedStored.tournament_key.startsWith("mlp_") && r.mlpTeamName?.trim() && mlpMap
-        ? { mlpTeamName: r.mlpTeamName, mlpPlayerToTeam: mlpMap }
-        : undefined;
-    const pts =
-      Math.round(
-        fantasyRosterTotalPoints(
-          data.matches,
-          parsedStored.division_key,
-          r.picks.map((p) => ({ playerName: p.playerName, isCaptain: p.isCaptain })),
-          mlpOpts,
-        ) *
-          mult *
-          100,
-      ) / 100;
+
+    const scoredRows = r.picks.map((p) => {
+      const raw = scoreWinterPlayerFromMatches(p.playerName, divMatches).total;
+      return { player_name: p.playerName, points: raw, is_captain: p.isCaptain };
+    });
+    const winterTotal = scoreWinterFantasyRoster(scoredRows);
+
+    const team = r.mlpTeamName?.trim();
+    const rec = data.mlp_player_to_team;
+    let mlpLayerTotal = 0;
+    let franchiseMatchWins = 0;
+    let undefeatedFlag = 0;
+    if (parsedStored.tournament_key.startsWith("mlp_") && team && rec && Object.keys(rec).length > 0) {
+      const m = new Map(Object.entries(rec).map(([k, v]) => [normKeyForMlpMap(k), v] as const));
+      mlpLayerTotal = mlpTeamLayerPointsFromMatches(divMatches, team, m).total;
+      const pm = mlpFranchiseTiebreakMetrics(divMatches, team, m);
+      franchiseMatchWins = pm.franchiseMatchWins;
+      undefeatedFlag = pm.undefeatedBonusApplied ? 1 : 0;
+    }
+
+    const pts = Math.round((winterTotal + mlpLayerTotal) * mult * 100) / 100;
     const cur = map.get(r.userId) ?? { display_name: r.user.displayName, points: 0 };
     cur.points = Math.round((cur.points + pts) * 100) / 100;
     map.set(r.userId, cur);
+
+    let bestSinglePlayerRaw = 0;
+    let bestCaptainScore = 0;
+    for (const row of scoredRows) {
+      bestSinglePlayerRaw = Math.max(bestSinglePlayerRaw, row.points);
+      if (row.is_captain) {
+        bestCaptainScore = Math.max(bestCaptainScore, rosterPointsOnLine(row.points, true));
+      }
+    }
+    const actualMatchCount = divMatches.length;
+    const pred = r.predictedTotalMatches;
+    const matchCountPredictionCloseness =
+      pred == null || !Number.isFinite(pred) ? 0 : -Math.abs(actualMatchCount - pred);
+    const slice: PickleballTiebreakTuple = [
+      bestSinglePlayerRaw,
+      bestCaptainScore,
+      franchiseMatchWins,
+      undefeatedFlag,
+      matchCountPredictionCloseness,
+    ];
+    const list = tieSlicesByUser.get(r.userId) ?? [];
+    list.push(slice);
+    tieSlicesByUser.set(r.userId, list);
   }
 
-  const tieByUser = userTiebreakMapFromRosters(
-    allRosters.map((r) => ({
-      userId: r.userId,
-      divisionKey: r.divisionKey,
-      picks: r.picks.map((p) => ({ playerName: p.playerName, isCaptain: p.isCaptain })),
-      mlpTeamName: r.mlpTeamName ?? null,
-      predictedTotalMatches: r.predictedTotalMatches ?? null,
-    })),
-    tournamentDataByKey,
-  );
+  const tieByUser = new Map<string, PickleballTiebreakTuple>();
+  for (const [uid, slices] of tieSlicesByUser) {
+    tieByUser.set(uid, mergeUserTiebreaks(slices));
+  }
 
   const sorted = [...map.entries()].sort((a, b) => {
     const dp = b[1].points - a[1].points;

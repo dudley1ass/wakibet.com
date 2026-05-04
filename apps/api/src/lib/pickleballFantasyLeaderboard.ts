@@ -84,7 +84,8 @@ export function rankPickleballFantasyFromLoaded(args: {
 }
 
 const lbCache = new Map<string, { at: number; data: PickleballFantasyLeaderboardRow[] }>();
-const LB_CACHE_MS = 4000;
+/** Full leaderboard is expensive; cache longer to keep season-leaderboard snappy under load. */
+const LB_CACHE_MS = 30_000;
 let lbInFlight: Promise<PickleballFantasyLeaderboardRow[]> | null = null;
 
 /** Cached full leaderboard for API routes (global, not per-user). */
