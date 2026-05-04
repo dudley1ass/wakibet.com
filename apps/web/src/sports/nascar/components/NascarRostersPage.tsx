@@ -47,8 +47,10 @@ export default function NascarRostersPage({ user }: Props) {
 
   const error = queryError instanceof Error ? queryError.message : queryError ? "Could not load NASCAR lineups." : null;
   const weeks = data?.weeks ?? [];
+  /** Past races stay on the hub; rosters page only shows open + live weeks. */
+  const rosterWeeks = useMemo(() => weeks.filter((w) => w.status !== "closed"), [weeks]);
   const lineupSize = data?.lineup_size ?? 5;
-  const savedCount = useMemo(() => weeks.filter((w) => w.picks.length > 0).length, [weeks]);
+  const savedCount = useMemo(() => rosterWeeks.filter((w) => w.picks.length > 0).length, [rosterWeeks]);
 
   return (
     <div className="rost-shell">
@@ -91,16 +93,22 @@ export default function NascarRostersPage({ user }: Props) {
         </div>
       )}
 
-      {data && weeks.length > 0 && savedCount === 0 && (
+      {data && !loading && weeks.length > 0 && rosterWeeks.length === 0 && (
+        <p className="dash-sub nascar-rost-season-hint" role="status">
+          Closed races are hidden here. Open the <Link to="/nascar">NASCAR hub</Link> to review past lineups and scores.
+        </p>
+      )}
+
+      {data && rosterWeeks.length > 0 && savedCount === 0 && (
         <p className="dash-sub nascar-rost-season-hint" role="status">
           No saved lineups yet — pick <strong>{lineupSize} drivers</strong> (one captain) and tiebreakers on the{" "}
           <Link to="/nascar">NASCAR hub</Link> for each open race. Races below show your drivers after you save.
         </p>
       )}
 
-      {data && weeks.length > 0 && (
+      {data && rosterWeeks.length > 0 && (
         <ul className="rost-list nascar-rost-list">
-          {weeks.map((w) => (
+          {rosterWeeks.map((w) => (
             <li key={w.week_key}>
               <NascarWeekLineupCard week={w} lineupSize={lineupSize} />
             </li>

@@ -59,18 +59,38 @@ export function pickFantasyPoints(params: {
   driverPointsByKey: Record<string, number>;
   isCaptain: boolean;
 }): number {
-  const raw = params.driverPointsByKey[params.driverKey] ?? 0;
+  const dk = params.driverKey.trim().toLowerCase();
+  const raw = params.driverPointsByKey[dk] ?? 0;
   const mult = params.isCaptain ? NASCAR_CAPTAIN_MULTIPLIER : 1;
   return Math.round(raw * mult * 100) / 100;
 }
 
-/** Parse `NascarWeek.driverPointsByKey` JSON; empty object → null (use fallbacks). */
+function jsonNumber(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+/** Parse `NascarWeek.driverPointsByKey` JSON; empty object → null (use fallbacks). Keys normalized to lowercase. */
 export function parseDriverPointsByKey(json: unknown): Record<string, number> | null {
+  if (typeof json === "string") {
+    try {
+      return parseDriverPointsByKey(JSON.parse(json) as unknown);
+    } catch {
+      return null;
+    }
+  }
   if (json == null || typeof json !== "object" || Array.isArray(json)) return null;
   const rec = json as Record<string, unknown>;
   const out: Record<string, number> = {};
   for (const [k, v] of Object.entries(rec)) {
-    if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
+    const nk = k.trim().toLowerCase();
+    if (!nk) continue;
+    const num = jsonNumber(v);
+    if (num != null) out[nk] = num;
   }
   return Object.keys(out).length > 0 ? out : null;
 }
@@ -92,18 +112,26 @@ export function computeNascarLineupPoints(
   picks: NascarLineupPickForScoring[],
 ): number {
   const map = parseDriverPointsByKey(weekDriverPointsJson);
+  let fromMap = 0;
   if (map) {
-    let sum = 0;
     for (const p of picks) {
-      sum += pickFantasyPoints({
+      fromMap += pickFantasyPoints({
         driverKey: p.driver.driverKey,
         driverPointsByKey: map,
         isCaptain: p.isCaptain,
       });
     }
-    return Math.round(sum * 100) / 100;
+    fromMap = Math.round(fromMap * 100) / 100;
   }
-  const fromPicks = picks.reduce((s, p) => s + p.points, 0);
-  if (fromPicks > 0) return Math.round(fromPicks * 100) / 100;
-  return Math.round(totalPts * 100) / 100;
+
+  const fromPicks = Math.round(
+    picks.reduce((s, p) => s + (jsonNumber(p.points) ?? 0), 0) * 100,
+  ) / 100;
+  const tot = Math.round((jsonNumber(totalPts) ?? 0) * 100) / 100;
+
+  /** Prefer JSON recompute when it yields points; otherwise DB totals (script / partial writes). */
+  if (fromMap > 0) return fromMap;
+  if (fromPicks > 0) return fromPicks;
+  if (tot > 0) return tot;
+  return 0;
 }

@@ -1,4 +1,11 @@
-import { playerWakiCashCost, WAKICASH_BUDGET_PER_LINEUP, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import {
+  MLP_FANTASY_ROSTER_SIZE,
+  playerWakiCashCost,
+  WAKICASH_BUDGET_PER_LINEUP,
+  winterJsonMatchHasWinner,
+  WINTER_FANTASY_ROSTER_SIZE,
+  type WinterJsonMatch,
+} from "@wakibet/shared";
 import { prisma } from "./prisma.js";
 import {
   buildFantasyProgressStops,
@@ -9,6 +16,7 @@ import {
   filterMatchesForDivision,
   FANTASY_SEASON_V1,
   getTournamentData,
+  HIDE_COMPLETED_TOURNAMENT_ROSTERS,
   isDivisionFeaturedFromMatches,
   listTournamentOptions,
   parseStoredDivisionKey,
@@ -19,6 +27,24 @@ import {
 import type { AuthUser } from "./requireAuthUser.js";
 import { isMlpTournament } from "./mlpTournamentData.js";
 import { rankPickleballFantasyFromLoaded } from "./pickleballFantasyLeaderboard.js";
+
+type TournamentDataByKey = Record<TournamentKey, Awaited<ReturnType<typeof getTournamentData>>>;
+
+function hidePickleballRosterFromDisplayList(
+  tournamentKey: TournamentKey,
+  divisionKey: string,
+  tournamentDataByKey: TournamentDataByKey,
+): boolean {
+  if ((HIDE_COMPLETED_TOURNAMENT_ROSTERS as readonly string[]).includes(tournamentKey)) {
+    return true;
+  }
+  const data = tournamentDataByKey[tournamentKey];
+  const matches = data?.matches;
+  if (!matches?.length) return false;
+  const ms = filterMatchesForDivision(matches, divisionKey);
+  if (ms.length === 0) return false;
+  return ms.every((m) => winterJsonMatchHasWinner(m as WinterJsonMatch));
+}
 
 const SEASON_TOURNAMENTS_PLANNED = TOURNAMENT_KEYS.length;
 
@@ -314,7 +340,7 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
         waki_cash: Math.ceil(playerWakiCashCost(skill, p.playerName) * wakiMult),
       }));
       const waki_cash_spent = picks.reduce((s, p) => s + p.waki_cash, 0);
-      const rosterNeed = isMlpTournament(tk) ? 4 : WINTER_FANTASY_ROSTER_SIZE;
+      const rosterNeed = isMlpTournament(tk) ? MLP_FANTASY_ROSTER_SIZE : WINTER_FANTASY_ROSTER_SIZE;
       return {
         tournament_key: tk,
         tournament_name: tournamentData?.summary.tournament_name ?? tk,
@@ -337,7 +363,14 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
     ...winter_fantasy_rosters_from_tourney.map(
       ({ wakipoints_multiplier: _m, ...rest }) => rest as (typeof winter_fantasy_rosters_from_winter)[number],
     ),
-  ];
+  ].filter(
+    (row) =>
+      !hidePickleballRosterFromDisplayList(
+        row.tournament_key as TournamentKey,
+        row.division_key,
+        tournamentDataByKey as TournamentDataByKey,
+      ),
+  );
 
   const by_division = [
     ...winter_fantasy_rosters_from_winter.map((roster) => ({

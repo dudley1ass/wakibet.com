@@ -57,9 +57,13 @@ export type WakiCashPickInput = {
   waki_cash: number;
 };
 
-export function validateWakiCashLineup(picks: WakiCashPickInput[]): { ok: true } | { ok: false; message: string } {
-  if (picks.length !== 5) {
-    return { ok: false, message: "Exactly 5 picks are required." };
+export function validateWakiCashLineup(
+  picks: WakiCashPickInput[],
+  /** Default 5 (PPA-style). Use 1 for MLP single-pick rosters. */
+  lineupSize: number = 5,
+): { ok: true } | { ok: false; message: string } {
+  if (picks.length !== lineupSize) {
+    return { ok: false, message: `Exactly ${lineupSize} picks are required.` };
   }
   const captains = picks.filter((p) => p.is_captain);
   if (captains.length !== 1) {
@@ -75,6 +79,9 @@ export function validateWakiCashLineup(picks: WakiCashPickInput[]): { ok: true }
       ok: false,
       message: `Roster costs ${total} WakiCash; max is ${WAKICASH_BUDGET_PER_LINEUP}.`,
     };
+  }
+  if (lineupSize === 1) {
+    return { ok: true };
   }
   const elite = picks.filter((p) => p.waki_cash >= 32).length;
   if (elite > 2) {

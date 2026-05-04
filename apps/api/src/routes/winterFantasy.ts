@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
+  MLP_FANTASY_ROSTER_SIZE,
   playerWakiCashCost,
   scoreWinterPlayerFromMatches,
   validateWakiCashLineup,
@@ -76,7 +77,7 @@ const PickRow = z.object({
 const PutRosterBody = z.object({
   tournament_key: z.enum(TOURNAMENT_KEYS),
   division_key: z.string().min(1),
-  picks: z.array(PickRow).min(WINTER_FANTASY_ROSTER_SIZE).max(WINTER_FANTASY_ROSTER_SIZE),
+  picks: z.array(PickRow).min(1).max(WINTER_FANTASY_ROSTER_SIZE),
 });
 
 export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
@@ -231,9 +232,9 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           division_key,
           skill_level: skill,
           waki_cash_budget: 100,
-          roster_size: 4,
-          required_men: 2,
-          required_women: 2,
+          roster_size: MLP_FANTASY_ROSTER_SIZE,
+          required_men: null,
+          required_women: null,
           players: mlpPlayers.map((p) => ({
             player_name: p.player_name,
             waki_cash: p.waki_cash,
@@ -296,6 +297,11 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         where: { userId: uid, divisionKey: storedDivisionKey },
         include: { picks: { orderBy: { slotIndex: "asc" } } },
       });
+      const mlpCostByName = isMlpTournament(tournament_key)
+        ? new Map(
+            (await getMlpPlayersForTournament(tournament_key)).map((r) => [r.player_name, r.waki_cash] as const),
+          )
+        : null;
       return {
         tournament_key,
         division_key,
@@ -304,7 +310,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
               slot_index: p.slotIndex,
               player_name: p.playerName,
               is_captain: p.isCaptain,
-              waki_cash: playerWakiCashCost(skill, p.playerName),
+              waki_cash: mlpCostByName?.get(p.playerName) ?? playerWakiCashCost(skill, p.playerName),
             }))
           : [],
       };
@@ -345,10 +351,9 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         return reply.code(400).send({ message: "Invalid division_key." } as const);
       }
       const storedDivisionKey = toStoredDivisionKey(tournament_key, division_key);
-      if (picks.length !== WINTER_FANTASY_ROSTER_SIZE) {
-        return reply
-          .code(400)
-          .send({ message: `Exactly ${WINTER_FANTASY_ROSTER_SIZE} picks are required.` } as const);
+      const rosterNeed = isMlpTournament(tournament_key) ? MLP_FANTASY_ROSTER_SIZE : WINTER_FANTASY_ROSTER_SIZE;
+      if (picks.length !== rosterNeed) {
+        return reply.code(400).send({ message: `Exactly ${rosterNeed} picks are required.` } as const);
       }
       const captains = picks.filter((p) => p.is_captain);
       if (captains.length !== 1) {
@@ -374,20 +379,33 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           .code(400)
           .send({ message: "Roster changes are locked 1 hour before scheduled match start." } as const);
       }
-      const pool = new Set(uniquePlayersInMatches(divisionMatches));
-      for (const n of names) {
-        if (!pool.has(n)) {
-          return reply.code(400).send({ message: `Player is not in this division: ${n}` } as const);
+      const skill = divParsed.skill_level;
+      const mlpRows = isMlpTournament(tournament_key) ? await getMlpPlayersForTournament(tournament_key) : null;
+      const mlpByName =
+        mlpRows != null ? new Map(mlpRows.map((r) => [r.player_name, r.waki_cash] as const)) : null;
+
+      if (isMlpTournament(tournament_key)) {
+        const poolMlp = new Set(mlpRows!.map((r) => r.player_name));
+        for (const n of names) {
+          if (!poolMlp.has(n)) {
+            return reply.code(400).send({ message: `Player is not in the MLP pool: ${n}` } as const);
+          }
+        }
+      } else {
+        const pool = new Set(uniquePlayersInMatches(divisionMatches));
+        for (const n of names) {
+          if (!pool.has(n)) {
+            return reply.code(400).send({ message: `Player is not in this division: ${n}` } as const);
+          }
         }
       }
 
-      const skill = divParsed.skill_level;
       const wakiPicks = picks.map((p) => ({
         player_name: p.player_name,
         is_captain: Boolean(p.is_captain),
-        waki_cash: playerWakiCashCost(skill, p.player_name),
+        waki_cash: mlpByName?.get(p.player_name) ?? playerWakiCashCost(skill, p.player_name),
       }));
-      const wakiCheck = validateWakiCashLineup(wakiPicks);
+      const wakiCheck = validateWakiCashLineup(wakiPicks, rosterNeed);
       if (!wakiCheck.ok) {
         return reply.code(400).send({ message: wakiCheck.message } as const);
       }
@@ -428,7 +446,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
           slot_index: p.slotIndex,
           player_name: p.playerName,
           is_captain: p.isCaptain,
-          waki_cash: playerWakiCashCost(skill, p.playerName),
+          waki_cash: mlpByName?.get(p.playerName) ?? playerWakiCashCost(skill, p.playerName),
         })),
       };
     },

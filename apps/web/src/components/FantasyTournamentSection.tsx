@@ -113,13 +113,15 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
   const [lineup, setLineup] = useState<LineupResponse | null>(null);
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [slots, setSlots] = useState<(SlotDraft | null)[]>([null, null, null, null, null]);
+  /** Default tournament is MLP → one event slot; `loadAll` resizes when switching tournaments. */
+  const [slots, setSlots] = useState<(SlotDraft | null)[]>([null]);
   const [busy, setBusy] = useState(false);
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [actionOk, setActionOk] = useState<string | null>(null);
   const rosterSize = lineup?.roster_size ?? eventsMeta?.roster_size ?? WINTER_FANTASY_ROSTER_SIZE;
   const mlpTeams = eventsMeta?.mlp_teams ?? [];
   const isMlpTournamentUi = tournamentKey.startsWith("mlp_");
+  const eventSlotCount = isMlpTournamentUi ? 1 : 5;
 
   /** Eligible divisions the user can still attach to a slot (not past first-match lock). */
   const pickableEvents = useMemo(
@@ -143,8 +145,9 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       ]);
       setEventsMeta(ev);
       setLineup(lu);
-      const next: (SlotDraft | null)[] = [null, null, null, null, null];
-      const rowsToHydrate = lu.events.filter((row) => row.slot_index >= 0 && row.slot_index <= 4);
+      const slotCount = tk.startsWith("mlp_") ? 1 : 5;
+      const next: (SlotDraft | null)[] = Array.from({ length: slotCount }, () => null);
+      const rowsToHydrate = lu.events.filter((row) => row.slot_index >= 0 && row.slot_index < slotCount);
       await Promise.all(
         rowsToHydrate.map(async (row) => {
           const i = row.slot_index;
@@ -162,6 +165,8 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
               if (p.is_captain) cap = p.slot_index;
             }
           }
+          const rs = lu.roster_size ?? ev.roster_size ?? WINTER_FANTASY_ROSTER_SIZE;
+          const capUse = rs === 1 && picks.some((x) => x.trim()) ? 0 : cap;
           next[i] = {
             event_key: row.event_key,
             schedule_division_key: row.schedule_division_key,
@@ -170,7 +175,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
             wakicash_multiplier: mult,
             players,
             picks,
-            captainSlot: cap,
+            captainSlot: capUse,
             mlpTeamName: row.mlp_team_name ?? null,
           };
         }),
@@ -180,7 +185,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       setMetaErr(e instanceof Error ? e.message : "Could not load fantasy tournament.");
       setEventsMeta(null);
       setLineup(null);
-      setSlots([null, null, null, null, null]);
+      setSlots(Array.from({ length: tk.startsWith("mlp_") ? 1 : 5 }, () => null));
     } finally {
       setLoading(false);
     }
@@ -249,7 +254,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
         lines: ["One of your events is over 100 WakiCash. Trim a pick or swap for a cheaper player."],
       };
     }
-    for (let s = 0; s < 5; s++) {
+    for (let s = 0; s < eventSlotCount; s++) {
       const sl = slots[s];
       if (!sl) continue;
       const trimmed = sl.picks.map((x) => x.trim());
@@ -299,7 +304,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     }
     if (actionOk) return { tone: "success" as const, title: "All set", lines: [actionOk] };
     let lastPick = "";
-    for (let s = 4; s >= 0; s--) {
+    for (let s = eventSlotCount - 1; s >= 0; s--) {
       const sl = slots[s];
       if (!sl) continue;
       for (let i = rosterSize - 1; i >= 0; i--) {
@@ -319,7 +324,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       title: "Build your lineup",
       lines: [
         isMlpTournamentUi
-          ? `Choose up to five events. Each MLP event needs ${rosterSize} different players (2M / 2F), one captain, plus one franchise team pick for bonus WakiPoints — same player can appear in multiple events, not twice in the same event.`
+          ? `MLP: one event slot. Pick ${rosterSize} player${rosterSize === 1 ? "" : "s"} (captain${rosterSize === 1 ? " = that player" : ""}), plus one franchise team for bonus WakiPoints.`
           : `Choose up to five events. Each event needs ${rosterSize} different players and one captain. Same player can play multiple events — just not twice in the same event.`,
       ],
     };
@@ -335,6 +340,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
     lockedSelectableEvents.length,
     isMlpTournamentUi,
     rosterSize,
+    eventSlotCount,
   ]);
 
   async function attachEventToSlot(slotIndex: number, event_key: string) {
@@ -358,7 +364,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           wakicash_multiplier: ev.wakicash_multiplier,
           players: pl.players ?? [],
           picks: emptyPicks(rosterSize),
-          captainSlot: null,
+          captainSlot: rosterSize === 1 ? 0 : null,
           mlpTeamName: null,
         };
         return next;
@@ -385,7 +391,9 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       if (!sl) return prev;
       const picks = [...sl.picks];
       picks[pickIdx] = name;
-      next[slotIndex] = { ...sl, picks };
+      let captainSlot = sl.captainSlot;
+      if (rosterSize === 1 && name.trim()) captainSlot = 0;
+      next[slotIndex] = { ...sl, picks, captainSlot };
       return next;
     });
   }
@@ -424,7 +432,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       mlp_team_name?: string;
     }[] = [];
 
-    for (let s = 0; s < 5; s++) {
+    for (let s = 0; s < eventSlotCount; s++) {
       const sl = slots[s];
       if (!sl) continue;
       const filled = sl.picks.map((p) => p.trim());
@@ -545,7 +553,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
 
       {!loading && eventsMeta ? (
         <div className="wf-cascade" style={{ marginTop: 12 }}>
-          {[0, 1, 2, 3, 4].map((slotIndex) => {
+          {Array.from({ length: eventSlotCount }, (_, slotIndex) => {
             const sl = slots[slotIndex];
       const budget = lineup?.wakicash_budget ?? 100;
               const slotSpend =
@@ -734,23 +742,27 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
           <div className="wf-page-hero-kicker">Multi-event lineup</div>
           <h2 className="wf-page-title">Tournament Fantasy</h2>
           <p className="wf-page-lead">
-            Each tournament can include up to five events. You get a fresh <strong>100 WakiCash</strong> budget for each
-            event, and once an event starts, your picks for that event are locked.
-            <br />
-            <br />
-            Scoring works the same as the division fantasy game. Players are grouped into{" "}
-            <strong>Tier A, B, or C</strong>, which affects both their price and how many WakiPoints they can earn.{" "}
-            <a href="/fantasy-rules">How fantasy works (rules)</a>
             {isMlpTournamentUi ? (
               <>
+                <strong>MLP</strong> uses <strong>one event slot</strong> per tournament. You get <strong>100 WakiCash</strong>{" "}
+                for that event, pick <strong>one</strong> player (your captain), then choose <strong>one franchise team</strong>{" "}
+                for team-layer WakiPoints. Once the event starts, those picks lock.
                 <br />
                 <br />
-                For <strong>MLP</strong>, you also pick <strong>one franchise team</strong> per event. Player scoring
-                uses the full WakiPoints table; team bonuses (match wins, event win, undefeated) are added on top so
-                lineups stay player-first — see the{" "}
-                <a href="/scoring-table">scoring table</a>.
+                Scoring uses the full WakiPoints table for your player; team bonuses stack on top — see the{" "}
+                <a href="/scoring-table">scoring table</a> and <a href="/fantasy-rules">fantasy rules</a>.
               </>
-            ) : null}
+            ) : (
+              <>
+                Each tournament can include up to five events. You get a fresh <strong>100 WakiCash</strong> budget for
+                each event, and once an event starts, your picks for that event are locked.
+                <br />
+                <br />
+                Scoring works the same as the division fantasy game. Players are grouped into{" "}
+                <strong>Tier A, B, or C</strong>, which affects both their price and how many WakiPoints they can earn.{" "}
+                <a href="/fantasy-rules">How fantasy works (rules)</a>
+              </>
+            )}
           </p>
         </div>
       ) : (

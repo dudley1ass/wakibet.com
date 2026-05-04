@@ -1,5 +1,10 @@
 import { Prisma, type PrismaClient } from "./prisma-types.js";
-import { playerWakiCashCost, WAKICASH_BUDGET_PER_LINEUP, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import {
+  MLP_FANTASY_ROSTER_SIZE,
+  playerWakiCashCost,
+  WAKICASH_BUDGET_PER_LINEUP,
+  WINTER_FANTASY_ROSTER_SIZE,
+} from "@wakibet/shared";
 import {
   filterMatchesForDivision,
   isFeaturedWinterDivision,
@@ -11,6 +16,7 @@ import {
   type WinterMatch,
 } from "./winterSpringsData.js";
 import { buildEventKeyV1, inferFormatFromEventType, type EventFormatSlug } from "./fantasyEventKey.js";
+import { getMlpPlayersForTournament, isMlpTournament } from "./mlpTournamentData.js";
 
 function parseMatchStartMs(match: Record<string, unknown>): number | null {
   const candidates = [
@@ -72,13 +78,16 @@ function isEventLineupFeasible(params: {
   skillLevel: string;
   wakicashMultiplier: number;
   players: string[];
+  /** PPA-style divisions use 5; MLP uses `MLP_FANTASY_ROSTER_SIZE` at the caller. */
+  rosterSlots?: number;
 }): boolean {
-  if (params.players.length < WINTER_FANTASY_ROSTER_SIZE) return false;
+  const need = params.rosterSlots ?? WINTER_FANTASY_ROSTER_SIZE;
+  if (params.players.length < need) return false;
   const costs = params.players
     .map((name) => Math.ceil(playerWakiCashCost(params.skillLevel, name) * params.wakicashMultiplier))
     .sort((a, b) => a - b);
-  const cheapestFive = costs.slice(0, WINTER_FANTASY_ROSTER_SIZE).reduce((s, c) => s + c, 0);
-  return cheapestFive <= WAKICASH_BUDGET_PER_LINEUP;
+  const cheapest = costs.slice(0, need).reduce((s, c) => s + c, 0);
+  return cheapest <= WAKICASH_BUDGET_PER_LINEUP;
 }
 
 function isAllowedProPickleballDivision(row: {
@@ -148,6 +157,13 @@ export async function syncTournamentEventCatalog(
   data: WinterData,
 ): Promise<void> {
   const isAtlanta = tournamentKey === "atlanta_weekend";
+  let mlpPoolOk = false;
+  if (isMlpTournament(tournamentKey)) {
+    const pool = await getMlpPlayersForTournament(tournamentKey);
+    const minC = pool.length ? Math.min(...pool.map((p) => p.waki_cash)) : 999;
+    mlpPoolOk =
+      pool.length >= MLP_FANTASY_ROSTER_SIZE && minC <= WAKICASH_BUDGET_PER_LINEUP;
+  }
   const divisions = listDivisionsFromMatches(data.matches);
   const allowedEventKeys = new Set<string>();
   for (const d of divisions) {
@@ -161,11 +177,14 @@ export async function syncTournamentEventCatalog(
     const eventPlayers = uniquePlayersInMatches(divMatches);
     const firstAt = firstMatchStartsAt(divMatches);
     const tier = assignTierForDivision({ ...d, tournament_key: tournamentKey });
-    const feasible = isEventLineupFeasible({
-      skillLevel: d.skill_level,
-      wakicashMultiplier: tier.wakicashMultiplier,
-      players: eventPlayers,
-    });
+    const feasible = isMlpTournament(tournamentKey)
+      ? tier.isSelectable && mlpPoolOk
+      : isEventLineupFeasible({
+          skillLevel: d.skill_level,
+          wakicashMultiplier: tier.wakicashMultiplier,
+          players: eventPlayers,
+          rosterSlots: WINTER_FANTASY_ROSTER_SIZE,
+        });
     const isSelectable = tier.isSelectable && feasible;
     const labelDisplay = titleish(d);
 

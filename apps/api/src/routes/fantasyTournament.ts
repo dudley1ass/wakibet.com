@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { playerWakiCashCost, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import { MLP_FANTASY_ROSTER_SIZE, playerWakiCashCost, WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 import {
@@ -37,7 +37,7 @@ type PoolPlayer = {
 
 function rosterRulesForTournament(tournamentKey: TournamentKey): RosterRules {
   if (isMlpTournament(tournamentKey)) {
-    return { rosterSize: 4, budget: 100, requiredMen: 2, requiredWomen: 2 };
+    return { rosterSize: MLP_FANTASY_ROSTER_SIZE, budget: 100, requiredMen: null, requiredWomen: null };
   }
   return { rosterSize: WINTER_FANTASY_ROSTER_SIZE, budget: 100, requiredMen: null, requiredWomen: null };
 }
@@ -428,6 +428,9 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       if (new Set(eventKeys).size !== eventKeys.length) {
         return reply.code(400).send({ message: "Duplicate event_key in payload." } as const);
       }
+      if (isMlpTournament(tournamentKey) && incoming.length > 1) {
+        return reply.code(400).send({ message: "MLP: at most one event per save." } as const);
+      }
 
       const catalogRows = await prisma.tournamentEventCatalog.findMany({
         where: { tournamentKey },
@@ -465,9 +468,13 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         }
         resultEventKeys.add(inc.event_key);
       }
-      if (resultEventKeys.size > 5) {
+      const maxEvents = isMlpTournament(tournamentKey) ? 1 : 5;
+      if (resultEventKeys.size > maxEvents) {
         return reply.code(400).send({
-          message: "At most 5 events per tournament (including locked events you keep).",
+          message:
+            maxEvents === 1
+              ? "MLP lineups use one event only (plus your franchise team pick for that event)."
+              : "At most 5 events per tournament (including locked events you keep).",
         } as const);
       }
 

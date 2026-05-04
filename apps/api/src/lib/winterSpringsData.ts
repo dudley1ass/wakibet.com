@@ -45,6 +45,12 @@ function normPlayerKeyForMlp(s: string): string {
 export const TOURNAMENT_KEYS = ["mlp_dallas_2026", "atlanta_weekend"] as const;
 export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
 
+/**
+ * My Rosters / dashboard roster strip: omit saved lineups for these tournaments (archived / fully shipped).
+ * Season `by_division` totals still include them for points.
+ */
+export const HIDE_COMPLETED_TOURNAMENT_ROSTERS: readonly TournamentKey[] = ["atlanta_weekend"];
+
 const TOURNAMENT_FILES: Record<TournamentKey, string> = {
   atlanta_weekend: "atlanta_weekend_test_run_matches.json",
   mlp_dallas_2026: "mlp_dallas_2026_matches.json",
