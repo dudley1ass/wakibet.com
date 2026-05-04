@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { EMPTY_FANTASY_PULSE } from "../sports/pickleball/lib/dashboardQuery";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import DashboardMultiSportLayout from "./dashboard/DashboardMultiSportLayout";
-import DashboardWhatHappensNext from "./dashboard/DashboardWhatHappensNext";
 import "./dashboard.css";
 
 export type FantasyRosterRow = {
@@ -154,28 +153,6 @@ export default function Dashboard({ user, onLogout }: Props) {
       {preview && (
         <>
           <DashboardMultiSportLayout preview={preview} pulse={pulse} />
-
-          <DashboardWhatHappensNext preview={preview} />
-
-          {/* Section 3 — Big hits */}
-          <section className="dash-section dash-section--hits" aria-labelledby="dash-hits-title">
-            <h2 id="dash-hits-title" className="dash-section-title">
-              Big Hits
-            </h2>
-            <p className="dash-section-lead">Recent WakiPoints moments from your roster players.</p>
-            {pulse.recent_hits.length === 0 ? (
-              <p className="dash-empty">No scoring fireworks yet — results will land here as schedules fill in.</p>
-            ) : (
-              <ul className="dash-hit-list">
-                {pulse.recent_hits.map((h, i) => (
-                  <li key={`${h.headline}-${h.occurred_at}-${i}`} className="dash-hit-item">
-                    <span className="dash-hit-line">{h.headline}</span>
-                    <span className="dash-hit-when">{h.occurred_at}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
 
           <details className="dash-account-fold">
             <summary>Account</summary>

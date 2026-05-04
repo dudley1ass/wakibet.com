@@ -37,13 +37,13 @@ export default function ThisWeekPicksHomeSection({
           </Link>
         </li>
         <li>
-          <Link className="dash-week-picks-home__link" to="/ppa-atlanta-picks">
+          <Link className="dash-week-picks-home__link" to="/week-picks">
             <span className="dash-week-picks-home__emoji" aria-hidden>
               🏓
             </span>
             <span className="dash-week-picks-home__label">{compact ? "Pickleball" : "Pickleball Picks"}</span>
             {!compact ? <span className="dash-week-picks-home__arrow">→</span> : null}
-            <span className="dash-week-picks-home__venue">PPA Atlanta</span>
+            <span className="dash-week-picks-home__venue">{compact ? "MLP Dallas" : "MLP Dallas 2026"}</span>
           </Link>
         </li>
         <li>

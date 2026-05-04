@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 type Sport = "nascar" | "pickleball";
 
 export default function WeekPicksPromoBanner({ sport }: { sport: Sport }) {
-  const href = sport === "nascar" ? "/nascar-texas-picks" : "/ppa-atlanta-picks";
+  const href = sport === "nascar" ? "/nascar-texas-picks" : "/week-picks";
   const linkInner =
     sport === "nascar" ? (
       <>
@@ -11,7 +11,7 @@ export default function WeekPicksPromoBanner({ sport }: { sport: Sport }) {
       </>
     ) : (
       <>
-        See picks for <strong>PPA Atlanta</strong>
+        See picks for <strong>MLP Dallas</strong> and NASCAR
       </>
     );
 

@@ -33,6 +33,7 @@ const routes = [
   "lacrosse",
   "admin",
   "nascar-texas-picks",
+  "week-picks",
   "ppa-atlanta-picks",
 ];
 for (const r of routes) {

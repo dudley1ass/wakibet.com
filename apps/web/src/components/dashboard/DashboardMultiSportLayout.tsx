@@ -4,28 +4,12 @@ import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { Link } from "react-router-dom";
 import { apiGet } from "../../api";
 import type { DashboardData } from "../Dashboard";
-import {
-  nascarFocusWeek,
-  nascarLineupComplete,
-  type NascarLineupPayload,
-  type NascarWeekRow,
-} from "../../sports/nascar/lib/dashboardNascar";
 import DashboardSeasonPrizesStrip from "./DashboardSeasonPrizesStrip";
 import DashboardSeasonStandingsHero from "./DashboardSeasonStandingsHero";
 import SportCard from "./SportCard";
 import ThisWeekPicksHomeSection from "../ThisWeekPicksHomeSection";
 
 type FantasyPulseLite = NonNullable<DashboardData["fantasy_pulse"]>;
-
-type NascarStatus = {
-  sport: "nascar";
-  enabled: boolean;
-  total_weeks: number;
-  total_drivers: number;
-  message: string;
-};
-
-type NascarWeeksPayload = { season: string; weeks: NascarWeekRow[] };
 
 type NascarSeasonSummary = {
   season_year: number;
@@ -43,13 +27,6 @@ type LacrosseCurrentPayload = {
 function pickleballStatusLabel(incompleteDivisions: number, rosterCount: number): string {
   if (rosterCount === 0) return "Set";
   if (incompleteDivisions > 0) return "Edit";
-  return "";
-}
-
-function nascarStatusLabel(w: NascarWeekRow | null): string {
-  if (!w) return "";
-  if (w.status === "closed") return "Closed";
-  if (w.status === "locked") return "Live";
   return "";
 }
 
@@ -71,16 +48,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     "Winter Fantasy";
   const pbEvent = pbEventRaw.replace(/\s*[-–—]?\s*test run\s*/i, "").replace(/[()_]/g, "").trim();
 
-  const [statusQ, weeksQ, seasonQ, lacrosseQ] = useQueries({
+  const [seasonQ, lacrosseQ] = useQueries({
     queries: [
-      {
-        queryKey: ["nascar", "status"] as const,
-        queryFn: () => apiGet<NascarStatus>("/api/v1/nascar/status"),
-      },
-      {
-        queryKey: ["nascar", "weeks", seasonYear] as const,
-        queryFn: () => apiGet<NascarWeeksPayload>(`/api/v1/nascar/weeks?season_year=${seasonYear}`),
-      },
       {
         queryKey: ["nascar", "season-summary", seasonYear] as const,
         queryFn: () => apiGet<NascarSeasonSummary>(`/api/v1/nascar/season-summary?season_year=${seasonYear}`),
@@ -92,37 +61,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     ],
   });
 
-  const nascarWeeks = weeksQ.data?.weeks ?? [];
-  const focusWeek = useMemo(() => nascarFocusWeek(weeksQ.data?.weeks ?? []), [weeksQ.data?.weeks]);
-  const nextNascarWeek = useMemo(() => {
-    if (nascarWeeks.length === 0) return null;
-    if (!focusWeek) return nascarWeeks[1] ?? nascarWeeks[0] ?? null;
-    const currentIdx = nascarWeeks.findIndex((w) => w.week_key === focusWeek.week_key);
-    if (currentIdx >= 0 && currentIdx + 1 < nascarWeeks.length) return nascarWeeks[currentIdx + 1];
-    return nascarWeeks.find((w) => w.status === "upcoming" && w.week_key !== focusWeek.week_key) ?? null;
-  }, [nascarWeeks, focusWeek]);
-  const [lineupQ] = useQueries({
-    queries: [
-      {
-        queryKey: ["nascar", "lineup", focusWeek?.week_key ?? ""] as const,
-        queryFn: () =>
-          apiGet<NascarLineupPayload>(`/api/v1/nascar/lineup?week_key=${encodeURIComponent(focusWeek!.week_key)}`),
-        enabled: Boolean(statusQ.data?.enabled && focusWeek?.week_key),
-      },
-    ],
-  });
-
-  const nascarEnabled = statusQ.data?.enabled ?? false;
-  const nascarLineup = lineupQ.data;
-  const nascarSize = nascarLineup?.lineup_size ?? 5;
-  const nascarComplete = nascarLineupComplete(nascarLineup, nascarSize);
-  const nascarSub = nextNascarWeek
-    ? `Next race is ${nextNascarWeek.race_name}`
-    : statusQ.data?.message ?? "Loading NASCAR…";
-  const nascarEvent = focusWeek?.race_name ?? "NASCAR weekly picks";
-  const nascarCta = !nascarEnabled ? "View hub" : nascarComplete ? "View lineup" : "Build lineup";
-  const nascarTo = focusWeek ? `/nascar?week_key=${encodeURIComponent(focusWeek.week_key)}` : "/nascar";
-
   const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
   const pbSub = "Next tournament is MLP Dallas";
 
@@ -130,10 +68,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const nascarPts = seasonQ.data?.total_points ?? 0;
 
   const laxName = lacrosseQ.data?.name ?? "Utah Open";
-  const laxSub =
-    lacrosseQ.isLoading && !lacrosseQ.data
-      ? "Loading…"
-      : "100 WakiCash per slate — max 40 on a line";
 
   return (
     <>
@@ -171,26 +105,26 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             variant="nascar"
             icon="🏁"
             sportLabel="NASCAR"
-            eventName={nascarEvent}
-            subline={weeksQ.isLoading || statusQ.isLoading ? "Loading…" : nascarSub}
-            statusLabel={nascarStatusLabel(focusWeek)}
-            ctaLabel={nascarCta}
-            ctaTo={nascarTo}
+            eventName="Cup Series weekly picks"
+            subline="Open NASCAR to see this week’s race and build your lineup."
+            statusLabel=""
+            ctaLabel="Open NASCAR"
+            ctaTo="/nascar"
           />
           <SportCard
             variant="lacrosse"
             icon="🥍"
             sportLabel="Lacrosse"
-            eventName={laxName}
-            subline={laxSub}
+            eventName={lacrosseQ.isLoading && !lacrosseQ.data ? "PLL" : laxName}
+            subline="100 WakiCash per slate — max 40 on a line"
             statusLabel="PLL"
-            ctaLabel="Edit picks"
+            ctaLabel="Open lacrosse"
             ctaTo="/lacrosse"
           />
         </div>
-        {(statusQ.isError || weeksQ.isError || seasonQ.isError || lineupQ.isError || lacrosseQ.isError) && (
+        {(seasonQ.isError || lacrosseQ.isError) && (
           <p className="dash-ms-error" role="status">
-            Some sports data could not load. Other dashboard sections may still be available.
+            Some season data could not load. Open each sport for full details.
           </p>
         )}
       </section>
@@ -245,18 +179,12 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
               </div>
               <div className="dash-contest-card__body">
                 <div className="dash-contest-card__sport">NASCAR</div>
-                <div className="dash-contest-card__event">{focusWeek ? focusWeek.race_name : "Weekly picks"}</div>
+                <div className="dash-contest-card__event">Weekly picks</div>
                 <div className="dash-contest-card__detail">
-                  {!nascarEnabled
-                    ? "Add weeks + drivers in admin to enable"
-                    : nascarComplete
-                      ? "Lineup submitted for this week"
-                      : "Build your 5-driver lineup (1 captain)"}
-                  {nascarEnabled ? (
-                    <Link className="dash-contest-card__sub-link" to="/nascar/rosters">
-                      View all race lineups
-                    </Link>
-                  ) : null}
+                  Open NASCAR for the active race week and your 5-driver lineup (1 captain).
+                  <Link className="dash-contest-card__sub-link" to="/nascar/rosters">
+                    View all race lineups
+                  </Link>
                 </div>
               </div>
               <div className="dash-contest-card__stats">
@@ -271,7 +199,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
                   <span className="dash-contest-card__stat-val">{seasonQ.isLoading ? "…" : Math.round(nascarPts)}</span>
                 </div>
               </div>
-              <Link className="dash-contest-card__link" to={nascarTo}>
+              <Link className="dash-contest-card__link" to="/nascar">
                 Open
               </Link>
             </li>

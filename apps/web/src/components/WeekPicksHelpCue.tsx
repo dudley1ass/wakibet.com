@@ -4,7 +4,7 @@ type Sport = "nascar" | "pickleball";
 
 const HREF: Record<Sport, string> = {
   nascar: "/nascar-texas-picks",
-  pickleball: "/ppa-atlanta-picks",
+  pickleball: "/week-picks",
 };
 
 export default function WeekPicksHelpCue({ sport }: { sport: Sport }) {

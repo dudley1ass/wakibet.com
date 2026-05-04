@@ -65,8 +65,8 @@ type LineupResponse = {
 };
 
 const TOURNAMENT_OPTIONS: { tournament_key: string; label: string }[] = [
-  { tournament_key: "atlanta_weekend", label: "PPA Atlanta Weekend" },
   { tournament_key: "mlp_dallas_2026", label: "MLP Dallas 2026" },
+  { tournament_key: "atlanta_weekend", label: "PPA Atlanta Weekend" },
 ];
 
 function emptyPicks(rosterSize: number): string[] {
@@ -108,7 +108,7 @@ type FantasyTournamentProps = {
 };
 
 export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: FantasyTournamentProps) {
-  const [tournamentKey, setTournamentKey] = useState("atlanta_weekend");
+  const [tournamentKey, setTournamentKey] = useState("mlp_dallas_2026");
   const [eventsMeta, setEventsMeta] = useState<EventsResponse | null>(null);
   const [lineup, setLineup] = useState<LineupResponse | null>(null);
   const [metaErr, setMetaErr] = useState<string | null>(null);

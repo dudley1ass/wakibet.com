@@ -10,6 +10,30 @@ import {
   NASCAR_PREMIUM_WAKICASH_THRESHOLD,
 } from "../lib/nascarLineupRules.js";
 import { entryDriverKeysForWeek, isDriverKeyOnWeekEntryList } from "../lib/nascarWeekEntryDriverKeys.js";
+import { computeNascarLineupPoints } from "../lib/nascarWeekResultScoring.js";
+
+async function aggregateNascarSeasonPoints(seasonYear: number): Promise<{
+  pointsByUser: Map<string, number>;
+  weeksPlayedByUser: Map<string, number>;
+}> {
+  const lineups = await prisma.nascarWeeklyLineup.findMany({
+    where: { week: { seasonYear } },
+    select: {
+      userId: true,
+      totalPts: true,
+      week: { select: { driverPointsByKey: true } },
+      picks: { select: { points: true, isCaptain: true, driver: { select: { driverKey: true } } } },
+    },
+  });
+  const pointsByUser = new Map<string, number>();
+  const weeksPlayedByUser = new Map<string, number>();
+  for (const L of lineups) {
+    const pts = computeNascarLineupPoints(L.totalPts, L.week.driverPointsByKey, L.picks);
+    pointsByUser.set(L.userId, (pointsByUser.get(L.userId) ?? 0) + pts);
+    weeksPlayedByUser.set(L.userId, (weeksPlayedByUser.get(L.userId) ?? 0) + 1);
+  }
+  return { pointsByUser, weeksPlayedByUser };
+}
 
 function isPremiumSalary(wakiCashPrice: number): boolean {
   return wakiCashPrice > NASCAR_PREMIUM_WAKICASH_THRESHOLD;
@@ -247,23 +271,15 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       const userId = req.authUser!.id;
       const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
 
-      const lineups = await prisma.nascarWeeklyLineup.findMany({
-        where: { userId, week: { seasonYear } },
-        select: { totalPts: true },
-      });
-      const total_points = lineups.reduce((sum, row) => sum + row.totalPts, 0);
-      const weeks_played = lineups.length;
+      const { pointsByUser, weeksPlayedByUser } = await aggregateNascarSeasonPoints(seasonYear);
+      const total_points = pointsByUser.get(userId) ?? 0;
+      const weeks_played = weeksPlayedByUser.get(userId) ?? 0;
 
-      const grouped = await prisma.nascarWeeklyLineup.groupBy({
-        by: ["userId"],
-        where: { week: { seasonYear } },
-        _sum: { totalPts: true },
-      });
-      if (grouped.length === 0) {
+      if (pointsByUser.size === 0) {
         return { season_year: seasonYear, total_points, rank: null, weeks_played };
       }
-      const totals = grouped
-        .map((g) => ({ userId: g.userId, pts: g._sum.totalPts ?? 0 }))
+      const totals = [...pointsByUser.entries()]
+        .map(([uid, pts]) => ({ userId: uid, pts }))
         .sort((a, b) => b.pts - a.pts || a.userId.localeCompare(b.userId));
       const strictlyAhead = totals.filter((t) => t.pts > total_points + 1e-9).length;
       const rank = strictlyAhead + 1;
@@ -300,27 +316,23 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       const me = req.authUser!.id;
       const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
 
-      const grouped = await prisma.nascarWeeklyLineup.groupBy({
-        by: ["userId"],
-        where: { week: { seasonYear } },
-        _sum: { totalPts: true },
-      });
-      if (grouped.length === 0) {
+      const { pointsByUser } = await aggregateNascarSeasonPoints(seasonYear);
+      if (pointsByUser.size === 0) {
         return { sport: "nascar" as const, season_year: seasonYear, total_players: 0, rows: [] };
       }
 
-      const userIds = grouped.map((g) => g.userId);
+      const userIds = [...pointsByUser.keys()];
       const users = await prisma.user.findMany({
         where: { id: { in: userIds } },
         select: { id: true, displayName: true },
       });
       const nameById = new Map(users.map((u) => [u.id, u.displayName]));
 
-      const totals = grouped
-        .map((g) => ({
-          user_id: g.userId,
-          display_name: nameById.get(g.userId) ?? "Player",
-          points: g._sum.totalPts ?? 0,
+      const totals = userIds
+        .map((user_id) => ({
+          user_id,
+          display_name: nameById.get(user_id) ?? "Player",
+          points: pointsByUser.get(user_id) ?? 0,
         }))
         .sort((a, b) => {
           if (b.points !== a.points) return b.points - a.points;
@@ -413,6 +425,17 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           picks.filter((p) => p.is_captain).length === 1 &&
           tbWin != null &&
           tbCaut != null;
+        const total_points = L
+          ? computeNascarLineupPoints(
+              L.totalPts,
+              w.driverPointsByKey,
+              L.picks.map((p) => ({
+                isCaptain: p.isCaptain,
+                points: p.points,
+                driver: { driverKey: p.driver.driverKey },
+              })),
+            )
+          : 0;
         return {
           week_key: w.weekKey,
           race_name: w.raceName,
@@ -420,7 +443,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
           race_start_at: w.raceStartAt.toISOString(),
           lock_at: w.lockAt.toISOString(),
           status,
-          total_points: L?.totalPts ?? 0,
+          total_points,
           lineup_complete,
           tiebreaker_win_margin_seconds: tbWin,
           tiebreaker_caution_laps: tbCaut,

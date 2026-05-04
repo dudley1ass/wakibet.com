@@ -18,7 +18,7 @@ const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components
 const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
 const NascarTexasPicksPage = lazy(() => import("./components/picks/NascarTexasPicksPage"));
-const PpaAtlantaPicksPage = lazy(() => import("./components/picks/PpaAtlantaPicksPage"));
+const WeekPicksHubPage = lazy(() => import("./components/picks/WeekPicksHubPage"));
 const PickleballSeasonLeaderboardPage = lazy(() =>
   import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.PickleballSeasonLeaderboardPage })),
 );
@@ -245,8 +245,9 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
         }
       />
       <Route path="/nascar-texas-picks" element={<NascarTexasPicksPage />} />
-      <Route path="/ppa-atlanta-picks" element={<PpaAtlantaPicksPage />} />
-      <Route path="/picks/ppa-atlanta" element={<Navigate to="/ppa-atlanta-picks" replace />} />
+      <Route path="/week-picks" element={<WeekPicksHubPage />} />
+      <Route path="/ppa-atlanta-picks" element={<Navigate to="/week-picks" replace />} />
+      <Route path="/picks/ppa-atlanta" element={<Navigate to="/week-picks" replace />} />
       <Route path="/picks/nascar-texas" element={<Navigate to="/nascar-texas-picks" replace />} />
       <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
       <Route

@@ -41,7 +41,8 @@ function normPlayerKeyForMlp(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-export const TOURNAMENT_KEYS = ["atlanta_weekend", "mlp_dallas_2026"] as const;
+/** Primary schedule first (dashboard, defaults, editorial “this week”). */
+export const TOURNAMENT_KEYS = ["mlp_dallas_2026", "atlanta_weekend"] as const;
 export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
 
 const TOURNAMENT_FILES: Record<TournamentKey, string> = {

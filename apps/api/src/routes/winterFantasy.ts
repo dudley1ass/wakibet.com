@@ -59,12 +59,13 @@ function isRosterEditLocked(matches: unknown[]): boolean {
   return Date.now() >= firstStart - ROSTER_EDIT_LOCK_MS;
 }
 
+const DEFAULT_TOURNAMENT_KEY = TOURNAMENT_KEYS[0];
 const DivisionKeyQuery = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default("atlanta_weekend"),
+  tournament_key: z.enum(TOURNAMENT_KEYS).default(DEFAULT_TOURNAMENT_KEY),
   division_key: z.string().min(1),
 });
 const TournamentQuery = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default("atlanta_weekend"),
+  tournament_key: z.enum(TOURNAMENT_KEYS).default(DEFAULT_TOURNAMENT_KEY),
 });
 
 const PickRow = z.object({
