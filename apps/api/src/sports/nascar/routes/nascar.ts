@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { requireAuthUser } from "../../../lib/requireAuthUser.js";
 import { prisma } from "../../../lib/prisma.js";
 import {
@@ -30,7 +31,12 @@ async function aggregateNascarSeasonPoints(seasonYear: number): Promise<{
   pointsByUser: Map<string, number>;
   weeksPlayedByUser: Map<string, number>;
 }> {
-  const [lineups, pickSumRows, lineupSumRows] = await Promise.all([
+  /**
+   * DB rollup per user: sum over lineups of GREATEST(rollup totalPts, sum of pick.points).
+   * Matches `computeNascarLineupPoints` when `driverPointsByKey` does not add extra points.
+   * Uses alias `uid` so drivers never mis-map camelCase column names from raw SQL.
+   */
+  const [lineups, sqlAggRows] = await Promise.all([
     prisma.nascarWeeklyLineup.findMany({
       where: { week: { seasonYear } },
       select: {
@@ -40,20 +46,27 @@ async function aggregateNascarSeasonPoints(seasonYear: number): Promise<{
         picks: { select: { points: true, isCaptain: true, driver: { select: { driverKey: true } } } },
       },
     }),
-    prisma.$queryRaw<Array<{ userId: string; pts: unknown }>>`
-      SELECT l."userId"::text AS "userId", COALESCE(SUM(p."points"), 0)::float8 AS pts
-      FROM "NascarWeeklyPick" p
-      INNER JOIN "NascarWeeklyLineup" l ON l.id = p."lineupId"
-      INNER JOIN "NascarWeek" w ON w.id = l."weekId"
-      WHERE w."seasonYear" = ${seasonYear}
-      GROUP BY l."userId"
-    `,
-    prisma.$queryRaw<Array<{ userId: string; pts: unknown }>>`
-      SELECT l."userId"::text AS "userId", COALESCE(SUM(l."totalPts"), 0)::float8 AS pts
-      FROM "NascarWeeklyLineup" l
-      INNER JOIN "NascarWeek" w ON w.id = l."weekId"
-      WHERE w."seasonYear" = ${seasonYear}
-      GROUP BY l."userId"
+    prisma.$queryRaw<Array<{ uid: string; pts: unknown }>>`
+      SELECT sub.uid, COALESCE(SUM(sub.line_pts), 0)::float8 AS pts
+      FROM (
+        SELECT
+          l."userId"::text AS uid,
+          GREATEST(
+            COALESCE(l."totalPts", 0),
+            COALESCE(
+              (
+                SELECT SUM(p."points")::float8
+                FROM "NascarWeeklyPick" p
+                WHERE p."lineupId" = l.id
+              ),
+              0
+            )
+          ) AS line_pts
+        FROM "NascarWeeklyLineup" l
+        INNER JOIN "NascarWeek" w ON w.id = l."weekId"
+        WHERE w."seasonYear" = ${seasonYear}
+      ) sub
+      GROUP BY sub.uid
     `,
   ]);
 
@@ -65,20 +78,15 @@ async function aggregateNascarSeasonPoints(seasonYear: number): Promise<{
     weeksPlayedByUser.set(L.userId, (weeksPlayedByUser.get(L.userId) ?? 0) + 1);
   }
 
-  const pickSumByUser = new Map(pickSumRows.map((r) => [r.userId, sqlFloat(r.pts)]));
-  const lineupSumByUser = new Map(lineupSumRows.map((r) => [r.userId, sqlFloat(r.pts)]));
+  const sqlAggByUser = new Map(sqlAggRows.map((r) => [r.uid, sqlFloat(r.pts)]));
 
   const userIds = new Set<string>();
   for (const id of jsByUser.keys()) userIds.add(id);
-  for (const id of pickSumByUser.keys()) userIds.add(id);
-  for (const id of lineupSumByUser.keys()) userIds.add(id);
+  for (const id of sqlAggByUser.keys()) userIds.add(id);
 
   const pointsByUser = new Map<string, number>();
   for (const uid of userIds) {
-    pointsByUser.set(
-      uid,
-      Math.max(jsByUser.get(uid) ?? 0, pickSumByUser.get(uid) ?? 0, lineupSumByUser.get(uid) ?? 0),
-    );
+    pointsByUser.set(uid, Math.max(jsByUser.get(uid) ?? 0, sqlAggByUser.get(uid) ?? 0));
   }
 
   return { pointsByUser, weeksPlayedByUser };
@@ -275,7 +283,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req) => {
-      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+      const seasonYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
       const now = new Date();
       const weeks = await prisma.nascarWeek.findMany({
         where: { seasonYear },
@@ -318,7 +326,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req) => {
       const userId = req.authUser!.id;
-      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+      const seasonYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
 
       const { pointsByUser, weeksPlayedByUser } = await aggregateNascarSeasonPoints(seasonYear);
       const total_points = pointsByUser.get(userId) ?? 0;
@@ -363,7 +371,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req) => {
       const me = req.authUser!.id;
-      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+      const seasonYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
 
       const { pointsByUser } = await aggregateNascarSeasonPoints(seasonYear);
       if (pointsByUser.size === 0) {
@@ -430,7 +438,7 @@ export const nascarRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req) => {
       const userId = req.authUser!.id;
-      const seasonYear = req.query.season_year ?? new Date().getUTCFullYear();
+      const seasonYear = req.query.season_year ?? NASCAR_CUP_SCHEDULE_SEASON_YEAR;
       const now = new Date();
 
       const weeks = await prisma.nascarWeek.findMany({
