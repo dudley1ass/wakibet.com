@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY, AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY } from "@wakibet/shared";
+import { Link } from "react-router-dom";
 import type { SessionUser } from "../../../App";
-import { apiGet } from "../../../api";
+import { apiGet, apiPut } from "../../../api";
 import "../../../components/dashboard.css";
 
 type TeamRow = {
@@ -13,6 +14,18 @@ type TeamRow = {
 
 type TeamsPayload = {
   teams: TeamRow[];
+};
+
+type LineupPayload = {
+  event_key: string;
+  picks: Array<{
+    slot_index: number;
+    player_name: string;
+    is_captain: boolean;
+    waki_cash: number;
+  }>;
+  total_salary: number;
+  salary_cap: number;
 };
 
 const VOLLEYBALL_SALARY_CAP = 100;
@@ -60,6 +73,14 @@ export default function VolleyballHubPage({ user }: Props) {
   const [flex2, setFlex2] = useState<string>("");
   const [flex3, setFlex3] = useState<string>("");
   const [flex4, setFlex4] = useState<string>("");
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [saveOk, setSaveOk] = useState<string | null>(null);
+  const lineupQ = useQuery({
+    queryKey: ["volleyball", "lineup", selectedEventKey] as const,
+    queryFn: () => apiGet<LineupPayload>(`/api/v1/volleyball/lineup?event_key=${encodeURIComponent(selectedEventKey)}`),
+    enabled: Boolean(user),
+  });
   const selectedPool = selectedEventKey === huntingtonKey ? teamsHbQ.data : teamsQ.data;
   const playerOptions = useMemo(() => {
     const names = new Set<string>();
@@ -88,14 +109,65 @@ export default function VolleyballHubPage({ user }: Props) {
     setFlex3("");
     setFlex4("");
   };
+  useEffect(() => {
+    if (!lineupQ.data) return;
+    const cap = lineupQ.data.picks.find((p) => p.is_captain)?.player_name ?? "";
+    const flexes = lineupQ.data.picks.filter((p) => !p.is_captain).map((p) => p.player_name);
+    setCaptain(cap);
+    setFlex1(flexes[0] ?? "");
+    setFlex2(flexes[1] ?? "");
+    setFlex3(flexes[2] ?? "");
+    setFlex4(flexes[3] ?? "");
+  }, [lineupQ.data]);
   const teamsErr = teamsQ.error instanceof Error ? teamsQ.error.message : null;
   const teamsHbErr = teamsHbQ.error instanceof Error ? teamsHbQ.error.message : null;
+  async function saveLineup() {
+    if (!user) return;
+    setSaveErr(null);
+    setSaveOk(null);
+    setSaveBusy(true);
+    try {
+      const picks = [
+        { player_name: captain, is_captain: true },
+        { player_name: flex1, is_captain: false },
+        { player_name: flex2, is_captain: false },
+        { player_name: flex3, is_captain: false },
+        { player_name: flex4, is_captain: false },
+      ];
+      await apiPut("/api/v1/volleyball/lineup", {
+        event_key: selectedEventKey,
+        picks,
+      });
+      setSaveOk("Volleyball lineup saved.");
+      await lineupQ.refetch();
+    } catch (e) {
+      setSaveErr(e instanceof Error ? e.message : "Could not save lineup.");
+    } finally {
+      setSaveBusy(false);
+    }
+  }
 
   return (
     <div className="dash-shell">
       <div className="dash-head">
         <div>
-          <h1>Volleyball lineup selection</h1>
+          <h1>
+            Volleyball <span className="brand-jp">WakiBet</span>
+          </h1>
+          <p>Build your 5-player lineup under 100 WakiCash. One captain gets 1.5x scoring.</p>
+        </div>
+        <div className="dash-head-actions">
+          {user ? (
+            <Link className="dash-ghost-btn" to="/volleyball/rosters">
+              My volleyball rosters
+            </Link>
+          ) : null}
+          <Link className="dash-ghost-btn" to="/volleyball/scoring">
+            Scoring table
+          </Link>
+          <Link className="dash-ghost-btn" to="/">
+            Dashboard
+          </Link>
         </div>
       </div>
 
@@ -123,6 +195,8 @@ export default function VolleyballHubPage({ user }: Props) {
               onChange={(e) => {
                 setSelectedEventKey(e.target.value);
                 resetSelections();
+                setSaveErr(null);
+                setSaveOk(null);
               }}
               style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}
             >
@@ -201,39 +275,22 @@ export default function VolleyballHubPage({ user }: Props) {
               ? "Lineup has duplicate players. Choose unique players for all slots."
               : `Lineup progress: ${lineupCount}/5 selected.`}
         </p>
-      </section>
-      <section style={{ marginTop: 28 }} aria-labelledby="volleyball-scoring-table">
-        <h2 id="volleyball-scoring-table" className="dash-sub" style={{ fontWeight: 800, fontSize: "1.05rem" }}>
-          Volleyball scoring table
-        </h2>
-        <div style={{ overflowX: "auto", marginTop: 10 }}>
-          <table className="season-lb-table" style={{ minWidth: 560 }}>
-            <thead>
-              <tr>
-                <th scope="col">Stat</th>
-                <th scope="col" className="season-lb-th-score">
-                  Points
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td className="season-lb-name">Kill</td><td className="season-lb-score">+3</td></tr>
-              <tr><td className="season-lb-name">Assist</td><td className="season-lb-score">+1</td></tr>
-              <tr><td className="season-lb-name">Dig</td><td className="season-lb-score">+1</td></tr>
-              <tr><td className="season-lb-name">Block (solo)</td><td className="season-lb-score">+4</td></tr>
-              <tr><td className="season-lb-name">Block (assist)</td><td className="season-lb-score">+2</td></tr>
-              <tr><td className="season-lb-name">Ace</td><td className="season-lb-score">+5</td></tr>
-              <tr><td className="season-lb-name">Service error</td><td className="season-lb-score">-2</td></tr>
-              <tr><td className="season-lb-name">Attack error</td><td className="season-lb-score">-2</td></tr>
-              <tr><td className="season-lb-name">Reception error</td><td className="season-lb-score">-2</td></tr>
-              <tr><td className="season-lb-name">Double-double (10+ in two stats)</td><td className="season-lb-score">+5</td></tr>
-              <tr><td className="season-lb-name">Triple-double</td><td className="season-lb-score">+10</td></tr>
-              <tr><td className="season-lb-name">Match win</td><td className="season-lb-score">+5</td></tr>
-              <tr><td className="season-lb-name">Straight sets win</td><td className="season-lb-score">+3</td></tr>
-              <tr><td className="season-lb-name">Captain multiplier</td><td className="season-lb-score">1.5x</td></tr>
-            </tbody>
-          </table>
-        </div>
+        {user ? (
+          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              type="button"
+              className="dash-main-btn"
+              disabled={saveBusy || !validLineup}
+              onClick={() => void saveLineup()}
+            >
+              {saveBusy ? "Saving..." : "Save lineup"}
+            </button>
+            {saveOk ? <span style={{ color: "#86efac", fontSize: 12 }}>{saveOk}</span> : null}
+            {saveErr ? <span style={{ color: "#fca5a5", fontSize: 12 }}>{saveErr}</span> : null}
+          </div>
+        ) : (
+          <p className="scoring-foot">Sign in to save your volleyball lineup.</p>
+        )}
       </section>
     </div>
   );

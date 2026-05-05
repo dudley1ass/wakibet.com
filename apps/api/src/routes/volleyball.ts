@@ -8,6 +8,8 @@ import {
   AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY,
   avpRegisteredTeamPoolForEvent,
 } from "@wakibet/shared";
+import { prisma } from "../lib/prisma.js";
+import { requireAuthUser } from "../lib/requireAuthUser.js";
 import {
   type AvpAthleteProfile,
   athleteProfileForRosterName,
@@ -56,6 +58,58 @@ const AvpTeamSchema = z.object({
 const EventKeyQuery = z.object({
   event_key: z.string().min(1),
 });
+
+const VolleyballPickSchema = z.object({
+  player_name: z.string().min(1),
+  is_captain: z.boolean().optional(),
+});
+
+const VolleyballSaveLineupBody = z.object({
+  event_key: z.string().min(1),
+  picks: z.array(VolleyballPickSchema).length(5),
+});
+
+const VOLLEYBALL_TOURNAMENT_KEY = "volleyball_avp_2026";
+const VOLLEYBALL_SEASON_KEY = "volleyball_2026";
+const VOLLEYBALL_CAP = 100;
+const authPre = { preHandler: [requireAuthUser] };
+
+function stableHash(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i += 1) h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function wakiCashForVolleyballPlayer(name: string, eventKey: string): number {
+  const roll = stableHash(`${eventKey}:${name}`) % 100;
+  if (roll >= 92) return 47 + (roll % 4);
+  if (roll >= 70) return 30 + (roll % 8);
+  if (roll >= 35) return 18 + (roll % 10);
+  return 8 + (roll % 9);
+}
+
+function volleyballEventSlotIndex(eventKey: string): number {
+  const i = AVP_2026_EVENTS.findIndex((e) => e.event_key === eventKey);
+  return i >= 0 ? i : 0;
+}
+
+async function resolveTeamPoolAndAthletes(event_key: string): Promise<{
+  pool: { title: string; teams: ReturnType<typeof avpRegisteredTeamPoolForEvent> extends infer R ? (R extends { teams: infer T } ? T : never) : never };
+  athleteMap: Map<string, AvpAthleteProfile>;
+}> {
+  let pool = avpRegisteredTeamPoolForEvent(event_key);
+  let athleteMap = new Map<string, AvpAthleteProfile>();
+
+  if (!pool && event_key === AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY) {
+    const hb = await loadHuntingtonBeachOpenTeamPool();
+    pool = { title: hb.title, teams: hb.teams };
+    athleteMap = hb.athleteMap;
+  } else if (event_key === AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY) {
+    athleteMap = await loadAvpSouthBeachAthleteMap();
+  }
+  if (!pool) throw new Error(`No registered team list for event_key: ${event_key}`);
+  return { pool: pool as NonNullable<typeof pool>, athleteMap };
+}
 
 export const volleyballRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -137,20 +191,13 @@ export const volleyballRoutes: FastifyPluginAsync = async (app) => {
     },
     async (req, reply) => {
       const { event_key } = req.query;
-      let pool = avpRegisteredTeamPoolForEvent(event_key);
-      let athleteMap = new Map<string, AvpAthleteProfile>();
-
-      if (!pool && event_key === AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY) {
-        const hb = await loadHuntingtonBeachOpenTeamPool();
-        pool = { title: hb.title, teams: hb.teams };
-        athleteMap = hb.athleteMap;
-      } else if (event_key === AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY) {
-        athleteMap = await loadAvpSouthBeachAthleteMap();
-      }
-
-      if (!pool) {
+      let resolved: Awaited<ReturnType<typeof resolveTeamPoolAndAthletes>>;
+      try {
+        resolved = await resolveTeamPoolAndAthletes(event_key);
+      } catch {
         return reply.code(404).send({ message: `No registered team list for event_key: ${event_key}` } as const);
       }
+      const { pool, athleteMap } = resolved;
       const missing = new Set<string>();
 
       const teams = pool.teams.map((t) => {
@@ -177,6 +224,257 @@ export const volleyballRoutes: FastifyPluginAsync = async (app) => {
         roster_players_missing_profile: [...missing].sort((a, b) => a.localeCompare(b)),
         teams,
       };
+    },
+  );
+
+  typed.get(
+    "/lineup",
+    {
+      ...authPre,
+      schema: {
+        tags: ["volleyball"],
+        querystring: EventKeyQuery,
+        response: {
+          200: z.object({
+            event_key: z.string(),
+            picks: z.array(
+              z.object({
+                slot_index: z.number().int(),
+                player_name: z.string(),
+                is_captain: z.boolean(),
+                waki_cash: z.number().int(),
+              }),
+            ),
+            total_salary: z.number().int(),
+            salary_cap: z.number().int(),
+          }),
+        },
+      },
+    },
+    async (req) => {
+      const uid = req.authUser!.id;
+      const { event_key } = req.query;
+      const lineup = await prisma.fantasyTournamentLineup.findUnique({
+        where: {
+          userId_tournamentKey_seasonKey: {
+            userId: uid,
+            tournamentKey: VOLLEYBALL_TOURNAMENT_KEY,
+            seasonKey: VOLLEYBALL_SEASON_KEY,
+          },
+        },
+        include: {
+          eventPicks: {
+            where: { eventKey: event_key },
+            include: { slots: { orderBy: { slotIndex: "asc" } } },
+            take: 1,
+          },
+        },
+      });
+      const eventPick = lineup?.eventPicks[0];
+      const picks =
+        eventPick?.slots.map((s) => ({
+          slot_index: s.slotIndex,
+          player_name: s.playerName,
+          is_captain: s.isCaptain,
+          waki_cash: wakiCashForVolleyballPlayer(s.playerName, event_key),
+        })) ?? [];
+      const total_salary = picks.reduce((sum, p) => sum + p.waki_cash, 0);
+      return { event_key, picks, total_salary, salary_cap: VOLLEYBALL_CAP };
+    },
+  );
+
+  typed.put(
+    "/lineup",
+    {
+      ...authPre,
+      schema: {
+        tags: ["volleyball"],
+        body: VolleyballSaveLineupBody,
+        response: {
+          200: z.object({
+            event_key: z.string(),
+            picks: z.array(
+              z.object({
+                slot_index: z.number().int(),
+                player_name: z.string(),
+                is_captain: z.boolean(),
+                waki_cash: z.number().int(),
+              }),
+            ),
+            total_salary: z.number().int(),
+            salary_cap: z.number().int(),
+          }),
+          400: z.object({ message: z.string() }),
+        },
+      },
+    },
+    async (req, reply) => {
+      const uid = req.authUser!.id;
+      const { event_key, picks } = req.body;
+      const eventMeta = AVP_2026_EVENTS.find((e) => e.event_key === event_key);
+      if (!eventMeta) return reply.code(400).send({ message: "Unknown volleyball event key." } as const);
+      const eventStartMs = Date.parse(`${eventMeta.start_date}T00:00:00Z`);
+      if (Number.isFinite(eventStartMs) && Date.now() >= eventStartMs) {
+        return reply.code(400).send({ message: "Event is locked. Lineups cannot be edited after start." } as const);
+      }
+
+      let pool: Awaited<ReturnType<typeof resolveTeamPoolAndAthletes>>["pool"];
+      try {
+        ({ pool } = await resolveTeamPoolAndAthletes(event_key));
+      } catch {
+        return reply.code(400).send({ message: "Could not load players for this event." } as const);
+      }
+
+      const names = picks.map((p) => p.player_name.trim()).filter(Boolean);
+      if (names.length !== 5) return reply.code(400).send({ message: "Exactly 5 picks are required." } as const);
+      if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) {
+        return reply.code(400).send({ message: "Duplicate players are not allowed." } as const);
+      }
+      const captains = picks.filter((p) => Boolean(p.is_captain));
+      if (captains.length !== 1) return reply.code(400).send({ message: "Choose exactly one captain." } as const);
+
+      const playerPool = new Set<string>();
+      for (const t of pool.teams) {
+        if (t.player_one.trim()) playerPool.add(t.player_one.trim());
+        if (t.player_two.trim()) playerPool.add(t.player_two.trim());
+      }
+      for (const n of names) {
+        if (!playerPool.has(n)) {
+          return reply.code(400).send({ message: `Player is not in this event pool: ${n}` } as const);
+        }
+      }
+
+      const picksOut = picks.map((p, i) => ({
+        slot_index: i,
+        player_name: p.player_name.trim(),
+        is_captain: Boolean(p.is_captain),
+        waki_cash: wakiCashForVolleyballPlayer(p.player_name.trim(), event_key),
+      }));
+      const total_salary = picksOut.reduce((sum, p) => sum + p.waki_cash, 0);
+      if (total_salary > VOLLEYBALL_CAP) {
+        return reply.code(400).send({ message: `Lineup exceeds ${VOLLEYBALL_CAP} Waki Cash.` } as const);
+      }
+
+      await prisma.$transaction(async (tx) => {
+        const lineup = await tx.fantasyTournamentLineup.upsert({
+          where: {
+            userId_tournamentKey_seasonKey: {
+              userId: uid,
+              tournamentKey: VOLLEYBALL_TOURNAMENT_KEY,
+              seasonKey: VOLLEYBALL_SEASON_KEY,
+            },
+          },
+          create: {
+            userId: uid,
+            tournamentKey: VOLLEYBALL_TOURNAMENT_KEY,
+            seasonKey: VOLLEYBALL_SEASON_KEY,
+            wakicashBudget: VOLLEYBALL_CAP,
+            wakicashSpent: total_salary,
+            status: "active",
+          },
+          update: {
+            wakicashBudget: VOLLEYBALL_CAP,
+            wakicashSpent: total_salary,
+            status: "active",
+          },
+        });
+        const eventPick = await tx.fantasyTournamentEventPick.upsert({
+          where: { lineupId_eventKey: { lineupId: lineup.id, eventKey: event_key } },
+          create: {
+            lineupId: lineup.id,
+            slotIndex: volleyballEventSlotIndex(event_key),
+            eventKey: event_key,
+            eventLabelRaw: eventMeta.name,
+            eventLabelDisplay: eventMeta.name,
+            format: "volleyball",
+            scheduleDivisionKey: event_key,
+          },
+          update: {
+            eventLabelRaw: eventMeta.name,
+            eventLabelDisplay: eventMeta.name,
+            format: "volleyball",
+            scheduleDivisionKey: event_key,
+          },
+        });
+        await tx.fantasyTournamentEventPickSlot.deleteMany({ where: { eventPickId: eventPick.id } });
+        await tx.fantasyTournamentEventPickSlot.createMany({
+          data: picksOut.map((p) => ({
+            eventPickId: eventPick.id,
+            slotIndex: p.slot_index,
+            playerName: p.player_name,
+            isCaptain: p.is_captain,
+          })),
+        });
+      });
+
+      return { event_key, picks: picksOut, total_salary, salary_cap: VOLLEYBALL_CAP };
+    },
+  );
+
+  typed.get(
+    "/lineups",
+    {
+      ...authPre,
+      schema: {
+        tags: ["volleyball"],
+        response: {
+          200: z.object({
+            rows: z.array(
+              z.object({
+                event_key: z.string(),
+                event_name: z.string(),
+                picks: z.array(
+                  z.object({
+                    slot_index: z.number().int(),
+                    player_name: z.string(),
+                    is_captain: z.boolean(),
+                    waki_cash: z.number().int(),
+                  }),
+                ),
+                total_salary: z.number().int(),
+                salary_cap: z.number().int(),
+                updated_at: z.string(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    async (req) => {
+      const uid = req.authUser!.id;
+      const lineup = await prisma.fantasyTournamentLineup.findUnique({
+        where: {
+          userId_tournamentKey_seasonKey: {
+            userId: uid,
+            tournamentKey: VOLLEYBALL_TOURNAMENT_KEY,
+            seasonKey: VOLLEYBALL_SEASON_KEY,
+          },
+        },
+        include: {
+          eventPicks: {
+            orderBy: { slotIndex: "asc" },
+            include: { slots: { orderBy: { slotIndex: "asc" } } },
+          },
+        },
+      });
+      const rows = (lineup?.eventPicks ?? []).map((ev) => {
+        const picks = ev.slots.map((s) => ({
+          slot_index: s.slotIndex,
+          player_name: s.playerName,
+          is_captain: s.isCaptain,
+          waki_cash: wakiCashForVolleyballPlayer(s.playerName, ev.eventKey),
+        }));
+        const total_salary = picks.reduce((sum, p) => sum + p.waki_cash, 0);
+        return {
+          event_key: ev.eventKey,
+          event_name: ev.eventLabelDisplay || ev.eventLabelRaw || ev.eventKey,
+          picks,
+          total_salary,
+          salary_cap: VOLLEYBALL_CAP,
+          updated_at: ev.updatedAt.toISOString(),
+        };
+      });
+      return { rows };
     },
   );
 };
