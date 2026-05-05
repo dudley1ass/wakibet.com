@@ -6,6 +6,7 @@ import {
   MLP_FANTASY_REQUIRED_WOMEN,
   MLP_FANTASY_ROSTER_SIZE,
   playerWakiCashCost,
+  resolveFeaturedMlp2026Tournament,
   scoreWinterPlayerFromMatches,
   validateWakiCashLineup,
   WINTER_FANTASY_ROSTER_SIZE,
@@ -24,6 +25,7 @@ import {
   listTournamentOptions,
   parseDivisionKey,
   TOURNAMENT_KEYS,
+  TOURNAMENT_KEYS_ENUM,
   toStoredDivisionKey,
   uniquePlayersInMatches,
 } from "../sports/pickleball/lib/index.js";
@@ -62,13 +64,22 @@ function isRosterEditLocked(matches: unknown[]): boolean {
   return Date.now() >= firstStart - ROSTER_EDIT_LOCK_MS;
 }
 
-const DEFAULT_TOURNAMENT_KEY = TOURNAMENT_KEYS[0];
+function defaultPickleballTournamentKey(): (typeof TOURNAMENT_KEYS)[number] {
+  return resolveFeaturedMlp2026Tournament().tournament_key as (typeof TOURNAMENT_KEYS)[number];
+}
+
 const DivisionKeyQuery = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default(DEFAULT_TOURNAMENT_KEY),
+  tournament_key: z.preprocess(
+    (v) => (v === undefined || v === "" ? defaultPickleballTournamentKey() : v),
+    z.enum(TOURNAMENT_KEYS_ENUM),
+  ),
   division_key: z.string().min(1),
 });
 const TournamentQuery = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS).default(DEFAULT_TOURNAMENT_KEY),
+  tournament_key: z.preprocess(
+    (v) => (v === undefined || v === "" ? defaultPickleballTournamentKey() : v),
+    z.enum(TOURNAMENT_KEYS_ENUM),
+  ),
 });
 
 const PickRow = z.object({
@@ -77,7 +88,7 @@ const PickRow = z.object({
 });
 
 const PutRosterBody = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS),
+  tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
   division_key: z.string().min(1),
   picks: z.array(PickRow).min(1).max(WINTER_FANTASY_ROSTER_SIZE),
   /** Pickleball tiebreaker: guess total matches in this event (closest wins). */
@@ -96,10 +107,10 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: TournamentQuery,
         response: {
           200: z.object({
-            selected_tournament_key: z.enum(TOURNAMENT_KEYS),
+            selected_tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             available_tournaments: z.array(
               z.object({
-                tournament_key: z.enum(TOURNAMENT_KEYS),
+                tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
                 label: z.string(),
               }),
             ),
@@ -185,7 +196,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: DivisionKeyQuery,
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             division_key: z.string(),
             skill_level: z.string(),
             waki_cash_budget: z.number().int(),
@@ -272,7 +283,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: DivisionKeyQuery,
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             division_key: z.string(),
             picks: z.array(
               z.object({
@@ -332,7 +343,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         body: PutRosterBody,
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             division_key: z.string(),
             picks: z.array(
               z.object({
@@ -483,7 +494,7 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
         querystring: DivisionKeyQuery,
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             division_key: z.string(),
             roster_total: z.number(),
             rules_version: z.number().int(),

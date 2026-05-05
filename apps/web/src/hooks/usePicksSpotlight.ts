@@ -1,4 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+  buildLacrossePicksSpotlightPayload,
+  buildPickleballPicksSpotlightPayload,
+  buildVolleyballPicksSpotlightPayload,
+} from "@wakibet/shared";
 import { apiGet } from "../api";
 
 export type PicksSpotlightStatus = "live" | "upcoming" | "ended";
@@ -20,40 +25,44 @@ export type PicksSpotlightResponse = {
   items: PicksSpotlightItem[];
 };
 
+const vbFallback = buildVolleyballPicksSpotlightPayload();
+const pbFallback = buildPickleballPicksSpotlightPayload();
+const lxFallback = buildLacrossePicksSpotlightPayload();
+
 /** Used when the API is down or returns no rows — matches prior static copy. */
 export const PICKS_SPOTLIGHT_FALLBACK: PicksSpotlightItem[] = [
   {
-    sport_key: "volleyball",
-    window_key: "fallback",
-    href: "/volleyball-picks",
-    label_short: "Volleyball",
-    label_full: "Volleyball Picks",
-    venue: "Huntington Beach Open",
-    status: "live",
-    starts_at: "1970-01-01T00:00:00.000Z",
-    ends_at: "2099-12-31T23:59:59.999Z",
+    sport_key: vbFallback.sport_key,
+    window_key: vbFallback.window_key,
+    href: vbFallback.href,
+    label_short: vbFallback.label_short,
+    label_full: vbFallback.label_full,
+    venue: vbFallback.venue,
+    status: vbFallback.status,
+    starts_at: vbFallback.starts_at,
+    ends_at: vbFallback.ends_at,
   },
   {
-    sport_key: "pickleball",
-    window_key: "fallback",
-    href: "/week-picks",
-    label_short: "Pickleball",
-    label_full: "Pickleball Picks",
-    venue: "MLP Dallas 2026",
-    status: "live",
-    starts_at: "1970-01-01T00:00:00.000Z",
-    ends_at: "2099-12-31T23:59:59.999Z",
+    sport_key: pbFallback.sport_key,
+    window_key: pbFallback.window_key,
+    href: pbFallback.href,
+    label_short: pbFallback.label_short,
+    label_full: pbFallback.label_full,
+    venue: pbFallback.venue,
+    status: pbFallback.status,
+    starts_at: pbFallback.starts_at,
+    ends_at: pbFallback.ends_at,
   },
   {
-    sport_key: "lacrosse",
-    window_key: "fallback",
-    href: "/lacrosse",
-    label_short: "Lacrosse",
-    label_full: "Lacrosse Slate",
-    venue: "Utah Open · PLL",
-    status: "live",
-    starts_at: "1970-01-01T00:00:00.000Z",
-    ends_at: "2099-12-31T23:59:59.999Z",
+    sport_key: lxFallback.sport_key,
+    window_key: lxFallback.window_key,
+    href: lxFallback.href,
+    label_short: lxFallback.label_short,
+    label_full: lxFallback.label_full,
+    venue: lxFallback.venue,
+    status: lxFallback.status,
+    starts_at: lxFallback.starts_at,
+    ends_at: lxFallback.ends_at,
   },
 ];
 

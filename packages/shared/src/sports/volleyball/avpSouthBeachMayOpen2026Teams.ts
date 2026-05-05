@@ -1,6 +1,6 @@
 /**
- * Registered teams — **AVP NEXT South Beach May Open** (May 2026, South Florida / Miami area).
- * Tied to schedule key `avp_2026_contender_south_florida` (AVP South Florida Open, May 23–24).
+ * Registered teams — **Pompano Beach Open** (May 2026, Florida contender).
+ * Tied to schedule key `avp_2026_contender_south_florida`.
  */
 
 export type AvpBeachTeamDivisionCode =
@@ -25,7 +25,7 @@ export type AvpBeachRegisteredTeam = {
   team_label: string;
 };
 
-export const AVP_SOUTH_BEACH_MAY_OPEN_TITLE = "AVP NEXT South Beach May Open";
+export const AVP_SOUTH_BEACH_MAY_OPEN_TITLE = "AVP Pompano Beach Open";
 
 export const AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY = "avp_2026_contender_south_florida" as const;
 

@@ -1715,7 +1715,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key?: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                 };
                 header?: never;
                 path?: never;
@@ -1731,10 +1731,10 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            selected_tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            selected_tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             available_tournaments: {
                                 /** @enum {string} */
-                                tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                                tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                                 label: string;
                             }[];
                             tournament_name: string;
@@ -1849,7 +1849,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key?: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                     division_key: string;
                 };
                 header?: never;
@@ -1866,7 +1866,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             division_key: string;
                             skill_level: string;
                             waki_cash_budget: number;
@@ -1936,7 +1936,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key?: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                     division_key: string;
                 };
                 header?: never;
@@ -1953,7 +1953,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             division_key: string;
                             picks: {
                                 slot_index: number;
@@ -2000,7 +2000,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                        tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                         division_key: string;
                         picks: {
                             player_name: string;
@@ -2019,7 +2019,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             division_key: string;
                             picks: {
                                 slot_index: number;
@@ -2083,7 +2083,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key?: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                     division_key: string;
                 };
                 header?: never;
@@ -2100,7 +2100,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             division_key: string;
                             roster_total: number;
                             rules_version: number;
@@ -2172,7 +2172,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                 };
                 cookie?: never;
             };
@@ -2186,7 +2186,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             tournament_name: string;
                             roster_size: number;
                             required_men: number | null;
@@ -2255,7 +2255,7 @@ export interface paths {
                 };
                 header?: never;
                 path: {
-                    tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                 };
                 cookie?: never;
             };
@@ -2269,7 +2269,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             season_key: string;
                             roster_size: number;
                             required_men: number | null;
@@ -2313,7 +2313,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                    tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                 };
                 cookie?: never;
             };
@@ -2344,7 +2344,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
+                            tournament_key: "mlp_dallas_2026" | "mlp_columbus_2026" | "mlp_st_louis_2026" | "mlp_austin_2026" | "mlp_st_petersburg_2026" | "mlp_new_york_2026" | "mlp_grand_rapids_2026" | "mlp_san_diego_2026" | "mlp_chicago_2026" | "mlp_orlando_2026" | "mlp_dallas_playoffs_2026" | "mlp_newport_beach_2026" | "mlp_new_york_championship_2026" | "atlanta_weekend";
                             season_key: string;
                             roster_size: number;
                             required_men: number | null;

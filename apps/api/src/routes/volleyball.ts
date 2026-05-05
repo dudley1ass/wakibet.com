@@ -186,8 +186,8 @@ export const volleyballRoutes: FastifyPluginAsync = async (app) => {
         season_year: AVP_2026_SEASON_YEAR,
         events: AVP_2026_EVENTS,
         schedule_notes: [
-          "League, Heritage, and Contender stops can land on the same calendar weekend — each fantasy slate will target one official stop.",
-          "Example overlap: AVP League Week 3 (Miami, Jun 12–13) and Virginia Beach Open (Jun 13–14); League Championships (Chicago, Sep 5–6) vs Mother Lode (Sep 5–7).",
+          "League, Heritage, and Contender stops can share the same calendar weekend — fantasy slates still target one official stop at a time.",
+          "Examples: AVP League Week 2 (Aspen, Jun 6–7) overlaps Virginia Beach Open (Jun 6–7); League Championship (Chicago, Sep 5–6) overlaps Motherlode (Aspen, Sep 5–7).",
         ],
       };
     },

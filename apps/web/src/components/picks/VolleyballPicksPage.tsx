@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY, AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY } from "@wakibet/shared";
+import {
+  AVP_2026_EVENTS,
+  AVP_EVENT_KEYS_WITH_REGISTERED_POOL,
+  AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY,
+  resolveFeaturedAvp2026Event,
+} from "@wakibet/shared";
 import { Flag, Target, Trophy, Zap, Bomb } from "lucide-react";
 import { Hero, PickCard, PicksDashboardBar, PlayerRow } from "./picksUi";
 import { apiGet } from "../../api";
@@ -14,10 +19,22 @@ type PlayerPoolPayload = {
   }>;
 };
 
+const POOL_KEY_SET = new Set<string>(AVP_EVENT_KEYS_WITH_REGISTERED_POOL);
+
+function defaultPicksEventKey(): string {
+  const featured = resolveFeaturedAvp2026Event();
+  if (POOL_KEY_SET.has(featured.event_key)) return featured.event_key;
+  return AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY;
+}
+
 export default function VolleyballPicksPage() {
-  const huntingtonKey = AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY;
-  const southBeachKey = AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY;
-  const [selectedEventKey, setSelectedEventKey] = useState<string>(huntingtonKey);
+  const [searchParams] = useSearchParams();
+  const [selectedEventKey, setSelectedEventKey] = useState(() => {
+    const q = searchParams.get("event_key");
+    if (q && POOL_KEY_SET.has(q)) return q;
+    return defaultPicksEventKey();
+  });
+
   const playerPoolQ = useQuery({
     queryKey: ["volleyball", "picks-page-player-pool", selectedEventKey] as const,
     queryFn: () =>
@@ -33,7 +50,16 @@ export default function VolleyballPicksPage() {
   const valuePicks = sortedBySalary.filter((p) => p.waki_cash >= 18 && p.waki_cash <= 28).slice(0, 2);
   const sleeperPicks = [...sortedBySalary].reverse().slice(0, 2);
   const fmtOdds = (odds: number) => (odds > 0 ? `+${odds}` : `${odds}`);
-  const eventLabel = selectedEventKey === huntingtonKey ? "Huntington Beach Open" : "South Beach May Open";
+  const eventMeta = AVP_2026_EVENTS.find((e) => e.event_key === selectedEventKey);
+  const eventLabel = eventMeta?.name ?? "AVP";
+
+  const poolSelectOptions = AVP_EVENT_KEYS_WITH_REGISTERED_POOL.map((key) => {
+    const ev = AVP_2026_EVENTS.find((e) => e.event_key === key);
+    return {
+      key,
+      label: ev != null ? `${ev.name} (${ev.start_date}–${ev.end_date})` : key,
+    };
+  });
 
   return (
     <main className="picks-root min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
@@ -44,7 +70,7 @@ export default function VolleyballPicksPage() {
           sport="Volleyball fantasy picks"
           title={`Best Volleyball picks — ${eventLabel}`}
           subtitle="Favor teams with stable side-out rates and clean error profiles. Captain your highest ceiling player and balance value around that anchor."
-          badge={`AVP Heritage · ${eventLabel}`}
+          badge={eventMeta != null ? `AVP · ${eventMeta.location}` : `AVP · ${eventLabel}`}
           ctaHref="/volleyball"
           ctaText="Build volleyball lineup"
           icon={Flag}
@@ -57,8 +83,11 @@ export default function VolleyballPicksPage() {
               onChange={(e) => setSelectedEventKey(e.target.value)}
               className="mt-2 block w-full rounded-xl border border-slate-600 bg-slate-950 px-3 py-2 text-slate-100 md:w-96"
             >
-              <option value={huntingtonKey}>Huntington Beach Open (May 14-17)</option>
-              <option value={southBeachKey}>South Beach May Open (May 23-24)</option>
+              {poolSelectOptions.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </label>
           {playerPoolQ.error instanceof Error ? <p className="mt-3 text-sm text-red-300">{playerPoolQ.error.message}</p> : null}

@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Flag, CircleDot, Target, Trophy, Zap, Bomb } from "lucide-react";
 import { Link } from "react-router-dom";
+import { resolveFeaturedAvp2026Event, resolveFeaturedMlp2026Tournament } from "@wakibet/shared";
 import { apiGet } from "../../api";
+import { usePicksSpotlight } from "../../hooks/usePicksSpotlight";
 import { Hero, PickCard, PicksDashboardBar, PlayerRow, WakiOddsPanel } from "./picksUi";
 
 type VolleyballStatusPayload = {
@@ -12,6 +14,13 @@ type VolleyballStatusPayload = {
 };
 
 export default function WeekPicksHubPage() {
+  const { item } = usePicksSpotlight();
+  const pbSpotlight = item("pickleball");
+  const vbSpotlight = item("volleyball");
+  const pickleballStopLabel = pbSpotlight?.venue ?? resolveFeaturedMlp2026Tournament().label;
+  const pickleballPicksHref = pbSpotlight?.href ?? "/pick-teams";
+  const volleyballPicksHref = vbSpotlight?.href ?? "/volleyball-picks";
+
   const volleyballQ = useQuery({
     queryKey: ["volleyball", "status", "week-picks-hub"] as const,
     queryFn: () => apiGet<VolleyballStatusPayload>("/api/v1/volleyball/status"),
@@ -20,8 +29,9 @@ export default function WeekPicksHubPage() {
     if (volleyballQ.isLoading && !volleyballQ.data) return "Loading AVP schedule…";
     const season = volleyballQ.data?.season_year ?? 2026;
     const stops = volleyballQ.data?.event_count ?? 0;
-    return `AVP ${season} · ${stops} tour stop${stops === 1 ? "" : "s"}`;
-  }, [volleyballQ.data, volleyballQ.isLoading]);
+    const featured = vbSpotlight?.venue ?? resolveFeaturedAvp2026Event().name;
+    return `${featured} · AVP ${season} (${stops} stops)`;
+  }, [volleyballQ.data, volleyballQ.isLoading, vbSpotlight?.venue]);
 
   return (
     <main className="picks-root min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
@@ -33,21 +43,21 @@ export default function WeekPicksHubPage() {
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-yellow-500/25 bg-slate-950/60 p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-yellow-300">Pickleball</p>
-              <p className="mt-1 text-lg font-black text-white">MLP Dallas 2026</p>
+              <p className="mt-1 text-lg font-black text-white">{pickleballStopLabel}</p>
               <p className="mt-2 text-sm text-slate-300">Winter fantasy lineups — build five picks per division under 100 WakiCash.</p>
-              <Link className="mt-3 inline-block text-sm font-bold text-yellow-300 underline underline-offset-2" to="/pick-teams">
+              <Link className="mt-3 inline-block text-sm font-bold text-yellow-300 underline underline-offset-2" to={pickleballPicksHref}>
                 Enter picks →
               </Link>
             </div>
             <div className="rounded-xl border border-emerald-500/25 bg-slate-950/60 p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-emerald-300">Beach volleyball</p>
               <p className="mt-1 text-lg font-black text-white">{volleyballEventLine}</p>
-              <p className="mt-2 text-sm text-slate-300">AVP team hub is live with Huntington Beach and South Beach rosters.</p>
+              <p className="mt-2 text-sm text-slate-300">AVP team hub is live with Huntington Beach and Pompano Beach rosters.</p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold">
-                <Link className="text-emerald-300 underline underline-offset-2" to="/volleyball-picks">
+                <Link className="text-emerald-300 underline underline-offset-2" to={volleyballPicksHref}>
                   Volleyball hub →
                 </Link>
-                <Link className="text-slate-300 underline underline-offset-2" to="/volleyball-picks">
+                <Link className="text-slate-300 underline underline-offset-2" to={volleyballPicksHref}>
                   Picks write-up →
                 </Link>
               </div>
@@ -57,10 +67,10 @@ export default function WeekPicksHubPage() {
 
         <Hero
           sport="Pickleball fantasy picks"
-          title="Best Pickleball picks — MLP Dallas"
+          title={`Best Pickleball picks — ${pickleballStopLabel}`}
           subtitle="Major League Pickleball rewards teams that stack wins in pool play and carry momentum into bracket day. Prioritize players with deep-run paths and clean matchup schedules."
-          badge="MLP Dallas 2026"
-          ctaHref="/pick-teams"
+          badge={pickleballStopLabel}
+          ctaHref={pickleballPicksHref}
           ctaText="Build pickleball lineup"
           icon={CircleDot}
         />

@@ -1,33 +1,13 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { prisma } from "../lib/prisma.js";
-
-const SPORT_ORDER = ["volleyball", "pickleball", "lacrosse"] as const;
+import {
+  buildLacrossePicksSpotlightPayload,
+  buildPickleballPicksSpotlightPayload,
+  buildVolleyballPicksSpotlightPayload,
+} from "@wakibet/shared";
 
 const Status = z.enum(["live", "upcoming", "ended"]);
-
-type WindowRow = {
-  sportKey: string;
-  windowKey: string;
-  labelShort: string;
-  labelFull: string;
-  venue: string;
-  href: string;
-  startsAt: Date;
-  endsAt: Date;
-};
-
-function resolveWindow(windows: WindowRow[], now: Date): { row: WindowRow; status: z.infer<typeof Status> } | null {
-  const sorted = [...windows].sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
-  const live = sorted.find((w) => w.startsAt <= now && w.endsAt > now);
-  if (live) return { row: live, status: "live" };
-  const upcoming = sorted.find((w) => w.startsAt > now);
-  if (upcoming) return { row: upcoming, status: "upcoming" };
-  const last = sorted[sorted.length - 1];
-  if (last) return { row: last, status: "ended" };
-  return null;
-}
 
 export const picksSpotlightRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -59,27 +39,11 @@ export const picksSpotlightRoutes: FastifyPluginAsync = async (app) => {
     },
     async () => {
       const now = new Date();
-      const rows = await prisma.picksSpotlightWindow.findMany({
-        orderBy: [{ sportKey: "asc" }, { startsAt: "asc" }],
-      });
+      const vb = buildVolleyballPicksSpotlightPayload(now);
+      const pb = buildPickleballPicksSpotlightPayload(now);
+      const lx = buildLacrossePicksSpotlightPayload(now);
 
-      const bySport = new Map<string, WindowRow[]>();
-      for (const r of rows) {
-        const list = bySport.get(r.sportKey) ?? [];
-        list.push({
-          sportKey: r.sportKey,
-          windowKey: r.windowKey,
-          labelShort: r.labelShort,
-          labelFull: r.labelFull,
-          venue: r.venue,
-          href: r.href,
-          startsAt: r.startsAt,
-          endsAt: r.endsAt,
-        });
-        bySport.set(r.sportKey, list);
-      }
-
-      const out: {
+      const items: {
         sport_key: string;
         window_key: string;
         href: string;
@@ -89,30 +53,45 @@ export const picksSpotlightRoutes: FastifyPluginAsync = async (app) => {
         status: z.infer<typeof Status>;
         starts_at: string;
         ends_at: string;
-      }[] = [];
-
-      for (const key of SPORT_ORDER) {
-        const windows = bySport.get(key);
-        if (!windows?.length) continue;
-        const resolved = resolveWindow(windows, now);
-        if (!resolved) continue;
-        const { row, status } = resolved;
-        out.push({
-          sport_key: row.sportKey,
-          window_key: row.windowKey,
-          href: row.href,
-          label_short: row.labelShort,
-          label_full: row.labelFull,
-          venue: row.venue,
-          status,
-          starts_at: row.startsAt.toISOString(),
-          ends_at: row.endsAt.toISOString(),
-        });
-      }
+      }[] = [
+        {
+          sport_key: vb.sport_key,
+          window_key: vb.window_key,
+          href: vb.href,
+          label_short: vb.label_short,
+          label_full: vb.label_full,
+          venue: vb.venue,
+          status: vb.status,
+          starts_at: vb.starts_at,
+          ends_at: vb.ends_at,
+        },
+        {
+          sport_key: pb.sport_key,
+          window_key: pb.window_key,
+          href: pb.href,
+          label_short: pb.label_short,
+          label_full: pb.label_full,
+          venue: pb.venue,
+          status: pb.status,
+          starts_at: pb.starts_at,
+          ends_at: pb.ends_at,
+        },
+        {
+          sport_key: lx.sport_key,
+          window_key: lx.window_key,
+          href: lx.href,
+          label_short: lx.label_short,
+          label_full: lx.label_full,
+          venue: lx.venue,
+          status: lx.status,
+          starts_at: lx.starts_at,
+          ends_at: lx.ends_at,
+        },
+      ];
 
       return {
         generated_at: now.toISOString(),
-        items: out,
+        items,
       };
     },
   );

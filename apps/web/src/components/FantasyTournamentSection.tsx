@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { WINTER_FANTASY_ROSTER_SIZE } from "@wakibet/shared";
+import { useSearchParams } from "react-router-dom";
+import {
+  isPickleballTournamentKey,
+  MLP_2026_CALENDAR,
+  resolveFeaturedMlp2026Tournament,
+  WINTER_FANTASY_ROSTER_SIZE,
+} from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
 import "./dashboard.css";
 
@@ -66,7 +72,7 @@ type LineupResponse = {
 };
 
 const TOURNAMENT_OPTIONS: { tournament_key: string; label: string }[] = [
-  { tournament_key: "mlp_dallas_2026", label: "MLP Dallas 2026" },
+  ...MLP_2026_CALENDAR.map((s) => ({ tournament_key: s.tournament_key, label: s.label })),
   { tournament_key: "atlanta_weekend", label: "PPA Atlanta Weekend" },
 ];
 
@@ -111,7 +117,12 @@ type FantasyTournamentProps = {
 };
 
 export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: FantasyTournamentProps) {
-  const [tournamentKey, setTournamentKey] = useState("mlp_dallas_2026");
+  const [searchParams] = useSearchParams();
+  const [tournamentKey, setTournamentKey] = useState<string>(() => {
+    const q = searchParams.get("tournament_key");
+    if (q && isPickleballTournamentKey(q)) return q;
+    return resolveFeaturedMlp2026Tournament().tournament_key;
+  });
   const [eventsMeta, setEventsMeta] = useState<EventsResponse | null>(null);
   const [lineup, setLineup] = useState<LineupResponse | null>(null);
   const [metaErr, setMetaErr] = useState<string | null>(null);

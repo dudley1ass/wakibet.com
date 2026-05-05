@@ -1,6 +1,7 @@
 import {
   MLP_FANTASY_ROSTER_SIZE,
   playerWakiCashCost,
+  resolveFeaturedMlp2026Tournament,
   WAKICASH_BUDGET_PER_LINEUP,
   winterJsonMatchHasWinner,
   WINTER_FANTASY_ROSTER_SIZE,
@@ -196,6 +197,8 @@ async function computeDashboardSummaryOnly(user: AuthUser): Promise<DashboardSum
         })) ?? [],
     };
   });
+  const featuredPbKey = resolveFeaturedMlp2026Tournament().tournament_key;
+  const featuredContestId = `${featuredPbKey}-2026`;
   return {
     profile: {
       display_name: user.displayName,
@@ -211,7 +214,12 @@ async function computeDashboardSummaryOnly(user: AuthUser): Promise<DashboardSum
         name: tournamentDataByKey[t.tournament_key]?.summary.tournament_name ?? t.label,
         entry_fee_dills: 500,
         status: "UPCOMING",
-      })),
+      }))
+      .sort((a, b) => {
+        const aFeatured = a.id === featuredContestId ? 0 : 1;
+        const bFeatured = b.id === featuredContestId ? 0 : 1;
+        return aFeatured - bFeatured;
+      }),
     tournament_schedules,
   };
 }
@@ -528,6 +536,9 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
     5,
   );
 
+  const featuredPbKeyFull = resolveFeaturedMlp2026Tournament().tournament_key;
+  const featuredContestIdFull = `${featuredPbKeyFull}-2026`;
+
   return {
     profile: {
       display_name: user.displayName,
@@ -543,7 +554,12 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
         name: tournamentDataByKey[t.tournament_key]?.summary.tournament_name ?? t.label,
         entry_fee_dills: 500,
         status: "UPCOMING",
-      })),
+      }))
+      .sort((a, b) => {
+        const aFeatured = a.id === featuredContestIdFull ? 0 : 1;
+        const bFeatured = b.id === featuredContestIdFull ? 0 : 1;
+        return aFeatured - bFeatured;
+      }),
     tournament_schedules,
     winter_fantasy_rosters,
     fantasy_season,

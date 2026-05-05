@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY, AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY } from "@wakibet/shared";
+import {
+  AVP_2026_EVENTS,
+  AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY,
+  AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY,
+} from "@wakibet/shared";
 import { Link } from "react-router-dom";
 import type { SessionUser } from "../../../App";
 import { apiGet, apiPut } from "../../../api";
@@ -39,6 +43,11 @@ type Props = {
 export default function VolleyballHubPage({ user }: Props) {
   const southBeachKey = AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY;
   const huntingtonKey = AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY;
+  const hbLabel =
+    AVP_2026_EVENTS.find((e) => e.event_key === huntingtonKey)?.name ?? "Huntington Beach Open";
+  const hbDates = AVP_2026_EVENTS.find((e) => e.event_key === huntingtonKey);
+  const pbLabel = AVP_2026_EVENTS.find((e) => e.event_key === southBeachKey)?.name ?? "Pompano Beach Open";
+  const pbDates = AVP_2026_EVENTS.find((e) => e.event_key === southBeachKey);
   const [selectedEventKey, setSelectedEventKey] = useState<string>(huntingtonKey);
   const playerPoolQ = useQuery({
     queryKey: ["volleyball", "player-pool", selectedEventKey] as const,
@@ -180,8 +189,12 @@ export default function VolleyballHubPage({ user }: Props) {
               }}
               style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}
             >
-              <option value={huntingtonKey}>Huntington Beach Open (May 14–17)</option>
-              <option value={southBeachKey}>South Beach May Open (May 23–24)</option>
+              <option value={huntingtonKey}>
+                {hbDates != null ? `${hbLabel} (${hbDates.start_date}–${hbDates.end_date})` : hbLabel}
+              </option>
+              <option value={southBeachKey}>
+                {pbDates != null ? `${pbLabel} (${pbDates.start_date}–${pbDates.end_date})` : pbLabel}
+              </option>
             </select>
           </label>
           <label className="dash-sub" style={{ display: "grid", gap: 6 }}>

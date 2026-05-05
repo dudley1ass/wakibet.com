@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { resolveFeaturedMlp2026Tournament } from "@wakibet/shared";
 import { usePicksSpotlight } from "../hooks/usePicksSpotlight";
 
 type Sport = "volleyball" | "pickleball";
@@ -10,7 +11,7 @@ export default function WeekPicksPromoBanner({ sport }: { sport: Sport }) {
 
   const href = sport === "volleyball" ? vb?.href ?? "/volleyball-picks" : pb?.href ?? "/week-picks";
   const vbVenue = vb?.venue ?? "Huntington Beach Open";
-  const pbVenue = pb?.venue ?? "MLP Dallas";
+  const pbVenue = pb?.venue ?? resolveFeaturedMlp2026Tournament().label;
 
   const linkInner =
     sport === "volleyball" ? (

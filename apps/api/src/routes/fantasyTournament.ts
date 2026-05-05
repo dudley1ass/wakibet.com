@@ -17,7 +17,7 @@ import {
   parseDivisionKey,
   ROSTER_EDIT_LOCK_MS,
   syncTournamentEventCatalog,
-  TOURNAMENT_KEYS,
+  TOURNAMENT_KEYS_ENUM,
   uniquePlayersInMatches,
   type TournamentKey,
 } from "../sports/pickleball/lib/index.js";
@@ -155,7 +155,7 @@ function validateEventPicksShape(
 }
 
 const TourneyParams = z.object({
-  tournament_key: z.enum(TOURNAMENT_KEYS),
+  tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
 });
 
 const PickIn = z.object({
@@ -190,7 +190,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         params: TourneyParams,
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             tournament_name: z.string(),
             roster_size: z.number().int(),
             required_men: z.number().int().nullable(),
@@ -273,7 +273,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         querystring: z.object({ season_key: z.string().optional().default("") }),
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             season_key: z.string(),
             roster_size: z.number().int(),
             required_men: z.number().int().nullable(),
@@ -397,7 +397,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         body: PutLineupBody,
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS),
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
             season_key: z.string(),
             roster_size: z.number().int(),
             required_men: z.number().int().nullable(),

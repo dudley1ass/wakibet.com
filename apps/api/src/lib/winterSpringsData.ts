@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { MLP_2026_CALENDAR } from "@wakibet/shared";
 import { getMlpPlayersForTournament } from "./mlpTournamentData.js";
 
 /** Schedule JSON lives under `apps/api/data` regardless of process cwd (turbo/monorepo, Render, etc.). */
@@ -41,9 +42,15 @@ function normPlayerKeyForMlp(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-/** Primary schedule first (dashboard, defaults, editorial “this week”). */
-export const TOURNAMENT_KEYS = ["mlp_dallas_2026", "atlanta_weekend"] as const;
+/** MLP 2026 calendar order, then PPA Atlanta (non-MLP). */
+export const TOURNAMENT_KEYS = [
+  ...MLP_2026_CALENDAR.map((s) => s.tournament_key),
+  "atlanta_weekend",
+] as const;
 export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
+
+/** Mutable non-empty tuple for Zod `z.enum` (readonly tuples are rejected). */
+export const TOURNAMENT_KEYS_ENUM = [...TOURNAMENT_KEYS] as unknown as [TournamentKey, ...TournamentKey[]];
 
 /**
  * My Rosters / dashboard roster strip: omit saved lineups for these tournaments (archived / fully shipped).
@@ -51,15 +58,24 @@ export type TournamentKey = (typeof TOURNAMENT_KEYS)[number];
  */
 export const HIDE_COMPLETED_TOURNAMENT_ROSTERS: readonly TournamentKey[] = ["atlanta_weekend"];
 
-const TOURNAMENT_FILES: Record<TournamentKey, string> = {
-  atlanta_weekend: "atlanta_weekend_test_run_matches.json",
-  mlp_dallas_2026: "mlp_dallas_2026_matches.json",
-};
-
 const TOURNAMENT_LABELS: Record<TournamentKey, string> = {
   atlanta_weekend: "PPA Atlanta Weekend",
-  mlp_dallas_2026: "MLP Dallas 2026",
-};
+  ...Object.fromEntries(MLP_2026_CALENDAR.map((s) => [s.tournament_key, s.label] as const)),
+} as Record<TournamentKey, string>;
+
+const ATLANTA_MATCHES_FILE = "atlanta_weekend_test_run_matches.json";
+/** All `mlp_*` stops share Dallas match JSON until event-specific schedules are ingested. */
+const MLP_SHARED_MATCHES_FILE = "mlp_dallas_2026_matches.json";
+
+let mlpBaseWinterDataPromise: Promise<WinterData> | null = null;
+
+function loadMlpSharedWinterData(): Promise<WinterData> {
+  if (!mlpBaseWinterDataPromise) {
+    const jsonPath = path.join(tournamentScheduleDataDir(), MLP_SHARED_MATCHES_FILE);
+    mlpBaseWinterDataPromise = readFile(jsonPath, "utf-8").then((raw) => JSON.parse(raw) as WinterData);
+  }
+  return mlpBaseWinterDataPromise;
+}
 
 /** Stable division id: unlikely to appear in skill or age fields. */
 export const DIVISION_KEY_DELIM = ":::";
@@ -224,21 +240,35 @@ const tournamentDataPromises = new Map<TournamentKey, Promise<WinterData | null>
 export function getTournamentData(tournamentKey: TournamentKey): Promise<WinterData | null> {
   const cached = tournamentDataPromises.get(tournamentKey);
   if (cached) return cached;
-  const jsonPath = path.join(tournamentScheduleDataDir(), TOURNAMENT_FILES[tournamentKey]);
-  const promise = readFile(jsonPath, "utf-8")
-    .then(async (raw) => {
-      const data = JSON.parse(raw) as WinterData;
-      if ((tournamentKey as string).startsWith("mlp_")) {
+
+  if (tournamentKey === "atlanta_weekend") {
+    const jsonPath = path.join(tournamentScheduleDataDir(), ATLANTA_MATCHES_FILE);
+    const promise = readFile(jsonPath, "utf-8")
+      .then((raw) => JSON.parse(raw) as WinterData)
+      .catch(() => null);
+    tournamentDataPromises.set(tournamentKey, promise);
+    return promise;
+  }
+
+  if ((tournamentKey as string).startsWith("mlp_")) {
+    const promise = loadMlpSharedWinterData()
+      .then(async (base) => {
+        const data = structuredClone(base) as WinterData;
+        data.summary.tournament_name = TOURNAMENT_LABELS[tournamentKey];
         const rows = await getMlpPlayersForTournament(tournamentKey);
         const m: Record<string, string> = {};
         for (const p of rows) {
           m[normPlayerKeyForMlp(p.player_name)] = p.team;
         }
         data.mlp_player_to_team = m;
-      }
-      return data;
-    })
-    .catch(() => null);
+        return data;
+      })
+      .catch(() => null);
+    tournamentDataPromises.set(tournamentKey, promise);
+    return promise;
+  }
+
+  const promise = Promise.resolve(null);
   tournamentDataPromises.set(tournamentKey, promise);
   return promise;
 }

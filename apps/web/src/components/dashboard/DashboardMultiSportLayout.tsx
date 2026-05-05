@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { resolveFeaturedAvp2026Event, resolveFeaturedMlp2026Tournament } from "@wakibet/shared";
 import { apiGet } from "../../api";
 import type { DashboardData } from "../Dashboard";
 import DashboardSeasonPrizesStrip from "./DashboardSeasonPrizesStrip";
@@ -63,9 +64,12 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
   const { item: spotlightItem } = usePicksSpotlight();
   const spotPb = spotlightItem("pickleball");
   const spotLax = spotlightItem("lacrosse");
+  const vbFeatured = resolveFeaturedAvp2026Event();
 
   const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
-  const pbSub = spotPb ? `Next tournament is ${spotPb.venue}` : "Next tournament is MLP Dallas";
+  const pbSub = spotPb
+    ? `Next tournament is ${spotPb.venue}`
+    : `Next tournament is ${resolveFeaturedMlp2026Tournament().label}`;
 
   const laxName = lacrosseQ.data?.name ?? spotLax?.venue ?? "Utah Open";
 
@@ -112,11 +116,9 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             icon="🏐"
             sportLabel="Beach volleyball"
             eventName={
-              volleyballQ.isLoading && !volleyballQ.data
-                ? "AVP"
-                : `AVP ${volleyballQ.data?.season_year ?? ""}`.trim()
+              volleyballQ.isLoading && !volleyballQ.data ? "AVP" : `${vbFeatured.name} · ${vbFeatured.location}`
             }
-            subline="2026 tour schedule is up — fantasy picks and scoring land next (pickleball-style WakiCash + captains)."
+            subline="2026 Tour Schedule is Up"
             statusLabel="AVP"
             ctaLabel="Open volleyball"
             ctaTo="/volleyball"
@@ -209,7 +211,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
               <div className="dash-contest-card__body">
                 <div className="dash-contest-card__sport">Volleyball</div>
                 <div className="dash-contest-card__event">
-                  AVP {volleyballQ.data?.season_year ?? "2026"} — {volleyballQ.data?.event_count ?? "—"} stops
+                  {vbFeatured.name} · AVP {volleyballQ.data?.season_year ?? "2026"} ({volleyballQ.data?.event_count ?? "—"}{" "}
+                  stops)
                 </div>
                 <div className="dash-contest-card__detail">
                   {volleyballQ.data?.fantasy_enabled
