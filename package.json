@@ -12,7 +12,7 @@
     "render:build": "pnpm install --frozen-lockfile && pnpm --filter @wakibet/shared build && pnpm --filter @wakibet/api build",
     "render:build:web": "pnpm install --frozen-lockfile && pnpm --filter @wakibet/web build",
     "render-build-web": "pnpm run render:build:web",
-    "render:start": "pnpm --filter @wakibet/api start",
+    "render:start": "pnpm --filter @wakibet/api exec prisma migrate deploy && pnpm --filter @wakibet/api start",
     "db:generate": "pnpm --filter @wakibet/api run db:generate",
     "db:migrate": "pnpm --filter @wakibet/api run db:migrate",
     "db:migrate:deploy": "pnpm --filter @wakibet/api run db:migrate:deploy",

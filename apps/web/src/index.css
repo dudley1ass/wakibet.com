@@ -126,6 +126,12 @@ body {
   gap: 6px;
 }
 
+.site-footer-links--legal {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, max-content));
+  gap: 6px 18px;
+}
+
 .site-footer a {
   color: #fbbf24;
   text-decoration: none;
@@ -332,6 +338,9 @@ body {
   }
   .site-footer-right {
     width: 100%;
+  }
+  .site-footer-links--legal {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
   }
 }
 
