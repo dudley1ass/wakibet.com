@@ -6,21 +6,21 @@ const PRIZE_SLIDES = [
   {
     id: "pickleball",
     sport: "Pickleball",
-    headline: "Season winner",
+    headline: "Tournament winner",
     prize: "New paddle of your choice",
     src: "/dashboard/season-prizes/pickleball.png",
   },
   {
     id: "volleyball",
     sport: "Volleyball",
-    headline: "Season winner",
+    headline: "Tournament winner",
     prize: "Win a new Volleyball!!!",
     src: "/dashboard/season-prizes/volleyball.png",
   },
   {
     id: "lacrosse",
     sport: "Lacrosse",
-    headline: "Season winner",
+    headline: "Tournament winner",
     prize: "PLL team-of-choice jersey",
     src: "/dashboard/season-prizes/lacrosse.png",
   },
@@ -56,7 +56,7 @@ export default function DashboardSeasonPrizesStrip() {
   return (
     <section className="dash-season-prizes-strip" aria-labelledby="dash-season-prizes-strip-title">
       <p id="dash-season-prizes-strip-title" className="dash-season-prizes-strip-kicker">
-        Season prizes
+        Tournament prizes
       </p>
 
       <div className="dash-season-prizes-hero-stage" aria-live="polite" aria-atomic="true">
