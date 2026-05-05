@@ -8,8 +8,6 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 
 /** Current featured PLL slate (tournament) shown in the app. */
-const LACROSSE_SLATE_KEY = "pll_utah_open_2026";
-const LACROSSE_SLATE_NAME = "Utah Open";
 const LACROSSE_SEASON_YEAR = 2026;
 
 type TeamRow = {
@@ -206,41 +204,40 @@ function stackResponseFromJson(raw: string | null | undefined): { winner_line_id
 }
 
 async function ensureCurrentSlate() {
-  const seasonYear = LACROSSE_SEASON_YEAR;
-  const slateKey = LACROSSE_SLATE_KEY;
-  const lockAt = new Date();
-  lockAt.setUTCDate(lockAt.getUTCDate() + 14);
-  const slate = await prisma.lacrosseSlate.upsert({
-    where: { slateKey },
-    create: { slateKey, seasonYear, lockAt, name: LACROSSE_SLATE_NAME },
-    update: { name: LACROSSE_SLATE_NAME },
-  });
+  const now = new Date();
+  const slate =
+    (await prisma.lacrosseSlate.findFirst({
+      where: { seasonYear: LACROSSE_SEASON_YEAR, isClosed: false, lockAt: { gt: now } },
+      orderBy: [{ lockAt: "asc" }, { createdAt: "desc" }],
+    })) ??
+    (await prisma.lacrosseSlate.create({
+      data: {
+        slateKey: `pll_${now.toISOString().slice(0, 10).replace(/-/g, "")}_auto`,
+        seasonYear: LACROSSE_SEASON_YEAR,
+        lockAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+        name: `PLL Weekly Slate ${now.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+      },
+    }));
+  return slate;
+}
 
+async function rebuildSlateLines(slateId: string): Promise<{ generated: number }> {
   const teams = await loadTeamRatings();
   const pairs: Array<{ a: TeamRow; b: TeamRow }> = [];
   for (let i = 0; i + 1 < teams.length && pairs.length < 4; i += 2) {
     pairs.push({ a: teams[i]!, b: teams[i + 1]! });
   }
-
+  await prisma.lacrosseSlateLine.deleteMany({ where: { slateId } });
   for (let i = 0; i < pairs.length; i++) {
     const p = pairs[i]!;
     const ra = 1400 + p.a.rating * 3;
     const rb = 1400 + p.b.rating * 3;
     const pa = expectedScore(ra, rb);
     const diff = ra - rb;
-    await prisma.lacrosseSlateLine.upsert({
-      where: { slateId_lineKey: { slateId: slate.id, lineKey: `line_${i + 1}` } },
-      create: {
-        slateId: slate.id,
+    await prisma.lacrosseSlateLine.create({
+      data: {
+        slateId,
         lineKey: `line_${i + 1}`,
-        teamA: p.a.team,
-        teamB: p.b.team,
-        spreadA: spreadFromDiff(diff),
-        oddsA: probabilityToOdds(pa),
-        oddsB: probabilityToOdds(1 - pa),
-        confidence: confidenceFromP(pa),
-      },
-      update: {
         teamA: p.a.team,
         teamB: p.b.team,
         spreadA: spreadFromDiff(diff),
@@ -250,8 +247,7 @@ async function ensureCurrentSlate() {
       },
     });
   }
-
-  return slate;
+  return { generated: pairs.length };
 }
 
 function estReturn(stake: number, odds: number): number {
@@ -260,6 +256,27 @@ function estReturn(stake: number, odds: number): number {
 }
 
 const authPre = { preHandler: [requireAuthUser] };
+const adminEmails = new Set(
+  (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+async function requireAdminUser(req: any, reply: any) {
+  if (adminEmails.size === 0) {
+    await reply.code(503).send({
+      message: "Admin routes are disabled until ADMIN_EMAILS is set.",
+    } as const);
+    return false;
+  }
+  const email = req.authUser?.email?.toLowerCase() ?? "";
+  if (!adminEmails.has(email)) {
+    await reply.code(403).send({ message: "Admin access required." } as const);
+    return false;
+  }
+  return true;
+}
 
 export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -294,6 +311,10 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
     },
     async () => {
       const slate = await ensureCurrentSlate();
+      const existingLineCount = await prisma.lacrosseSlateLine.count({ where: { slateId: slate.id } });
+      if (existingLineCount < 4) {
+        await rebuildSlateLines(slate.id);
+      }
       const lines = await prisma.lacrosseSlateLine.findMany({
         where: { slateId: slate.id },
         orderBy: { lineKey: "asc" },
@@ -592,6 +613,63 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
           })),
           stack: stackResponseFromJson(l.stackJson),
         })),
+      };
+    },
+  );
+
+  typed.post(
+    "/admin/refresh-wakipicks",
+    {
+      ...authPre,
+      schema: {
+        tags: ["lacrosse", "admin"],
+        body: z
+          .object({
+            slate_key: z.string().min(1).optional(),
+          })
+          .optional(),
+        response: {
+          200: z.object({
+            ok: z.literal(true),
+            slate_key: z.string(),
+            regenerated_lines: z.number().int(),
+            cleared_lineups: z.number().int(),
+          }),
+          403: ErrorMessage,
+          404: ErrorMessage,
+          409: ErrorMessage,
+        },
+      },
+    },
+    async (req, reply) => {
+      const ok = await requireAdminUser(req, reply);
+      if (!ok) return;
+      const targetKey = req.body?.slate_key?.trim();
+      const slate = targetKey
+        ? await prisma.lacrosseSlate.findUnique({ where: { slateKey: targetKey } })
+        : await ensureCurrentSlate();
+      if (!slate) return reply.code(404).send({ message: "Unknown slate_key." } as const);
+      if (slate.isClosed || new Date() >= slate.lockAt) {
+        return reply.code(409).send({ message: "This slate is locked; refresh is only allowed for editable slates." } as const);
+      }
+
+      const result = await prisma.$transaction(async (tx) => {
+        await tx.lacrossePick.deleteMany({
+          where: { line: { slateId: slate.id } },
+        });
+        const reset = await tx.lacrosseLineup.updateMany({
+          where: { slateId: slate.id },
+          data: { spentWakiCash: 0, estReturn: 0, stackJson: null },
+        });
+        const rebuilt = await rebuildSlateLines(slate.id);
+        return { resetCount: reset.count, lineCount: rebuilt.generated };
+      });
+
+      return {
+        ok: true as const,
+        slate_key: slate.slateKey,
+        regenerated_lines: result.lineCount,
+        cleared_lineups: result.resetCount,
       };
     },
   );

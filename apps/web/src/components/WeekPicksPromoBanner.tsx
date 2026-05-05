@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 type Sport = "volleyball" | "pickleball";
 
 export default function WeekPicksPromoBanner({ sport }: { sport: Sport }) {
-  const href = sport === "volleyball" ? "/volleyball" : "/week-picks";
+  const href = sport === "volleyball" ? "/volleyball-picks" : "/week-picks";
   const linkInner =
     sport === "volleyball" ? (
       <>

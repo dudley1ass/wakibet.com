@@ -249,7 +249,10 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
             </p>
           ) : null}
           <p>
-            Allocate <strong>100 WakiCash</strong> across lines by confidence. Max per pick is <strong>40</strong>.
+            Lacrosse on Wakibet is built around picking 4 teams- Winner, Spread, Total, and a Wild Card- using your
+            WakiCash to back each pick based on confidence. Your picks lock when games start and determine your core
+            score. Player picks are included and add bonus points, helping boost your total even if your team picks
+            don&apos;t perform well.
           </p>
         </div>
         <div className="dash-head-actions">

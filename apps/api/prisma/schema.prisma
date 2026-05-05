@@ -255,6 +255,9 @@ model LacrosseSlate {
   slateKey  String @unique
   name      String
   seasonYear Int
+  sport     String @default("lacrosse")
+  status    String @default("open")
+  isCurrent Boolean @default(false)
   lockAt    DateTime
   isClosed  Boolean @default(false)
 
@@ -272,6 +275,9 @@ model LacrosseSlateLine {
   slateId     String
   slate       LacrosseSlate @relation(fields: [slateId], references: [id], onDelete: Cascade)
   lineKey     String
+  pickType    String @default("team_pick")
+  isActive    Boolean @default(true)
+  generation  Int @default(1)
   teamA       String
   teamB       String
   spreadA     Decimal @db.Decimal(6, 2)
@@ -591,6 +597,268 @@ model WfSeasonScore {
 
   @@unique([userId, seasonYear])
   @@index([seasonYear])
+}
+
+// ============ VOLLEYBALL SCORING DOMAIN (production structure) ============
+// Separate namespace (`Vb*`) avoids collisions with existing DFS `Match` entities.
+
+model VbDivision {
+  id        String @id @default(cuid())
+  code      String @unique
+  name      String
+
+  teams           VbTeam[]
+  standings       VbStanding[]
+  tiebreakerRules VbTiebreakerRule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VbTournament {
+  id        String @id @default(cuid())
+  slug      String @unique
+  name      String
+  startDate DateTime? @db.Date
+  endDate   DateTime? @db.Date
+  status    String @default("upcoming")
+
+  matches VbMatch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VbTeam {
+  id         String @id @default(cuid())
+  teamName   String
+  divisionId String
+  division   VbDivision @relation(fields: [divisionId], references: [id], onDelete: Restrict)
+
+  players      VbTeamPlayer[]
+  matchTeams   VbMatchTeam[]
+  wonSets      VbSet[] @relation("VbSetWinner")
+  scoredPoints VbPoint[] @relation("VbPointScoringTeam")
+  wonResults   VbMatchResult[] @relation("VbMatchResultWinner")
+  lostResults  VbMatchResult[] @relation("VbMatchResultLoser")
+  standings    VbStanding[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([divisionId, teamName])
+  @@index([divisionId])
+}
+
+model VbPlayer {
+  id        String @id @default(cuid())
+  firstName String
+  lastName  String
+
+  teams     VbTeamPlayer[]
+  points    VbPoint[]
+  stats     VbPlayerStat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model VbTeamPlayer {
+  teamId   String
+  team     VbTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  playerId String
+  player   VbPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([teamId, playerId])
+  @@index([playerId])
+}
+
+model VbMatch {
+  id           String @id @default(cuid())
+  tournamentId String?
+  tournament   VbTournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  round        String
+  matchDate    DateTime
+  bestOfSets   Int
+  status       VbMatchStatus @default(SCHEDULED)
+
+  teams   VbMatchTeam[]
+  sets    VbSet[]
+  result  VbMatchResult?
+  points  VbPlayerStat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tournamentId, matchDate])
+  @@index([status])
+}
+
+model VbMatchTeam {
+  id      String @id @default(cuid())
+  matchId String
+  match   VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  teamId  String
+  team    VbTeam @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  isHome  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, teamId])
+  @@index([teamId])
+}
+
+model VbSet {
+  id            String @id @default(cuid())
+  matchId       String
+  match         VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  setNumber     Int
+  winningTeamId String?
+  winningTeam   VbTeam? @relation("VbSetWinner", fields: [winningTeamId], references: [id], onDelete: SetNull)
+  team1Score    Int
+  team2Score    Int
+
+  points VbPoint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, setNumber])
+  @@index([winningTeamId])
+}
+
+model VbPoint {
+  id            String @id @default(cuid())
+  setId         String
+  set           VbSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  scoringTeamId String
+  scoringTeam   VbTeam @relation("VbPointScoringTeam", fields: [scoringTeamId], references: [id], onDelete: Restrict)
+  playerId      String?
+  player        VbPlayer? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  skillType     VbSkillType
+  occurredAt    DateTime @default(now())
+
+  @@index([setId, occurredAt])
+  @@index([scoringTeamId])
+  @@index([playerId])
+}
+
+model VbMatchResult {
+  matchId            String @id
+  match              VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  winningTeamId      String
+  winningTeam        VbTeam @relation("VbMatchResultWinner", fields: [winningTeamId], references: [id], onDelete: Restrict)
+  losingTeamId       String
+  losingTeam         VbTeam @relation("VbMatchResultLoser", fields: [losingTeamId], references: [id], onDelete: Restrict)
+  setsWonWinner      Int
+  setsWonLoser       Int
+  totalPointsWinner  Int
+  totalPointsLoser   Int
+  pointsAwardedWin   Int?
+  pointsAwardedLoss  Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([winningTeamId])
+  @@index([losingTeamId])
+}
+
+model VbStanding {
+  id             String @id @default(cuid())
+  divisionId     String
+  division       VbDivision @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  teamId         String
+  team           VbTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  matchesPlayed  Int @default(0)
+  wins           Int @default(0)
+  losses         Int @default(0)
+  pointsFor      Int @default(0)
+  pointsAgainst  Int @default(0)
+  setsWon        Int @default(0)
+  setsLost       Int @default(0)
+  rankingPoints  Float @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([divisionId, teamId])
+  @@index([divisionId, rankingPoints])
+}
+
+model VbTiebreakerRule {
+  id         String @id @default(cuid())
+  divisionId String
+  division   VbDivision @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  priority   Int
+  ruleType   VbTiebreakerRuleType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([divisionId, priority])
+  @@index([divisionId])
+}
+
+model VbPlayerStat {
+  id       String @id @default(cuid())
+  matchId  String
+  match    VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId String
+  player   VbPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  kills    Int @default(0)
+  assists  Int @default(0)
+  blocks   Int @default(0)
+  aces     Int @default(0)
+  digs     Int @default(0)
+  errors   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
+
+model VbScoringRule {
+  id            String @id @default(cuid())
+  setsWon       Int
+  setsLost      Int
+  pointsAwarded Int
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([setsWon, setsLost])
+}
+
+enum VbMatchStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETE
+  CANCELLED
+}
+
+enum VbSkillType {
+  SERVE
+  KILL
+  BLOCK
+  ERROR
+  ACE
+}
+
+enum VbTiebreakerRuleType {
+  HEAD_TO_HEAD
+  SET_RATIO
+  POINT_RATIO
+  POINT_DIFFERENTIAL
+  TOTAL_WINS
+  STRENGTH_OF_SCHEDULE
+  COIN_TOSS
 }
 
 model Session {

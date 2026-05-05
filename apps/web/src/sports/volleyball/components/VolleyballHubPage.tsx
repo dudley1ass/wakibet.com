@@ -154,7 +154,11 @@ export default function VolleyballHubPage({ user }: Props) {
           <h1>
             Volleyball <span className="brand-jp">WakiBet</span>
           </h1>
-          <p>Build your 5-player lineup under 100 WakiCash. One captain gets 1.5x scoring.</p>
+          <p>
+            WakiCash is your team budget for Wakibet Volleyball. Each player has a value based on performance, and you
+            must build a 5-player lineup under the cap (typically 100). Pick the best mix of top players and value
+            picks- once the tournament starts, your lineup locks and players score based on real match performance.
+          </p>
         </div>
         <div className="dash-head-actions">
           {user ? (

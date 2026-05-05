@@ -11,11 +11,11 @@ const PRIZE_SLIDES = [
     src: "/dashboard/season-prizes/pickleball.png",
   },
   {
-    id: "nascar",
-    sport: "NASCAR",
+    id: "volleyball",
+    sport: "Volleyball",
     headline: "Season winner",
-    prize: "Driver-of-choice shirt",
-    src: "/dashboard/season-prizes/nascar.png",
+    prize: "Win a new Volleyball!!!",
+    src: "/dashboard/season-prizes/volleyball.png",
   },
   {
     id: "lacrosse",

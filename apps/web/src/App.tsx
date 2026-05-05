@@ -22,6 +22,7 @@ const VolleyballScoringTablePage = lazy(() => import("./sports/volleyball/compon
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
 const NascarTexasPicksPage = lazy(() => import("./components/picks/NascarTexasPicksPage"));
 const WeekPicksHubPage = lazy(() => import("./components/picks/WeekPicksHubPage"));
+const VolleyballPicksPage = lazy(() => import("./components/picks/VolleyballPicksPage"));
 const PickleballSeasonLeaderboardPage = lazy(() =>
   import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.PickleballSeasonLeaderboardPage })),
 );
@@ -267,6 +268,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
         }
       />
       <Route path="/nascar-texas-picks" element={<NascarTexasPicksPage />} />
+      <Route path="/volleyball-picks" element={<VolleyballPicksPage />} />
       <Route path="/week-picks" element={<WeekPicksHubPage />} />
       <Route path="/ppa-atlanta-picks" element={<Navigate to="/week-picks" replace />} />
       <Route path="/picks/ppa-atlanta" element={<Navigate to="/week-picks" replace />} />

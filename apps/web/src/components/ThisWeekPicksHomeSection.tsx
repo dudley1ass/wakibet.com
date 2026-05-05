@@ -27,7 +27,7 @@ export default function ThisWeekPicksHomeSection({
       </h2>
       <ul className="dash-week-picks-home__list">
         <li>
-          <Link className="dash-week-picks-home__link" to="/volleyball">
+          <Link className="dash-week-picks-home__link" to="/volleyball-picks">
             <span className="dash-week-picks-home__emoji" aria-hidden>
               🏐
             </span>

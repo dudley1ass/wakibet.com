@@ -131,6 +131,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             pickleballPts={preview.fantasy_season.total_fantasy_points}
             lacrosseSeasonYear={lacrosseQ.data?.season_year ?? null}
             lacrosseLoading={lacrosseQ.isLoading}
+            volleyballSeasonYear={volleyballQ.data?.season_year ?? null}
+            volleyballLoading={volleyballQ.isLoading}
           />
         </div>
         <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">

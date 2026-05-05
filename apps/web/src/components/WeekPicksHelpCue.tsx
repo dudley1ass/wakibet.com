@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 type Sport = "volleyball" | "pickleball";
 
 const HREF: Record<Sport, string> = {
-  volleyball: "/volleyball",
+  volleyball: "/volleyball-picks",
   pickleball: "/week-picks",
 };
 

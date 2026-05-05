@@ -44,10 +44,10 @@ export default function WeekPicksHubPage() {
               <p className="mt-1 text-lg font-black text-white">{volleyballEventLine}</p>
               <p className="mt-2 text-sm text-slate-300">AVP team hub is live with Huntington Beach and South Beach rosters.</p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold">
-                <Link className="text-emerald-300 underline underline-offset-2" to="/volleyball">
+                <Link className="text-emerald-300 underline underline-offset-2" to="/volleyball-picks">
                   Volleyball hub →
                 </Link>
-                <Link className="text-slate-300 underline underline-offset-2" to="/volleyball">
+                <Link className="text-slate-300 underline underline-offset-2" to="/volleyball-picks">
                   Picks write-up →
                 </Link>
               </div>
@@ -103,10 +103,10 @@ export default function WeekPicksHubPage() {
               : "Open the volleyball hub to see the full 2026 AVP schedule plus Huntington and South Beach teams/athletes."}
           </p>
           <Link
-            to="/volleyball"
+            to="/volleyball-picks"
             className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 font-black text-white shadow-lg transition hover:bg-emerald-500"
           >
-            Open volleyball hub
+            Open volleyball picks
           </Link>
         </section>
 
