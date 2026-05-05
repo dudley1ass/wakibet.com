@@ -286,6 +286,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/picks/spotlight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            generated_at: string;
+                            items: {
+                                sport_key: string;
+                                window_key: string;
+                                href: string;
+                                label_short: string;
+                                label_full: string;
+                                venue: string;
+                                /** @enum {string} */
+                                status: "live" | "upcoming" | "ended";
+                                starts_at: string;
+                                ends_at: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me/dashboard/summary": {
         parameters: {
             query?: never;
@@ -323,8 +372,7 @@ export interface paths {
                                 status: string;
                             }[];
                             tournament_schedules: {
-                                /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: string;
                                 tournament_name: string;
                                 generated_matches: number;
                                 my_upcoming_matches: {
@@ -391,8 +439,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             winter_fantasy_rosters: {
-                                /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: string;
                                 tournament_name: string;
                                 division_key: string;
                                 event_type: string;
@@ -407,6 +454,7 @@ export interface paths {
                                     is_captain: boolean;
                                     waki_cash: number;
                                 }[];
+                                mlp_team_name?: string | null;
                             }[];
                             fantasy_season: {
                                 tournaments_planned: number;
@@ -415,8 +463,7 @@ export interface paths {
                                 waki_cash_spent_total: number;
                                 waki_cash_budget_total: number;
                                 by_division: {
-                                    /** @enum {string} */
-                                    tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                    tournament_key: string;
                                     tournament_name: string;
                                     division_key: string;
                                     event_type: string;
@@ -506,8 +553,7 @@ export interface paths {
                                 /** @enum {string} */
                                 kind: "win_next" | "lose_next";
                                 player_name: string;
-                                /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: string;
                                 tournament_name: string;
                                 division_label: string;
                                 match_summary: string;
@@ -539,6 +585,182 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/lineups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            users: {
+                                user_id: string;
+                                email: string;
+                                display_name: string;
+                                created_at: string;
+                                is_banned: boolean;
+                                password_set: boolean;
+                                count_winter_fantasy_rosters: number;
+                                pickleball_lineups: {
+                                    tournament_key: string;
+                                    season_key: string;
+                                    event_count: number;
+                                    wakicash_spent: number;
+                                    updated_at: string;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        user_id: string;
+                        new_password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -583,8 +805,7 @@ export interface paths {
                                 status: string;
                             }[];
                             tournament_schedules: {
-                                /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: string;
                                 tournament_name: string;
                                 generated_matches: number;
                                 my_upcoming_matches: {
@@ -604,8 +825,7 @@ export interface paths {
                                 }[];
                             }[];
                             winter_fantasy_rosters: {
-                                /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: string;
                                 tournament_name: string;
                                 division_key: string;
                                 event_type: string;
@@ -620,6 +840,7 @@ export interface paths {
                                     is_captain: boolean;
                                     waki_cash: number;
                                 }[];
+                                mlp_team_name?: string | null;
                             }[];
                             fantasy_season: {
                                 tournaments_planned: number;
@@ -628,8 +849,7 @@ export interface paths {
                                 waki_cash_spent_total: number;
                                 waki_cash_budget_total: number;
                                 by_division: {
-                                    /** @enum {string} */
-                                    tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                    tournament_key: string;
                                     tournament_name: string;
                                     division_key: string;
                                     event_type: string;
@@ -672,8 +892,7 @@ export interface paths {
                                 /** @enum {string} */
                                 kind: "win_next" | "lose_next";
                                 player_name: string;
-                                /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: string;
                                 tournament_name: string;
                                 division_label: string;
                                 match_summary: string;
@@ -711,7 +930,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/winter-fantasy/divisions": {
+    "/api/v1/wakiodds/featured": {
         parameters: {
             query?: never;
             header?: never;
@@ -720,8 +939,498 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: {
-                    tournament_key?: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            updated_at: string;
+                            markets: {
+                                lacrosse: {
+                                    source: string;
+                                    team_a: {
+                                        label: string;
+                                        players: string[];
+                                        rating: number;
+                                    };
+                                    team_b: {
+                                        label: string;
+                                        players: string[];
+                                        rating: number;
+                                    };
+                                };
+                                pickleball: {
+                                    source: string;
+                                    team_a: {
+                                        label: string;
+                                        players: string[];
+                                        rating: number;
+                                    };
+                                    team_b: {
+                                        label: string;
+                                        players: string[];
+                                        rating: number;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lacrosse/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            slate_key: string;
+                            name: string;
+                            season_year: number;
+                            lock_at: string;
+                            lines: {
+                                line_id: string;
+                                line_key: string;
+                                team_a: string;
+                                team_b: string;
+                                spread_a: number;
+                                odds_a: number;
+                                odds_b: number;
+                                confidence: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lacrosse/lineup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    slate_key: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            slate_key: string;
+                            spent_wakicash: number;
+                            est_return: number;
+                            picks: {
+                                /** @enum {string} */
+                                slot: "winner" | "spread" | "total" | "wild";
+                                line_id: string;
+                                side: string;
+                                stake: number;
+                                odds_at_save: number;
+                                est_return: number;
+                            }[];
+                            stack: {
+                                winner_line_id: string;
+                                /** @enum {string} */
+                                side: "A" | "B";
+                                players: string[];
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        slate_key: string;
+                        picks: {
+                            /** @enum {string} */
+                            slot: "winner" | "spread" | "total" | "wild";
+                            line_id: string;
+                            /** @enum {string} */
+                            side: "A" | "B";
+                            stake: number;
+                        }[];
+                        stack?: {
+                            winner_line_id: string;
+                            /** @enum {string} */
+                            side: "A" | "B";
+                            players: string[];
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lacrosse/lineups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            rows: {
+                                slate_key: string;
+                                slate_name: string;
+                                lock_at: string;
+                                spent_wakicash: number;
+                                est_return: number;
+                                picks: {
+                                    /** @enum {string} */
+                                    slot: "winner" | "spread" | "total" | "wild";
+                                    line_id: string;
+                                    team_a: string;
+                                    team_b: string;
+                                    side: string;
+                                    stake: number;
+                                    odds_at_save: number;
+                                    est_return: number;
+                                    confidence: number;
+                                    spread_a: number;
+                                }[];
+                                stack: {
+                                    winner_line_id: string;
+                                    /** @enum {string} */
+                                    side: "A" | "B";
+                                    players: string[];
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lacrosse/admin/refresh-wakipicks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": unknown | {
+                        slate_key?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            slate_key: string;
+                            regenerated_lines: number;
+                            cleared_lineups: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/volleyball/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            sport: "volleyball";
+                            season_year: number;
+                            event_count: number;
+                            fantasy_enabled: boolean;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/volleyball/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            sport: "volleyball";
+                            season_year: number;
+                            events: {
+                                event_key: string;
+                                /** @enum {string} */
+                                category: "league" | "heritage" | "contender";
+                                name: string;
+                                location: string;
+                                start_date: string;
+                                end_date: string;
+                            }[];
+                            schedule_notes: string[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/volleyball/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    event_key: string;
                 };
                 header?: never;
                 path?: never;
@@ -737,10 +1446,295 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            selected_tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            sport: "volleyball";
+                            season_year: number;
+                            event_key: string;
+                            pool_title: string;
+                            team_count: number;
+                            athletes_csv_row_count: number;
+                            roster_players_missing_profile: string[];
+                            teams: {
+                                team_key: string;
+                                /** @enum {string} */
+                                division_code: "mens_aa" | "mens_aaa" | "mens_open" | "womens_aa" | "womens_aaa" | "womens_open" | "heritage_mens" | "heritage_womens";
+                                division_label: string;
+                                player_one: string;
+                                player_two: string;
+                                team_label: string;
+                                player_one_profile: {
+                                    player: string;
+                                    position: string;
+                                    height: string;
+                                    location: string;
+                                    usual_side: string;
+                                    usual_defense: string;
+                                } | null;
+                                player_two_profile: {
+                                    player: string;
+                                    position: string;
+                                    height: string;
+                                    location: string;
+                                    usual_side: string;
+                                    usual_defense: string;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/volleyball/player-pool": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    event_key: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            event_key: string;
+                            player_count: number;
+                            salary_cap: number;
+                            players: {
+                                player_name: string;
+                                waki_cash: number;
+                                estimated_odds: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/volleyball/lineup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    event_key: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            event_key: string;
+                            picks: {
+                                slot_index: number;
+                                player_name: string;
+                                is_captain: boolean;
+                                waki_cash: number;
+                            }[];
+                            total_salary: number;
+                            salary_cap: number;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        event_key: string;
+                        picks: {
+                            player_name: string;
+                            is_captain?: boolean;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            event_key: string;
+                            picks: {
+                                slot_index: number;
+                                player_name: string;
+                                is_captain: boolean;
+                                waki_cash: number;
+                            }[];
+                            total_salary: number;
+                            salary_cap: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/volleyball/lineups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            rows: {
+                                event_key: string;
+                                event_name: string;
+                                picks: {
+                                    slot_index: number;
+                                    player_name: string;
+                                    is_captain: boolean;
+                                    waki_cash: number;
+                                }[];
+                                total_salary: number;
+                                salary_cap: number;
+                                updated_at: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/winter-fantasy/divisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            selected_tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             available_tournaments: {
                                 /** @enum {string} */
-                                tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                                tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                                 label: string;
                             }[];
                             tournament_name: string;
@@ -789,6 +1783,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/winter-fantasy/season-leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            sport: "pickleball";
+                            total_players: number;
+                            rows: {
+                                rank: number;
+                                display_name: string;
+                                points: number;
+                                is_me: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/winter-fantasy/division-players": {
         parameters: {
             query?: never;
@@ -799,7 +1849,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    tournament_key?: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
                     division_key: string;
                 };
                 header?: never;
@@ -816,13 +1866,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             division_key: string;
                             skill_level: string;
                             waki_cash_budget: number;
+                            roster_size: number;
+                            required_men: number | null;
+                            required_women: number | null;
                             players: {
                                 player_name: string;
                                 waki_cash: number;
+                                /** @enum {string} */
+                                gender?: "M" | "F";
+                                tier?: string;
                             }[];
                         };
                     };
@@ -880,7 +1936,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    tournament_key?: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
                     division_key: string;
                 };
                 header?: never;
@@ -897,7 +1953,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             division_key: string;
                             picks: {
                                 slot_index: number;
@@ -905,6 +1961,7 @@ export interface paths {
                                 is_captain: boolean;
                                 waki_cash: number;
                             }[];
+                            predicted_total_matches: number | null;
                         };
                     };
                 };
@@ -943,12 +2000,13 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                        tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                         division_key: string;
                         picks: {
                             player_name: string;
                             is_captain?: boolean;
                         }[];
+                        predicted_total_matches?: number;
                     };
                 };
             };
@@ -961,7 +2019,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             division_key: string;
                             picks: {
                                 slot_index: number;
@@ -969,6 +2027,7 @@ export interface paths {
                                 is_captain: boolean;
                                 waki_cash: number;
                             }[];
+                            predicted_total_matches: number | null;
                         };
                     };
                 };
@@ -1024,7 +2083,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    tournament_key?: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                    tournament_key?: "mlp_dallas_2026" | "atlanta_weekend";
                     division_key: string;
                 };
                 header?: never;
@@ -1041,7 +2100,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             division_key: string;
                             roster_total: number;
                             rules_version: number;
@@ -1113,7 +2172,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                    tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                 };
                 cookie?: never;
             };
@@ -1127,8 +2186,12 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             tournament_name: string;
+                            roster_size: number;
+                            required_men: number | null;
+                            required_women: number | null;
+                            mlp_teams: string[];
                             events: {
                                 event_key: string;
                                 schedule_division_key: string;
@@ -1192,7 +2255,7 @@ export interface paths {
                 };
                 header?: never;
                 path: {
-                    tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                    tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                 };
                 cookie?: never;
             };
@@ -1206,8 +2269,11 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             season_key: string;
+                            roster_size: number;
+                            required_men: number | null;
+                            required_women: number | null;
                             wakicash_budget: number;
                             wakicash_spent: number;
                             events: {
@@ -1217,6 +2283,8 @@ export interface paths {
                                 label: string;
                                 tier_code_at_save: string | null;
                                 is_locked: boolean;
+                                mlp_team_name: string | null;
+                                predicted_total_matches: number | null;
                                 picks: {
                                     slot_index: number;
                                     player_name: string;
@@ -1245,7 +2313,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                    tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                 };
                 cookie?: never;
             };
@@ -1261,6 +2329,8 @@ export interface paths {
                                 player_name: string;
                                 is_captain?: boolean;
                             }[];
+                            mlp_team_name?: string;
+                            predicted_total_matches?: number;
                         }[];
                     };
                 };
@@ -1274,8 +2344,11 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            tournament_key: "winter_springs" | "pictona" | "jacksonville" | "bradenton";
+                            tournament_key: "mlp_dallas_2026" | "atlanta_weekend";
                             season_key: string;
+                            roster_size: number;
+                            required_men: number | null;
+                            required_women: number | null;
                             wakicash_budget: number;
                             wakicash_spent: number;
                             events: {
@@ -1285,6 +2358,8 @@ export interface paths {
                                 label: string;
                                 tier_code_at_save: string | null;
                                 is_locked: boolean;
+                                mlp_team_name: string | null;
+                                predicted_total_matches: number | null;
                                 picks: {
                                     slot_index: number;
                                     player_name: string;
@@ -1333,401 +2408,6 @@ export interface paths {
                 };
                 /** @description Default Response */
                 503: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            message: string;
-                        };
-                    };
-                };
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/nascar/drivers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    week_key?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            budget_wakicash: number;
-                            premium_wakicash_threshold: number;
-                            max_premium_drivers: number;
-                            max_elite_drivers: number;
-                            drivers: {
-                                driver_key: string;
-                                display_name: string;
-                                team_name: string | null;
-                                car_number: string | null;
-                                sponsor: string | null;
-                                manufacturer: string | null;
-                                waki_cash_price: number;
-                                is_elite: boolean;
-                            }[];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/nascar/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {string} */
-                            sport: "nascar";
-                            enabled: boolean;
-                            total_weeks: number;
-                            total_drivers: number;
-                            message: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/nascar/weeks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    season_year?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            season: string;
-                            weeks: {
-                                week_key: string;
-                                race_name: string;
-                                track: string;
-                                race_start_at: string;
-                                lock_at: string;
-                                /** @enum {string} */
-                                status: "upcoming" | "locked" | "closed";
-                            }[];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/nascar/season-summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    season_year?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            season_year: number;
-                            total_points: number;
-                            rank: number | null;
-                            weeks_played: number;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/nascar/lineups": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    season_year?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            season: string;
-                            lineup_size: number;
-                            weeks: {
-                                week_key: string;
-                                race_name: string;
-                                track: string;
-                                race_start_at: string;
-                                lock_at: string;
-                                /** @enum {string} */
-                                status: "upcoming" | "locked" | "closed";
-                                total_points: number;
-                                lineup_complete: boolean;
-                                tiebreaker_win_margin_seconds: number | null;
-                                tiebreaker_caution_laps: number | null;
-                                picks: {
-                                    slot_index: number;
-                                    driver_key: string;
-                                    driver_name: string;
-                                    car_number: string | null;
-                                    sponsor: string | null;
-                                    manufacturer: string | null;
-                                    team_name: string | null;
-                                    is_captain: boolean;
-                                    waki_cash_price: number;
-                                    is_elite: boolean;
-                                }[];
-                            }[];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/nascar/lineup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query: {
-                    week_key: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            week_key: string;
-                            lineup_size: number;
-                            picks: {
-                                slot_index: number;
-                                driver_key: string;
-                                driver_name: string;
-                                car_number: string | null;
-                                sponsor: string | null;
-                                manufacturer: string | null;
-                                team_name: string | null;
-                                is_captain: boolean;
-                                waki_cash_price: number;
-                                is_elite: boolean;
-                            }[];
-                            tiebreaker_win_margin_seconds: number | null;
-                            tiebreaker_caution_laps: number | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            message: string;
-                        };
-                    };
-                };
-            };
-        };
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        week_key: string;
-                        picks: {
-                            driver_key: string;
-                            is_captain?: boolean;
-                        }[];
-                        tiebreaker_win_margin_seconds: number;
-                        tiebreaker_caution_laps: number;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            week_key: string;
-                            lineup_size: number;
-                            picks: {
-                                slot_index: number;
-                                driver_key: string;
-                                driver_name: string;
-                                car_number: string | null;
-                                sponsor: string | null;
-                                manufacturer: string | null;
-                                team_name: string | null;
-                                is_captain: boolean;
-                                waki_cash_price: number;
-                                is_elite: boolean;
-                            }[];
-                            tiebreaker_win_margin_seconds: number | null;
-                            tiebreaker_caution_laps: number | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            message: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            message: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                409: {
                     headers: {
                         [name: string]: unknown;
                     };

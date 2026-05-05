@@ -20,12 +20,6 @@ type AdminUserRow = {
     wakicash_spent: number;
     updated_at: string;
   }[];
-  nascar_lineups: {
-    week_key: string;
-    race_name: string;
-    pick_count: number;
-    updated_at: string;
-  }[];
 };
 
 type AdminLineupsResponse = { users: AdminUserRow[] };
@@ -56,7 +50,6 @@ export default function AdminLineupsPage({ user }: Props) {
     () => ({
       users: users.length,
       pb: users.reduce((n, u) => n + u.pickleball_lineups.length, 0),
-      nascar: users.reduce((n, u) => n + u.nascar_lineups.length, 0),
       noPassword: users.filter((u) => !u.password_set).length,
       banned: users.filter((u) => u.is_banned).length,
     }),
@@ -188,9 +181,8 @@ export default function AdminLineupsPage({ user }: Props) {
         </div>
 
         <p className="dash-sub" style={{ marginTop: 8 }}>
-          Users: <strong>{totals.users}</strong> · Pickleball tournament shells: <strong>{totals.pb}</strong> · NASCAR
-          lineups: <strong>{totals.nascar}</strong> · <strong>{totals.noPassword}</strong> without password ·{" "}
-          <strong>{totals.banned}</strong> banned
+          Users: <strong>{totals.users}</strong> · Pickleball tournament shells: <strong>{totals.pb}</strong> ·{" "}
+          <strong>{totals.noPassword}</strong> without password · <strong>{totals.banned}</strong> banned
         </p>
 
         {users.length === 0 && !query.isLoading && !query.error ? (
@@ -247,26 +239,6 @@ export default function AdminLineupsPage({ user }: Props) {
                       <li key={`${u.user_id}-pb-${l.tournament_key}-${l.season_key}-${l.updated_at}`} className="rost-pick-row">
                         <span className="rost-name">
                           {l.tournament_key} · events {l.event_count} · spent {l.wakicash_spent} WC
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-
-                <div className="rost-event" style={{ marginTop: 8 }}>
-                  <span className="rost-event-label">NASCAR</span>
-                  <span className="rost-event-value">{u.nascar_lineups.length} week rows</span>
-                </div>
-                {u.nascar_lineups.length === 0 ? (
-                  <p className="dash-empty" style={{ marginTop: 6 }}>
-                    No NASCAR lineups yet.
-                  </p>
-                ) : (
-                  <ol className="rost-pick-list">
-                    {u.nascar_lineups.map((l) => (
-                      <li key={`${u.user_id}-ns-${l.week_key}-${l.updated_at}`} className="rost-pick-row">
-                        <span className="rost-name">
-                          {l.race_name} ({l.week_key}) · picks {l.pick_count}
                         </span>
                       </li>
                     ))}

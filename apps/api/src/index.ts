@@ -2,8 +2,6 @@ import { buildApp } from "./app.js";
 import { prisma } from "./lib/prisma.js";
 import { initSentry } from "./lib/sentry.js";
 import { syncAllTournamentCatalogsFromDisk } from "./lib/syncTournamentCatalogsJob.js";
-import { ensureNascarCupDrivers } from "./sports/nascar/lib/ensureNascarCupDrivers.js";
-import { ensureNascarCup2026Weeks } from "./sports/nascar/lib/ensureNascarCup2026Weeks.js";
 
 initSentry();
 
@@ -17,20 +15,6 @@ try {
   app.log.info("prisma_connected");
 } catch (err) {
   app.log.error({ err }, "prisma_connect_failed");
-}
-
-try {
-  const n = await ensureNascarCup2026Weeks(prisma);
-  app.log.info({ weeks: n }, "nascar_cup_2026_schedule_ensured");
-} catch (err) {
-  app.log.error({ err }, "nascar_cup_2026_schedule_bootstrap_failed");
-}
-
-try {
-  const n = await ensureNascarCupDrivers(prisma);
-  app.log.info({ drivers: n }, "nascar_cup_drivers_ensured");
-} catch (err) {
-  app.log.error({ err }, "nascar_cup_drivers_bootstrap_failed");
 }
 
 try {

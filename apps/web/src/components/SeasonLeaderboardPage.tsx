@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import type { SessionUser } from "../App";
 import { apiGet } from "../api";
 import "./dashboard.css";
@@ -128,31 +127,3 @@ export function PickleballSeasonLeaderboardPage({ user }: { user: SessionUser })
   );
 }
 
-export function NascarSeasonLeaderboardPage({ user }: { user: SessionUser }) {
-  const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
-  const q = useQuery({
-    queryKey: ["nascar", "season-leaderboard", seasonYear] as const,
-    queryFn: () =>
-      apiGet<LeaderboardPayload & { sport: string; season_year: number }>(
-        `/api/v1/nascar/season-leaderboard?season_year=${seasonYear}`,
-      ),
-  });
-  const kickerYear = q.data?.season_year ?? seasonYear;
-  return (
-    <LeaderboardShell
-      user={user}
-      title="NASCAR — Season leaderboard"
-      kicker={`Cup ${kickerYear} · weekly lineups`}
-      backHref="/nascar"
-      backLabel="NASCAR hub"
-      extraNav={
-        <Link className="dash-ghost-btn" to="/nascar/rosters">
-          My race lineups
-        </Link>
-      }
-      payload={q.data}
-      isLoading={q.isLoading}
-      error={q.error instanceof Error ? q.error : q.error ? new Error("Could not load leaderboard.") : null}
-    />
-  );
-}

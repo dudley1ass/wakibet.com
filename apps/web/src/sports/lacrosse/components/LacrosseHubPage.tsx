@@ -280,8 +280,8 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
         ) : slateQ.isError ? (
           <p className="dash-error">{slateQ.error instanceof Error ? slateQ.error.message : "Could not load data."}</p>
         ) : (
-          <div className="nascar-driver-table-wrap">
-            <table className="nascar-driver-table">
+          <div className="dash-ratings-table-wrap">
+            <table className="dash-ratings-table">
               <thead>
                 <tr>
                   <th>Match</th>

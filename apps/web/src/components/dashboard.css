@@ -1042,18 +1042,8 @@ a.rost-dash-link {
 .dash-whatif-col--pickleball .dash-whatif-col-title {
   color: #bbf7d0;
 }
-.dash-whatif-col--nascar .dash-whatif-col-title {
-  color: #fecaca;
-}
 .dash-whatif-list--col {
   grid-template-columns: 1fr;
-}
-.dash-whatif-card--nascar {
-  border-color: rgba(248, 113, 113, 0.32);
-  background: rgba(36, 10, 10, 0.55);
-}
-.dash-whatif-col--nascar .dash-whatif-meta {
-  color: #fecaca;
 }
 
 .dash-activity-row {
@@ -1062,51 +1052,6 @@ a.rost-dash-link {
 }
 .dash-activity-row .hp-root {
   max-width: none;
-}
-
-.dash-section--nascar-scoring .scoring-board--dash {
-  margin-top: 10px;
-}
-.dash-section--nascar-scoring .scoring-foot--dash {
-  margin-top: 12px;
-  font-size: 11px;
-  color: #fcd34d;
-}
-
-.dash-nascar-block-foot {
-  margin: 8px 0 0;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #fde68a;
-  opacity: 0.95;
-}
-.dash-nascar-example {
-  margin-top: 14px;
-}
-.dash-nascar-example-list {
-  margin: 8px 0 0;
-  padding-left: 1.15rem;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #fce7bf;
-}
-.dash-nascar-example-total {
-  margin-top: 10px;
-}
-.dash-nascar-why {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(251, 191, 36, 0.2);
-}
-.dash-nascar-why-list {
-  margin: 8px 0 0;
-  padding-left: 1.15rem;
-  font-size: 12px;
-  line-height: 1.55;
-  color: #fcd34d;
-}
-.dash-nascar-lineup-block {
-  margin-top: 14px;
 }
 
 .scoring-board--dash-compact .scoring-block-title {
@@ -1161,434 +1106,27 @@ a.rost-dash-link {
   color: #fde68a;
   word-break: break-all;
 }
-.nascar-driver-table-wrap {
+.dash-ratings-table-wrap {
   overflow-x: auto;
   margin-top: 8px;
 }
-.nascar-driver-table {
+.dash-ratings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
   color: #fce7bf;
 }
-.nascar-driver-table th,
-.nascar-driver-table td {
+.dash-ratings-table th,
+.dash-ratings-table td {
   text-align: left;
   padding: 8px 10px;
   border-bottom: 1px solid rgba(251, 191, 36, 0.2);
 }
-.nascar-driver-table th {
+.dash-ratings-table th {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #fbbf24;
-}
-
-/* NASCAR hub — race hero (pickleball-style sport card energy) + lineup builder */
-.nascar-hub-hero {
-  margin-top: 12px;
-  border-radius: 14px;
-  padding: 16px 18px;
-  border: 1px solid rgba(248, 113, 113, 0.38);
-  background: linear-gradient(155deg, rgba(28, 12, 12, 0.98), rgba(12, 8, 10, 0.98));
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-}
-.nascar-hub-hero__row {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-.nascar-hub-hero__icon {
-  font-size: 32px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.nascar-hub-hero__body {
-  min-width: 0;
-  flex: 1;
-}
-.nascar-hub-hero__kicker {
-  margin: 0 0 4px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(253, 230, 138, 0.85);
-}
-.nascar-hub-hero__title {
-  margin: 0 0 8px;
-  font-size: 20px;
-  font-weight: 900;
-  color: #fffbeb;
-  line-height: 1.2;
-}
-.nascar-hub-hero__lead {
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: #fecaca;
-  line-height: 1.45;
-  max-width: 40rem;
-}
-.nascar-hub-hero__signin {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-.nascar-hub-hero__signin-note {
-  font-size: 12px;
-  color: #fcd34d;
-}
-.nascar-hub-hero__status {
-  margin: 0;
-  font-size: 12px;
-  color: #fcd34d;
-}
-.nascar-hub-hero__status--error {
-  color: #fca5a5;
-}
-.nascar-hub-hero__race-label {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 10px;
-  max-width: 28rem;
-}
-.nascar-hub-hero__race-label-text {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #fbbf24;
-}
-.nascar-hub-hero__select {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(248, 113, 113, 0.45);
-  background: rgba(0, 0, 0, 0.35);
-  color: #fffbeb;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.nascar-hub-hero__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-  margin-bottom: 8px;
-}
-.nascar-hub-hero__pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.nascar-hub-hero__pill--upcoming {
-  background: rgba(127, 29, 29, 0.55);
-  color: #fecaca;
-  border-color: rgba(248, 113, 113, 0.45);
-}
-.nascar-hub-hero__pill--locked {
-  background: rgba(120, 53, 15, 0.55);
-  color: #fde68a;
-  border-color: rgba(251, 191, 36, 0.4);
-}
-.nascar-hub-hero__pill--closed {
-  background: rgba(28, 25, 23, 0.75);
-  color: #a8a29e;
-}
-.nascar-hub-hero__meta-line {
-  font-size: 11px;
-  color: #fecaca;
-  line-height: 1.4;
-}
-.nascar-hub-hero__cta-hint {
-  margin: 0;
-  font-size: 12px;
-}
-.nascar-hub-hero__anchor {
-  color: #fde68a;
-  font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.nascar-lineup-panel {
-  margin-top: 16px;
-  padding: 14px 14px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(248, 113, 113, 0.28);
-  background: rgba(28, 18, 16, 0.88);
-}
-.nascar-lineup-panel__saved {
-  color: #86efac;
-  font-weight: 700;
-}
-
-.nascar-lineup-panel__budget {
-  margin-top: 10px;
-  padding: 12px 12px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(253, 230, 138, 0.35);
-  background: rgba(0, 0, 0, 0.35);
-}
-.nascar-lineup-panel__budget--over {
-  border-color: rgba(248, 113, 113, 0.55);
-  background: rgba(69, 10, 10, 0.35);
-}
-.nascar-lineup-panel__budget-main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-}
-.nascar-lineup-panel__budget-left-num {
-  font-size: clamp(1.75rem, 4vw, 2.25rem);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: #fef3c7;
-  font-variant-numeric: tabular-nums;
-}
-.nascar-lineup-panel__budget--over .nascar-lineup-panel__budget-left-num {
-  color: #fecaca;
-}
-.nascar-lineup-panel__budget-left-text {
-  font-size: 15px;
-  font-weight: 800;
-  color: #fde68a;
-}
-.nascar-lineup-panel__budget-sub {
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.45;
-  color: #e7e5e4;
-}
-.nascar-lineup-panel__budget-sub strong {
-  font-weight: 800;
-  color: #fffbeb;
-}
-.nascar-lineup-slots {
-  display: grid;
-  gap: 10px;
-  margin-top: 10px;
-}
-@media (min-width: 720px) {
-  .nascar-lineup-slots {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-.nascar-lineup-slot {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 10px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.22);
-  min-height: 4.5rem;
-}
-.nascar-lineup-slot__idx {
-  font-size: 11px;
-  font-weight: 900;
-  color: #fbbf24;
-  width: 1.25rem;
-  flex-shrink: 0;
-}
-.nascar-lineup-slot__body {
-  min-width: 0;
-  flex: 1;
-}
-.nascar-lineup-slot__name {
-  font-size: 13px;
-  font-weight: 800;
-  color: #fffbeb;
-  line-height: 1.2;
-}
-.nascar-lineup-slot__meta {
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: #fecaca;
-}
-.nascar-lineup-slot__empty {
-  font-size: 12px;
-  color: #a8a29e;
-  font-style: italic;
-  padding-top: 2px;
-}
-.nascar-lineup-slot__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-.nascar-lineup-slot__cap,
-.nascar-lineup-slot__rm {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: rgba(0, 0, 0, 0.25);
-  color: #fde68a;
-  cursor: pointer;
-}
-.nascar-lineup-slot__cap--on {
-  background: rgba(127, 29, 29, 0.65);
-  border-color: #fecaca;
-  color: #fff;
-}
-.nascar-lineup-slot__rm {
-  border-color: rgba(248, 113, 113, 0.4);
-  color: #fecaca;
-}
-.nascar-lineup-tb {
-  margin-top: 14px;
-  padding: 12px 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(251, 191, 36, 0.22);
-  background: rgba(0, 0, 0, 0.2);
-}
-.nascar-lineup-tb--readonly {
-  padding: 10px 12px;
-}
-.nascar-lineup-tb__title {
-  margin: 0 0 6px;
-  font-size: 13px;
-  font-weight: 900;
-  color: #fde68a;
-}
-.nascar-lineup-tb__hint {
-  margin: 0 0 10px;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #d6d3d1;
-}
-.nascar-lineup-tb__grid {
-  display: grid;
-  gap: 12px;
-}
-@media (min-width: 640px) {
-  .nascar-lineup-tb__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-.nascar-lineup-tb__field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.nascar-lineup-tb__label {
-  font-size: 12px;
-  font-weight: 800;
-  color: #fffbeb;
-}
-.nascar-lineup-tb__sublabel {
-  font-size: 10px;
-  font-weight: 600;
-  color: #a8a29e;
-  line-height: 1.3;
-}
-.nascar-lineup-tb__input {
-  font-size: 15px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.35);
-  color: #fffbeb;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-.nascar-lineup-tb__input:focus {
-  outline: 2px solid rgba(251, 191, 36, 0.45);
-  outline-offset: 1px;
-}
-.nascar-lineup-tb__readonly {
-  margin: 0;
-  font-size: 12px;
-  color: #e7e5e4;
-  line-height: 1.45;
-}
-.nascar-lineup-tb__readonly strong {
-  color: #fde68a;
-}
-
-.nascar-lineup-panel__save-row {
-  margin-top: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-.nascar-lineup-panel__err {
-  margin: 0;
-}
-.nascar-lineup-panel__pool-title {
-  margin: 18px 0 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: #fde68a;
-}
-.nascar-lineup-panel__pool-lead {
-  margin-top: 6px !important;
-}
-.nascar-lineup-driver-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-  max-height: 280px;
-  overflow-y: auto;
-  padding: 2px 2px 8px;
-}
-.nascar-lineup-chip {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.28);
-  color: #fffbeb;
-  cursor: pointer;
-  text-align: left;
-  min-width: 7.5rem;
-}
-.nascar-lineup-chip:hover:not(:disabled) {
-  border-color: rgba(253, 230, 138, 0.45);
-}
-.nascar-lineup-chip--picked {
-  border-color: rgba(74, 222, 128, 0.45);
-  opacity: 0.85;
-}
-.nascar-lineup-chip--disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.nascar-lineup-chip__name {
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-.nascar-lineup-chip__price {
-  font-size: 13px;
-  color: #fcd34d;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
 }
 
 .dash-whatif-list {
@@ -1882,7 +1420,7 @@ a.rost-dash-link {
 }
 .dash-account-grid { margin-top: 10px; }
 
-/* —— Multi-sport dashboard (Pickleball + NASCAR) —— */
+/* —— Multi-sport dashboard —— */
 .dash-ms-section {
   margin-top: 16px;
   padding: 14px 14px 16px;
@@ -2001,10 +1539,6 @@ a.rost-dash-link {
   background: linear-gradient(155deg, rgba(20, 60, 40, 0.95), rgba(10, 28, 18, 0.98));
   border-color: rgba(74, 222, 128, 0.35);
 }
-.dash-sport-card--nascar {
-  background: linear-gradient(155deg, rgba(28, 12, 12, 0.98), rgba(12, 8, 10, 0.98));
-  border-color: rgba(248, 113, 113, 0.38);
-}
 .dash-sport-card--lacrosse {
   background: linear-gradient(155deg, rgba(12, 40, 68, 0.96), rgba(8, 20, 40, 0.98));
   border-color: rgba(56, 189, 248, 0.38);
@@ -2055,9 +1589,6 @@ a.rost-dash-link {
   color: #93a2b8;
   line-height: 1.35;
 }
-.dash-sport-card--nascar .dash-sport-card__sub {
-  color: #fecaca;
-}
 .dash-sport-card--lacrosse .dash-sport-card__sub {
   color: #bae6fd;
 }
@@ -2083,11 +1614,6 @@ a.rost-dash-link {
   background: rgba(22, 101, 52, 0.55);
   color: #bbf7d0;
   border: 1px solid rgba(74, 222, 128, 0.45);
-}
-.dash-sport-card__pill--nascar {
-  background: rgba(127, 29, 29, 0.55);
-  color: #fecaca;
-  border: 1px solid rgba(248, 113, 113, 0.45);
 }
 .dash-sport-card__pill--lacrosse {
   background: rgba(12, 74, 110, 0.55);
@@ -2212,9 +1738,6 @@ a.rost-dash-link {
 .dash-contest-card--pickleball {
   border-color: rgba(74, 222, 128, 0.28);
 }
-.dash-contest-card--nascar {
-  border-color: rgba(248, 113, 113, 0.28);
-}
 .dash-contest-card--lacrosse {
   border-color: rgba(56, 189, 248, 0.3);
 }
@@ -2289,57 +1812,6 @@ a.rost-dash-link {
   border-color: #fde68a;
 }
 
-.nascar-rost-season-hint {
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(251, 191, 36, 0.25);
-  background: rgba(0, 0, 0, 0.22);
-  max-width: 720px;
-}
-.nascar-rost-season-hint a {
-  color: #fde68a;
-  font-weight: 800;
-}
-.nascar-rost-list {
-  margin-top: 4px;
-}
-.nascar-rost-card {
-  border-color: rgba(251, 191, 36, 0.2);
-}
-.nascar-rost-race-meta {
-  margin: 6px 0 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #d6d3d1;
-}
-.nascar-rost-car {
-  margin-left: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #a8a29e;
-}
-.nascar-rost-empty-picks {
-  margin: 6px 0 0;
-}
-.nascar-rost-tb-summary {
-  margin: 10px 0 0;
-  font-size: 11px;
-  color: #d6d3d1;
-  line-height: 1.45;
-}
-.nascar-rost-tb-summary strong {
-  color: #fde68a;
-}
-.nascar-rost-tb-summary--incomplete {
-  color: #fcd34d;
-}
-.nascar-rost-card-foot {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .dash-season-rank-list {
   list-style: none;
   margin: 0;
@@ -2360,9 +1832,6 @@ a.rost-dash-link {
 }
 .dash-season-rank-row--pickleball {
   border-color: rgba(74, 222, 128, 0.22);
-}
-.dash-season-rank-row--nascar {
-  border-color: rgba(248, 113, 113, 0.22);
 }
 .dash-season-rank-ico {
   font-size: 18px;

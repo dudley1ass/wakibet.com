@@ -34,7 +34,6 @@ model User {
   notifications          Notification[]
   winterFantasyRosters       WinterFantasyRoster[]
   fantasyTournamentLineups FantasyTournamentLineup[]
-  nascarWeeklyLineups      NascarWeeklyLineup[]
   lacrosseLineups          LacrosseLineup[]
   wfRosters                WfRoster[]
   wfSeasonScores           WfSeasonScore[]
@@ -161,91 +160,6 @@ model TournamentEventCatalog {
 
   @@unique([tournamentKey, eventKey])
   @@index([tournamentKey])
-}
-
-// ============ NASCAR FANTASY (weekly picks) ============
-
-model NascarWeek {
-  id          String  @id @default(cuid())
-  seasonYear  Int
-  weekKey     String  @unique
-  raceName    String
-  trackName   String
-  raceStartAt DateTime
-  lockAt      DateTime
-  isClosed    Boolean @default(false)
-  /// Official weekly fantasy points by `NascarDriver.driverKey` (used to score lineups + leaderboards).
-  driverPointsByKey Json?
-
-  lineups NascarWeeklyLineup[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([seasonYear, raceStartAt])
-}
-
-model NascarDriver {
-  id            String  @id @default(cuid())
-  driverKey     String  @unique
-  displayName   String
-  teamName      String?
-  carNumber     String?
-  sponsor       String?
-  manufacturer  String?
-  isActive      Boolean @default(true)
-  /// Weekly salary in WakiCash (0 until priced for the season).
-  wakiCashPrice Int     @default(0)
-  /// “Elite” drivers count toward max-2-elite lineup rule.
-  isElite       Boolean @default(false)
-
-  picks NascarWeeklyPick[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([displayName])
-}
-
-model NascarWeeklyLineup {
-  id        String @id @default(cuid())
-  userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  weekId    String
-  week      NascarWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  status    String @default("active")
-  totalPts  Float  @default(0)
-  /// Tiebreaker #1: whole seconds between P1 and P2 at the finish (user prediction).
-  tiebreakerWinMarginSeconds Int?
-  /// Tiebreaker #2: total race laps run under caution (user prediction).
-  tiebreakerCautionLaps      Int?
-
-  picks NascarWeeklyPick[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, weekId])
-  @@index([weekId])
-  @@index([userId])
-}
-
-model NascarWeeklyPick {
-  id        String @id @default(cuid())
-  lineupId  String
-  lineup    NascarWeeklyLineup @relation(fields: [lineupId], references: [id], onDelete: Cascade)
-  slotIndex Int
-  driverId  String
-  driver    NascarDriver @relation(fields: [driverId], references: [id], onDelete: Restrict)
-  isCaptain Boolean @default(false)
-  points    Float   @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([lineupId, slotIndex])
-  @@unique([lineupId, driverId])
-  @@index([driverId])
 }
 
 // ============ LACROSSE FANTASY (confidence allocation slates) ============

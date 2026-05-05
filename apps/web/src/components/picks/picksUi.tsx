@@ -104,7 +104,7 @@ export function WakiOddsPanel({
   labelB: string;
   ratingA: number;
   ratingB: number;
-  market?: "nascar" | "pickleball";
+  market?: "lacrosse" | "pickleball";
 }) {
   const [live, setLive] = useState<{
     labelA: string;
@@ -118,13 +118,13 @@ export function WakiOddsPanel({
     let cancelled = false;
     void apiGet<{
       markets: {
-        nascar: { team_a: { players: string[]; rating: number }; team_b: { players: string[]; rating: number } };
+        lacrosse: { team_a: { players: string[]; rating: number }; team_b: { players: string[]; rating: number } };
         pickleball: { team_a: { players: string[]; rating: number }; team_b: { players: string[]; rating: number } };
       };
     }>("/api/v1/wakiodds/featured")
       .then((data) => {
         if (cancelled) return;
-        const m = market === "nascar" ? data.markets.nascar : data.markets.pickleball;
+        const m = market === "lacrosse" ? data.markets.lacrosse : data.markets.pickleball;
         setLive({
           labelA: m.team_a.players.join(" + "),
           labelB: m.team_b.players.join(" + "),

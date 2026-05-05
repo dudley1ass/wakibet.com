@@ -47,7 +47,7 @@ function setJsonLdWebsite(origin: string) {
     name: "WakiBet",
     url: `${origin}/`,
     description:
-      "Free-to-play fantasy pickleball tournaments and NASCAR weekly picks with WakiCash lineups and WakiPoints leaderboards.",
+      "Free-to-play fantasy pickleball, lacrosse, and volleyball with WakiCash lineups and WakiPoints leaderboards.",
   };
   el.textContent = JSON.stringify(payload);
 }

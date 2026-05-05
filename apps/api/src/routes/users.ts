@@ -273,14 +273,6 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
                     updated_at: z.string(),
                   }),
                 ),
-                nascar_lineups: z.array(
-                  z.object({
-                    week_key: z.string(),
-                    race_name: z.string(),
-                    pick_count: z.number().int(),
-                    updated_at: z.string(),
-                  }),
-                ),
               }),
             ),
           }),
@@ -316,7 +308,6 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
             select: {
               winterFantasyRosters: true,
               fantasyTournamentLineups: true,
-              nascarWeeklyLineups: true,
             },
           },
           fantasyTournamentLineups: {
@@ -331,15 +322,6 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
               wakicashSpent: true,
               updatedAt: true,
               eventPicks: { select: { id: true } },
-            },
-          },
-          nascarWeeklyLineups: {
-            orderBy: { updatedAt: "desc" },
-            take: 30,
-            select: {
-              week: { select: { weekKey: true, raceName: true } },
-              updatedAt: true,
-              picks: { select: { id: true } },
             },
           },
         },
@@ -358,12 +340,6 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
             season_key: l.seasonKey,
             event_count: l.eventPicks.length,
             wakicash_spent: l.wakicashSpent,
-            updated_at: l.updatedAt.toISOString(),
-          })),
-          nascar_lineups: u.nascarWeeklyLineups.map((l) => ({
-            week_key: l.week.weekKey,
-            race_name: l.week.raceName,
-            pick_count: l.picks.length,
             updated_at: l.updatedAt.toISOString(),
           })),
         })),

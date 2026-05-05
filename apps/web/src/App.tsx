@@ -10,9 +10,6 @@ import { DashboardDataProvider } from "./sports/pickleball/context/DashboardData
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const PickTeamsPage = lazy(() => import("./sports/pickleball/components/PickTeamsPage"));
 const RostersPage = lazy(() => import("./sports/pickleball/components/RostersPage"));
-const NascarHubPage = lazy(() => import("./sports/nascar/components/NascarHubPage"));
-const NascarRostersPage = lazy(() => import("./sports/nascar/components/NascarRostersPage"));
-const NascarScoringTablePage = lazy(() => import("./sports/nascar/components/NascarScoringTablePage"));
 const LacrosseHubPage = lazy(() => import("./sports/lacrosse/components/LacrosseHubPage"));
 const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components/LacrosseScoringTablePage"));
 const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
@@ -20,14 +17,10 @@ const VolleyballHubPage = lazy(() => import("./sports/volleyball/components/Voll
 const VolleyballRostersPage = lazy(() => import("./sports/volleyball/components/VolleyballRostersPage"));
 const VolleyballScoringTablePage = lazy(() => import("./sports/volleyball/components/VolleyballScoringTablePage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
-const NascarTexasPicksPage = lazy(() => import("./components/picks/NascarTexasPicksPage"));
 const WeekPicksHubPage = lazy(() => import("./components/picks/WeekPicksHubPage"));
 const VolleyballPicksPage = lazy(() => import("./components/picks/VolleyballPicksPage"));
 const PickleballSeasonLeaderboardPage = lazy(() =>
   import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.PickleballSeasonLeaderboardPage })),
-);
-const NascarSeasonLeaderboardPage = lazy(() =>
-  import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.NascarSeasonLeaderboardPage })),
 );
 const TermsPage = lazy(() =>
   import("./components/StaticPages").then((m) => ({ default: m.TermsPage })),
@@ -267,13 +260,12 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
           )
         }
       />
-      <Route path="/nascar-texas-picks" element={<NascarTexasPicksPage />} />
       <Route path="/volleyball-picks" element={<VolleyballPicksPage />} />
       <Route path="/week-picks" element={<WeekPicksHubPage />} />
       <Route path="/ppa-atlanta-picks" element={<Navigate to="/week-picks" replace />} />
       <Route path="/picks/ppa-atlanta" element={<Navigate to="/week-picks" replace />} />
-      <Route path="/picks/nascar-texas" element={<Navigate to="/nascar-texas-picks" replace />} />
-      <Route path="/nascar/scoring" element={<NascarScoringTablePage />} />
+      <Route path="/picks/nascar-texas" element={<Navigate to="/week-picks" replace />} />
+      <Route path="/nascar-texas-picks" element={<Navigate to="/week-picks" replace />} />
       <Route
         path="/pick-teams/leaderboard"
         element={
@@ -288,23 +280,6 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
             </>
           ) : (
             <PickleballSeasonLeaderboardPage user={session} />
-          )
-        }
-      />
-      <Route
-        path="/nascar/leaderboard"
-        element={
-          booting ? (
-            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-              Loading…
-            </p>
-          ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the season leaderboard.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
-          ) : (
-            <NascarSeasonLeaderboardPage user={session} />
           )
         }
       />
@@ -325,29 +300,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
           )
         }
       />
-      <Route
-        path="/nascar/rosters"
-        element={
-          booting ? (
-            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-              Loading…
-            </p>
-          ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your NASCAR race lineups.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
-          ) : (
-            <NascarRostersPage user={session} />
-          )
-        }
-      />
-      <Route
-        path="/nascar"
-        element={
-          <NascarHubPage user={session} />
-        }
-      />
+      <Route path="/nascar/*" element={<Navigate to="/" replace />} />
       <Route
         path="/rosters"
         element={

@@ -23,7 +23,7 @@ export const wakiOddsRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({
             updated_at: z.string(),
             markets: z.object({
-              nascar: z.object({
+              lacrosse: z.object({
                 source: z.string(),
                 team_a: z.object({
                   label: z.string(),
@@ -55,23 +55,6 @@ export const wakiOddsRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async () => {
-      const nascarDrivers = await prisma.nascarDriver.findMany({
-        where: { isActive: true },
-        orderBy: [{ wakiCashPrice: "desc" }, { displayName: "asc" }],
-        take: 4,
-        select: { displayName: true, wakiCashPrice: true },
-      });
-      const n = nascarDrivers.length >= 4 ? nascarDrivers : [];
-      const nascarA = n.slice(0, 2);
-      const nascarB = n.slice(2, 4);
-      const nascarFallback = ["William Byron", "Kyle Larson", "Denny Hamlin", "Ross Chastain"];
-      const nascarTeamAPlayers = nascarA.length === 2 ? nascarA.map((d) => d.displayName) : nascarFallback.slice(0, 2);
-      const nascarTeamBPlayers = nascarB.length === 2 ? nascarB.map((d) => d.displayName) : nascarFallback.slice(2, 4);
-      const nascarTeamARating =
-        nascarA.length === 2 ? Math.round(1400 + ((nascarA[0]!.wakiCashPrice + nascarA[1]!.wakiCashPrice) / 2) * 8) : 1640;
-      const nascarTeamBRating =
-        nascarB.length === 2 ? Math.round(1400 + ((nascarB[0]!.wakiCashPrice + nascarB[1]!.wakiCashPrice) / 2) * 8) : 1510;
-
       let pickleballMarket: {
         source: string;
         team_a: { label: string; players: string[]; rating: number };
@@ -136,17 +119,17 @@ export const wakiOddsRoutes: FastifyPluginAsync = async (app) => {
       return {
         updated_at: new Date().toISOString(),
         markets: {
-          nascar: {
-            source: nascarA.length === 2 && nascarB.length === 2 ? "nascar_driver_wakicash" : "fallback",
+          lacrosse: {
+            source: "pll_team_rating_stub",
             team_a: {
-              label: "Top pair",
-              players: nascarTeamAPlayers,
-              rating: nascarTeamARating,
+              label: "PLL side A",
+              players: ["Archers LC", "Cannons LC"],
+              rating: 1640,
             },
             team_b: {
-              label: "Challenger pair",
-              players: nascarTeamBPlayers,
-              rating: nascarTeamBRating,
+              label: "PLL side B",
+              players: ["Waterdogs LC", "Atlas LC"],
+              rating: 1510,
             },
           },
           pickleball: pickleballMarket,

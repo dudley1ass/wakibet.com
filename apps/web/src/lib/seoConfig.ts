@@ -9,9 +9,9 @@ const SITE = "WakiBet";
 
 const ROUTES: Record<string, SeoEntry> = {
   "/": {
-    title: `${SITE} — Fantasy pickleball & NASCAR`,
+    title: `${SITE} — Fantasy pickleball, lacrosse & volleyball`,
     description:
-      "Free-to-play fantasy for pickleball tournaments and NASCAR. Build lineups with WakiCash budgets, earn WakiPoints, and climb leaderboards.",
+      "Free-to-play fantasy for pickleball tournaments, PLL lacrosse, and beach volleyball. Build lineups with WakiCash budgets, earn WakiPoints, and climb leaderboards.",
   },
   "/pick-teams": {
     title: `Pick / edit teams — pickleball tournament fantasy | ${SITE}`,
@@ -27,26 +27,6 @@ const ROUTES: Record<string, SeoEntry> = {
     title: `Pickleball season leaderboard | ${SITE}`,
     description:
       "See how your WakiPoints rank against other players for the pickleball fantasy season on WakiBet.",
-  },
-  "/nascar": {
-    title: `NASCAR fantasy hub | ${SITE}`,
-    description:
-      "Weekly NASCAR fantasy — race picks, WakiCash salaries, captain scoring, and tiebreak rules in one hub.",
-  },
-  "/nascar/rosters": {
-    title: `My NASCAR lineups | ${SITE}`,
-    description:
-      "Your saved NASCAR weekly fantasy lineups, driver picks, and captain choices for each race week.",
-  },
-  "/nascar/scoring": {
-    title: `NASCAR scoring table | ${SITE}`,
-    description:
-      "Official WakiBet NASCAR weekly fantasy scoring: finishing positions, stage points, captain multiplier, and tiebreakers.",
-  },
-  "/nascar/leaderboard": {
-    title: `NASCAR season leaderboard | ${SITE}`,
-    description:
-      "Season-long NASCAR fantasy standings and WakiPoints leaderboard for WakiBet weekly picks.",
   },
   "/lacrosse": {
     title: `Utah Open — PLL lacrosse hub, ratings & WakiCash | ${SITE}`,
@@ -73,19 +53,14 @@ const ROUTES: Record<string, SeoEntry> = {
       "WakiBet fantasy rules: WakiCash budgets, roster sizes, captains, gender mix for MLP, locks, and fair play.",
   },
   "/week-picks": {
-    title: `This week’s fantasy picks — MLP Dallas & NASCAR | ${SITE}`,
+    title: `This week’s fantasy picks — MLP Dallas & AVP | ${SITE}`,
     description:
-      "This week on WakiBet: MLP Dallas 2026 pickleball targets and the current NASCAR Cup race — lineups, value, and strategy.",
+      "This week on WakiBet: MLP Dallas 2026 pickleball targets and AVP beach volleyball schedule highlights — lineups, value, and strategy.",
   },
   "/ppa-atlanta-picks": {
-    title: `This week’s fantasy picks — MLP Dallas & NASCAR | ${SITE}`,
+    title: `This week’s fantasy picks — MLP Dallas & AVP | ${SITE}`,
     description:
-      "This week on WakiBet: MLP Dallas 2026 pickleball targets and the current NASCAR Cup race — lineups, value, and strategy.",
-  },
-  "/nascar-texas-picks": {
-    title: `NASCAR Texas fantasy picks — TMS lineup ideas | ${SITE}`,
-    description:
-      "NASCAR fantasy picks for Texas Motor Speedway: drivers to target, value plays, sleepers, and weekly lineup tips.",
+      "This week on WakiBet: MLP Dallas 2026 pickleball targets and AVP beach volleyball schedule highlights — lineups, value, and strategy.",
   },
   "/scoring-table": {
     title: `Pickleball scoring table | ${SITE}`,
@@ -124,7 +99,7 @@ const ROUTES: Record<string, SeoEntry> = {
 const DEFAULT: SeoEntry = {
   title: SITE,
   description:
-    "WakiBet — fantasy pickleball tournaments and NASCAR weekly picks. Free-to-play lineups, scoring, and leaderboards.",
+    "WakiBet — fantasy pickleball, lacrosse, and volleyball. Free-to-play lineups, scoring, and leaderboards.",
 };
 
 export function getSeoForPathname(pathname: string): SeoEntry {
