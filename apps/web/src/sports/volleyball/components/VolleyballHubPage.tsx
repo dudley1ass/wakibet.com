@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY, AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY } from "@wakibet/shared";
 import { Link } from "react-router-dom";
@@ -127,6 +127,12 @@ export default function VolleyballHubPage({ user }: Props) {
     queryFn: () =>
       apiGet<TeamsPayload>(`/api/v1/volleyball/teams?event_key=${encodeURIComponent(huntingtonKey)}`),
   });
+  const [selectedEventKey, setSelectedEventKey] = useState<string>(huntingtonKey);
+  const [captain, setCaptain] = useState<string>("");
+  const [flex1, setFlex1] = useState<string>("");
+  const [flex2, setFlex2] = useState<string>("");
+  const [flex3, setFlex3] = useState<string>("");
+  const [flex4, setFlex4] = useState<string>("");
 
   const byCategory = useMemo(() => {
     const ev = scheduleQ.data?.events ?? [];
@@ -159,6 +165,30 @@ export default function VolleyballHubPage({ user }: Props) {
     }
     return order.filter((k) => map.has(k)).map((k) => ({ label: k, rows: map.get(k)! }));
   }, [teamsHbQ.data?.teams]);
+  const selectedPool = selectedEventKey === huntingtonKey ? teamsHbQ.data : teamsQ.data;
+  const playerOptions = useMemo(() => {
+    const names = new Set<string>();
+    for (const t of selectedPool?.teams ?? []) {
+      const p1 = t.player_one.trim();
+      const p2 = t.player_two.trim();
+      if (p1) names.add(p1);
+      if (p2) names.add(p2);
+    }
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [selectedPool?.teams]);
+  const selectedNames = [captain, flex1, flex2, flex3, flex4].filter(Boolean);
+  const hasDuplicateSelections = new Set(selectedNames).size !== selectedNames.length;
+  const lineupCount = selectedNames.length;
+  const lineupComplete = lineupCount === 5 && !hasDuplicateSelections;
+  const selectOptions = (currentValue: string) =>
+    playerOptions.filter((n) => n === currentValue || !selectedNames.includes(n));
+  const resetSelections = () => {
+    setCaptain("");
+    setFlex1("");
+    setFlex2("");
+    setFlex3("");
+    setFlex4("");
+  };
 
   const err = scheduleQ.error instanceof Error ? scheduleQ.error.message : null;
   const teamsErr = teamsQ.error instanceof Error ? teamsQ.error.message : null;
@@ -208,6 +238,93 @@ export default function VolleyballHubPage({ user }: Props) {
           ))}
         </ul>
       ) : null}
+      <section style={{ marginTop: 28 }} aria-labelledby="avp-lineup-builder">
+        <h2 id="avp-lineup-builder" className="dash-sub" style={{ fontWeight: 800, fontSize: "1.05rem" }}>
+          Volleyball lineup builder
+        </h2>
+        <p className="dash-sub" style={{ marginTop: 8, maxWidth: 760 }}>
+          Same flow as pickleball: pick a tournament, then choose <strong>1 Captain</strong> and <strong>4 Flex</strong>{" "}
+          players from dropdowns.
+        </p>
+        <div style={{ display: "grid", gap: 12, marginTop: 12, maxWidth: 520 }}>
+          <label className="dash-sub" style={{ display: "grid", gap: 6 }}>
+            Tournament
+            <select
+              value={selectedEventKey}
+              onChange={(e) => {
+                setSelectedEventKey(e.target.value);
+                resetSelections();
+              }}
+              style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}
+            >
+              <option value={huntingtonKey}>Huntington Beach Open (May 14–17)</option>
+              <option value={southBeachKey}>South Beach May Open (May 23–24)</option>
+            </select>
+          </label>
+          <label className="dash-sub" style={{ display: "grid", gap: 6 }}>
+            Captain (1.5x)
+            <select value={captain} onChange={(e) => setCaptain(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}>
+              <option value="">Select captain</option>
+              {selectOptions(captain).map((n) => (
+                <option key={`cap-${n}`} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="dash-sub" style={{ display: "grid", gap: 6 }}>
+            Flex 1
+            <select value={flex1} onChange={(e) => setFlex1(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}>
+              <option value="">Select player</option>
+              {selectOptions(flex1).map((n) => (
+                <option key={`f1-${n}`} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="dash-sub" style={{ display: "grid", gap: 6 }}>
+            Flex 2
+            <select value={flex2} onChange={(e) => setFlex2(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}>
+              <option value="">Select player</option>
+              {selectOptions(flex2).map((n) => (
+                <option key={`f2-${n}`} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="dash-sub" style={{ display: "grid", gap: 6 }}>
+            Flex 3
+            <select value={flex3} onChange={(e) => setFlex3(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}>
+              <option value="">Select player</option>
+              {selectOptions(flex3).map((n) => (
+                <option key={`f3-${n}`} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="dash-sub" style={{ display: "grid", gap: 6 }}>
+            Flex 4
+            <select value={flex4} onChange={(e) => setFlex4(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#0b1220", color: "#e2e8f0" }}>
+              <option value="">Select player</option>
+              {selectOptions(flex4).map((n) => (
+                <option key={`f4-${n}`} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <p className="dash-sub" style={{ marginTop: 10 }}>
+          {lineupComplete
+            ? "Lineup complete: 5/5 selected."
+            : hasDuplicateSelections
+              ? "Lineup has duplicate players. Choose unique players for all slots."
+              : `Lineup progress: ${lineupCount}/5 selected.`}
+        </p>
+      </section>
 
       {(["league", "heritage", "contender"] as const).map((cat) => {
         const rows = cat === "league" ? byCategory.league : cat === "heritage" ? byCategory.heritage : byCategory.contender;
