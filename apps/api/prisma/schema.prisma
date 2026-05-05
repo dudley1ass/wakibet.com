@@ -334,6 +334,26 @@ model LacrossePick {
   @@index([lineId])
 }
 
+// ============ PICKS SPOTLIGHT (home + promos; time-windowed tournament labels per sport) ============
+
+model PicksSpotlightWindow {
+  id         String @id @default(cuid())
+  sportKey   String
+  windowKey  String
+  labelShort String
+  labelFull  String
+  venue      String
+  href       String
+  startsAt   DateTime
+  endsAt     DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sportKey, windowKey])
+  @@index([sportKey, startsAt])
+}
+
 // ============ WAKI BRACKET FANTASY (normalized; phases 1–3) ============
 // Prefix Wf* avoids clashing with DFS models: Tournament, Player, Match, Lineup.
 

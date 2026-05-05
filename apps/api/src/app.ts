@@ -21,6 +21,7 @@ import { volleyballRoutes } from "./routes/volleyball.js";
 import { fantasyTournamentRoutes, winterFantasyRoutes } from "./sports/pickleball/routes/index.js";
 import { nascarRoutes } from "./sports/nascar/routes/index.js";
 import { publicContactRoutes } from "./routes/publicContact.js";
+import { picksSpotlightRoutes } from "./routes/picksSpotlight.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -106,6 +107,7 @@ export async function buildApp() {
   await app.register(healthRoutes);
   await app.register(authRoutes);
   await app.register(publicContactRoutes);
+  await app.register(picksSpotlightRoutes, { prefix: "/api/v1/picks" });
   await app.register(usersRoutes);
   await app.register(wakiOddsRoutes);
   await app.register(lacrosseRoutes, { prefix: "/api/v1/lacrosse" });

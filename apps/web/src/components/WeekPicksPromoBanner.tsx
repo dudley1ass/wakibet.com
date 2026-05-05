@@ -1,17 +1,25 @@
 import { Link } from "react-router-dom";
+import { usePicksSpotlight } from "../hooks/usePicksSpotlight";
 
 type Sport = "volleyball" | "pickleball";
 
 export default function WeekPicksPromoBanner({ sport }: { sport: Sport }) {
-  const href = sport === "volleyball" ? "/volleyball-picks" : "/week-picks";
+  const { item } = usePicksSpotlight();
+  const vb = item("volleyball");
+  const pb = item("pickleball");
+
+  const href = sport === "volleyball" ? vb?.href ?? "/volleyball-picks" : pb?.href ?? "/week-picks";
+  const vbVenue = vb?.venue ?? "Huntington Beach Open";
+  const pbVenue = pb?.venue ?? "MLP Dallas";
+
   const linkInner =
     sport === "volleyball" ? (
       <>
-        See picks for <strong>Huntington Beach Open</strong>
+        See picks for <strong>{vbVenue}</strong>
       </>
     ) : (
       <>
-        See picks for <strong>MLP Dallas</strong> and Volleyball
+        See picks for <strong>{pbVenue}</strong> and <strong>{vbVenue}</strong>
       </>
     );
 

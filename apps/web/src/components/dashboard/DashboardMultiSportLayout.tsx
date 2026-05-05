@@ -7,6 +7,7 @@ import DashboardSeasonPrizesStrip from "./DashboardSeasonPrizesStrip";
 import DashboardSeasonStandingsHero from "./DashboardSeasonStandingsHero";
 import SportCard from "./SportCard";
 import ThisWeekPicksHomeSection from "../ThisWeekPicksHomeSection";
+import { usePicksSpotlight } from "../../hooks/usePicksSpotlight";
 
 type FantasyPulseLite = NonNullable<DashboardData["fantasy_pulse"]>;
 
@@ -59,10 +60,14 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     ],
   });
 
-  const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
-  const pbSub = "Next tournament is MLP Dallas";
+  const { item: spotlightItem } = usePicksSpotlight();
+  const spotPb = spotlightItem("pickleball");
+  const spotLax = spotlightItem("lacrosse");
 
-  const laxName = lacrosseQ.data?.name ?? "Utah Open";
+  const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
+  const pbSub = spotPb ? `Next tournament is ${spotPb.venue}` : "Next tournament is MLP Dallas";
+
+  const laxName = lacrosseQ.data?.name ?? spotLax?.venue ?? "Utah Open";
 
   return (
     <>

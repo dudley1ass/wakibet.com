@@ -1,16 +1,26 @@
 import { Link } from "react-router-dom";
+import { usePicksSpotlight } from "../hooks/usePicksSpotlight";
+
+const EMOJI: Record<string, string> = {
+  volleyball: "🏐",
+  pickleball: "🏓",
+  lacrosse: "🥍",
+};
 
 /**
- * Homepage-style teaser — links to editorial picks pages (dashboard + logged-out home).
+ * Homepage-style teaser — reads week/tournament spotlight windows from the API so
+ * venues advance automatically when each window's dates pass.
  */
 export default function ThisWeekPicksHomeSection({
   variant = "dashboard",
   compact = false,
 }: {
   variant?: "dashboard" | "login";
-  /** Tighter layout for top dashboard row beside season prizes */
+  /** Tighter layout for top dashboard row beside tournament prizes */
   compact?: boolean;
 }) {
+  const { items } = usePicksSpotlight();
+
   const blockClass = [
     variant === "login" ? "dash-week-picks-home dash-week-picks-home--login" : "dash-week-picks-home",
     compact ? "dash-week-picks-home--compact" : "",
@@ -26,36 +36,20 @@ export default function ThisWeekPicksHomeSection({
         {variant === "login" ? "🔥 This Week's Picks" : title}
       </h2>
       <ul className="dash-week-picks-home__list">
-        <li>
-          <Link className="dash-week-picks-home__link" to="/volleyball-picks">
-            <span className="dash-week-picks-home__emoji" aria-hidden>
-              🏐
-            </span>
-            <span className="dash-week-picks-home__label">{compact ? "Volleyball" : "Volleyball Picks"}</span>
-            {!compact ? <span className="dash-week-picks-home__arrow">→</span> : null}
-            <span className="dash-week-picks-home__venue">{compact ? "Huntington" : "Huntington Beach Open"}</span>
-          </Link>
-        </li>
-        <li>
-          <Link className="dash-week-picks-home__link" to="/week-picks">
-            <span className="dash-week-picks-home__emoji" aria-hidden>
-              🏓
-            </span>
-            <span className="dash-week-picks-home__label">{compact ? "Pickleball" : "Pickleball Picks"}</span>
-            {!compact ? <span className="dash-week-picks-home__arrow">→</span> : null}
-            <span className="dash-week-picks-home__venue">{compact ? "MLP Dallas" : "MLP Dallas 2026"}</span>
-          </Link>
-        </li>
-        <li>
-          <Link className="dash-week-picks-home__link" to="/lacrosse">
-            <span className="dash-week-picks-home__emoji" aria-hidden>
-              🥍
-            </span>
-            <span className="dash-week-picks-home__label">{compact ? "Lacrosse" : "Lacrosse Slate"}</span>
-            {!compact ? <span className="dash-week-picks-home__arrow">→</span> : null}
-            <span className="dash-week-picks-home__venue">{compact ? "Utah Open" : "Utah Open · PLL"}</span>
-          </Link>
-        </li>
+        {items.map((row) => (
+          <li key={row.sport_key}>
+            <Link className="dash-week-picks-home__link" to={row.href}>
+              <span className="dash-week-picks-home__emoji" aria-hidden>
+                {EMOJI[row.sport_key] ?? "•"}
+              </span>
+              <span className="dash-week-picks-home__label">
+                {compact ? row.label_short : row.label_full}
+              </span>
+              {!compact ? <span className="dash-week-picks-home__arrow">→</span> : null}
+              <span className="dash-week-picks-home__venue">{row.venue}</span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
