@@ -1,17 +1,17 @@
 import { Link } from "react-router-dom";
 
-type Sport = "nascar" | "pickleball";
+type Sport = "volleyball" | "pickleball";
 
 export default function WeekPicksPromoBanner({ sport }: { sport: Sport }) {
-  const href = sport === "nascar" ? "/nascar-texas-picks" : "/week-picks";
+  const href = sport === "volleyball" ? "/volleyball" : "/week-picks";
   const linkInner =
-    sport === "nascar" ? (
+    sport === "volleyball" ? (
       <>
-        See picks for <strong>Texas Motor Speedway</strong>
+        See picks for <strong>Huntington Beach Open</strong>
       </>
     ) : (
       <>
-        See picks for <strong>MLP Dallas</strong> and NASCAR
+        See picks for <strong>MLP Dallas</strong> and Volleyball
       </>
     );
 

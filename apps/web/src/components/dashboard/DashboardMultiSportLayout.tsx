@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { Link } from "react-router-dom";
 import { apiGet } from "../../api";
 import type { DashboardData } from "../Dashboard";
@@ -10,13 +9,6 @@ import SportCard from "./SportCard";
 import ThisWeekPicksHomeSection from "../ThisWeekPicksHomeSection";
 
 type FantasyPulseLite = NonNullable<DashboardData["fantasy_pulse"]>;
-
-type NascarSeasonSummary = {
-  season_year: number;
-  total_points: number;
-  rank: number | null;
-  weeks_played: number;
-};
 
 type LacrosseCurrentPayload = {
   slate_key: string;
@@ -36,7 +28,6 @@ type Props = {
 };
 
 export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
-  const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
   const incomplete = useMemo(
     () => preview.winter_fantasy_rosters.filter((r) => !r.waki_lineup_complete).length,
     [preview.winter_fantasy_rosters],
@@ -55,12 +46,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     message: string;
   };
 
-  const [seasonQ, lacrosseQ, volleyballQ] = useQueries({
+  const [lacrosseQ, volleyballQ] = useQueries({
     queries: [
-      {
-        queryKey: ["nascar", "season-summary", seasonYear] as const,
-        queryFn: () => apiGet<NascarSeasonSummary>(`/api/v1/nascar/season-summary?season_year=${seasonYear}`),
-      },
       {
         queryKey: ["lacrosse", "current"] as const,
         queryFn: () => apiGet<LacrosseCurrentPayload>("/api/v1/lacrosse/current"),
@@ -74,9 +61,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
 
   const pbCta = incomplete > 0 ? "Enter picks" : "Edit picks";
   const pbSub = "Next tournament is MLP Dallas";
-
-  const nascarRank = seasonQ.data?.rank;
-  const nascarPts = seasonQ.data?.total_points ?? 0;
 
   const laxName = lacrosseQ.data?.name ?? "Utah Open";
 
@@ -96,10 +80,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
           <Link className="dash-ms-inline-link" to="/pick-teams/leaderboard">
             Pickleball top 100
           </Link>
-          {" · "}
-          <Link className="dash-ms-inline-link" to="/nascar/leaderboard">
-            NASCAR top 100
-          </Link>
         </p>
         <div className="dash-sport-hero-row">
           <SportCard
@@ -111,16 +91,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             statusLabel={pickleballStatusLabel(incomplete, rosterCount)}
             ctaLabel={pbCta}
             ctaTo="/pick-teams"
-          />
-          <SportCard
-            variant="nascar"
-            icon="🏁"
-            sportLabel="NASCAR"
-            eventName="Cup Series weekly picks"
-            subline="Open NASCAR to see this week’s race and build your lineup."
-            statusLabel=""
-            ctaLabel="Open NASCAR"
-            ctaTo="/nascar"
           />
           <SportCard
             variant="lacrosse"
@@ -147,7 +117,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             ctaTo="/volleyball"
           />
         </div>
-        {(seasonQ.isError || lacrosseQ.isError || volleyballQ.isError) && (
+        {(lacrosseQ.isError || volleyballQ.isError) && (
           <p className="dash-ms-error" role="status">
             Some season data could not load. Open each sport for full details.
           </p>
@@ -159,9 +129,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
           <DashboardSeasonStandingsHero
             pickleballRank={pulse.my_rank}
             pickleballPts={preview.fantasy_season.total_fantasy_points}
-            nascarRank={nascarRank ?? null}
-            nascarPts={nascarPts}
-            nascarLoading={seasonQ.isLoading}
             lacrosseSeasonYear={lacrosseQ.data?.season_year ?? null}
             lacrosseLoading={lacrosseQ.isLoading}
           />
@@ -195,36 +162,6 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
                 </div>
               </div>
               <Link className="dash-contest-card__link" to="/pick-teams">
-                Open
-              </Link>
-            </li>
-            <li className="dash-contest-card dash-contest-card--nascar dash-contest-card--compact">
-              <div className="dash-contest-card__icon" aria-hidden>
-                🏁
-              </div>
-              <div className="dash-contest-card__body">
-                <div className="dash-contest-card__sport">NASCAR</div>
-                <div className="dash-contest-card__event">Weekly picks</div>
-                <div className="dash-contest-card__detail">
-                  Open NASCAR for the active race week and your 5-driver lineup (1 captain).
-                  <Link className="dash-contest-card__sub-link" to="/nascar/rosters">
-                    View all race lineups
-                  </Link>
-                </div>
-              </div>
-              <div className="dash-contest-card__stats">
-                <div>
-                  <span className="dash-contest-card__stat-label">Rank</span>
-                  <span className="dash-contest-card__stat-val">
-                    {seasonQ.isLoading ? "…" : nascarRank != null ? `#${nascarRank}` : "—"}
-                  </span>
-                </div>
-                <div>
-                  <span className="dash-contest-card__stat-label">Pts</span>
-                  <span className="dash-contest-card__stat-val">{seasonQ.isLoading ? "…" : Math.round(nascarPts)}</span>
-                </div>
-              </div>
-              <Link className="dash-contest-card__link" to="/nascar">
                 Open
               </Link>
             </li>

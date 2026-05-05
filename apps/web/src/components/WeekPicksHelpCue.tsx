@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 
-type Sport = "nascar" | "pickleball";
+type Sport = "volleyball" | "pickleball";
 
 const HREF: Record<Sport, string> = {
-  nascar: "/nascar-texas-picks",
+  volleyball: "/volleyball",
   pickleball: "/week-picks",
 };
 

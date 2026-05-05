@@ -2,29 +2,26 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Flag, CircleDot, Target, Trophy, Zap, Bomb } from "lucide-react";
 import { Link } from "react-router-dom";
-import { NASCAR_CUP_SCHEDULE_SEASON_YEAR } from "@wakibet/shared";
 import { apiGet } from "../../api";
-import { nascarFocusWeek, type NascarWeekRow } from "../../sports/nascar/lib/dashboardNascar";
 import { Hero, PickCard, PicksDashboardBar, PlayerRow, WakiOddsPanel } from "./picksUi";
 
-type NascarWeeksPayload = { season: string; weeks: NascarWeekRow[] };
+type VolleyballStatusPayload = {
+  season_year: number;
+  event_count: number;
+  fantasy_enabled: boolean;
+};
 
 export default function WeekPicksHubPage() {
-  const seasonYear = NASCAR_CUP_SCHEDULE_SEASON_YEAR;
-  const weeksQ = useQuery({
-    queryKey: ["nascar", "weeks", seasonYear, "week-picks-hub"] as const,
-    queryFn: () => apiGet<NascarWeeksPayload>(`/api/v1/nascar/weeks?season_year=${seasonYear}`),
+  const volleyballQ = useQuery({
+    queryKey: ["volleyball", "status", "week-picks-hub"] as const,
+    queryFn: () => apiGet<VolleyballStatusPayload>("/api/v1/volleyball/status"),
   });
-  const focusWeek = useMemo(() => nascarFocusWeek(weeksQ.data?.weeks ?? []), [weeksQ.data?.weeks]);
-  const nascarRaceLine =
-    weeksQ.isLoading && !weeksQ.data
-      ? "Loading NASCAR schedule…"
-      : focusWeek
-        ? `${focusWeek.race_name} · ${focusWeek.track}`
-        : weeksQ.data?.weeks?.length
-          ? "Cup Series — see hub for the full schedule"
-          : "Cup Series weekly picks";
-  const nascarHubTo = focusWeek ? `/nascar?week_key=${encodeURIComponent(focusWeek.week_key)}` : "/nascar";
+  const volleyballEventLine = useMemo(() => {
+    if (volleyballQ.isLoading && !volleyballQ.data) return "Loading AVP schedule…";
+    const season = volleyballQ.data?.season_year ?? 2026;
+    const stops = volleyballQ.data?.event_count ?? 0;
+    return `AVP ${season} · ${stops} tour stop${stops === 1 ? "" : "s"}`;
+  }, [volleyballQ.data, volleyballQ.isLoading]);
 
   return (
     <main className="picks-root min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
@@ -43,14 +40,14 @@ export default function WeekPicksHubPage() {
               </Link>
             </div>
             <div className="rounded-xl border border-emerald-500/25 bg-slate-950/60 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-emerald-300">NASCAR Cup</p>
-              <p className="mt-1 text-lg font-black text-white">{nascarRaceLine}</p>
-              <p className="mt-2 text-sm text-slate-300">Five-driver lineup with one captain — scores after each race locks.</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-emerald-300">Beach volleyball</p>
+              <p className="mt-1 text-lg font-black text-white">{volleyballEventLine}</p>
+              <p className="mt-2 text-sm text-slate-300">AVP team hub is live with Huntington Beach and South Beach rosters.</p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold">
-                <Link className="text-emerald-300 underline underline-offset-2" to={nascarHubTo}>
-                  NASCAR hub →
+                <Link className="text-emerald-300 underline underline-offset-2" to="/volleyball">
+                  Volleyball hub →
                 </Link>
-                <Link className="text-slate-300 underline underline-offset-2" to="/nascar-texas-picks">
+                <Link className="text-slate-300 underline underline-offset-2" to="/volleyball">
                   Picks write-up →
                 </Link>
               </div>
@@ -98,20 +95,18 @@ export default function WeekPicksHubPage() {
         <section className="rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-xl md:p-8">
           <div className="mb-4 flex items-center gap-3">
             <Flag className="h-6 w-6 text-emerald-400" aria-hidden />
-            <h2 className="text-2xl font-black text-white">NASCAR — this week&apos;s race</h2>
+            <h2 className="text-2xl font-black text-white">Volleyball — this week&apos;s slate</h2>
           </div>
           <p className="max-w-3xl text-slate-300">
-            {weeksQ.isError
-              ? "Could not load the schedule. Open the NASCAR hub for the active week."
-              : focusWeek
-                ? `Focus week: ${focusWeek.race_name} at ${focusWeek.track}. Lock time follows the official schedule — set your lineup and tiebreakers before the green flag.`
-                : "Open the NASCAR hub to see the full 2026 schedule and the week that accepts lineups."}
+            {volleyballQ.isError
+              ? "Could not load the schedule. Open the volleyball hub for the active event list."
+              : "Open the volleyball hub to see the full 2026 AVP schedule plus Huntington and South Beach teams/athletes."}
           </p>
           <Link
-            to={nascarHubTo}
+            to="/volleyball"
             className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 font-black text-white shadow-lg transition hover:bg-emerald-500"
           >
-            Open NASCAR hub
+            Open volleyball hub
           </Link>
         </section>
 

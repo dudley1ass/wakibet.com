@@ -127,7 +127,7 @@ export default function NascarHubPage({ user }: Props) {
         </div>
       </div>
 
-      <WeekPicksPromoBanner sport="nascar" />
+      <WeekPicksPromoBanner sport="volleyball" />
 
       <NascarHubHero
         user={user}
@@ -140,7 +140,7 @@ export default function NascarHubPage({ user }: Props) {
 
       {user && activeWeek && drivers.length > 0 ? (
         <>
-          <WeekPicksHelpCue sport="nascar" />
+          <WeekPicksHelpCue sport="volleyball" />
           <NascarHubLineupPanel
             weekKey={activeWeek.week_key}
             week={activeWeek}
