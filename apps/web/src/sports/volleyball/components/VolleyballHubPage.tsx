@@ -6,14 +6,12 @@ import type { SessionUser } from "../../../App";
 import { apiGet, apiPut } from "../../../api";
 import "../../../components/dashboard.css";
 
-type TeamRow = {
-  team_key: string;
-  player_one: string;
-  player_two: string;
-};
-
-type TeamsPayload = {
-  teams: TeamRow[];
+type PlayerPoolPayload = {
+  players: Array<{
+    player_name: string;
+    waki_cash: number;
+    estimated_odds: number;
+  }>;
 };
 
 type LineupPayload = {
@@ -30,22 +28,8 @@ type LineupPayload = {
 
 const VOLLEYBALL_SALARY_CAP = 100;
 
-function stableHash(input: string): number {
-  let h = 0;
-  for (let i = 0; i < input.length; i += 1) h = (h * 31 + input.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-function wakiCashForPlayer(name: string, eventKey: string): number {
-  const roll = stableHash(`${eventKey}:${name}`) % 100;
-  if (roll >= 92) return 47 + (roll % 4); // elite 47-50
-  if (roll >= 70) return 30 + (roll % 8); // strong 30-37
-  if (roll >= 35) return 18 + (roll % 10); // mid 18-27
-  return 8 + (roll % 9); // value 8-16
-}
-
-function wcLabel(name: string, eventKey: string): string {
-  return `${name} (${wakiCashForPlayer(name, eventKey)} WC)`;
+function wcLabel(name: string, salaryByPlayer: Map<string, number>): string {
+  return `${name} (${salaryByPlayer.get(name) ?? 0} WC)`;
 }
 
 type Props = {
@@ -55,19 +39,14 @@ type Props = {
 export default function VolleyballHubPage({ user }: Props) {
   const southBeachKey = AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY;
   const huntingtonKey = AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY;
-  const teamsQ = useQuery({
-    queryKey: ["volleyball", "teams", southBeachKey] as const,
-    queryFn: () =>
-      apiGet<TeamsPayload>(
-        `/api/v1/volleyball/teams?event_key=${encodeURIComponent(southBeachKey)}`,
-      ),
-  });
-  const teamsHbQ = useQuery({
-    queryKey: ["volleyball", "teams", huntingtonKey] as const,
-    queryFn: () =>
-      apiGet<TeamsPayload>(`/api/v1/volleyball/teams?event_key=${encodeURIComponent(huntingtonKey)}`),
-  });
   const [selectedEventKey, setSelectedEventKey] = useState<string>(huntingtonKey);
+  const playerPoolQ = useQuery({
+    queryKey: ["volleyball", "player-pool", selectedEventKey] as const,
+    queryFn: () =>
+      apiGet<PlayerPoolPayload>(`/api/v1/volleyball/player-pool?event_key=${encodeURIComponent(selectedEventKey)}`),
+    staleTime: 60_000,
+    placeholderData: (previousData) => previousData,
+  });
   const [captain, setCaptain] = useState<string>("");
   const [flex1, setFlex1] = useState<string>("");
   const [flex2, setFlex2] = useState<string>("");
@@ -80,20 +59,19 @@ export default function VolleyballHubPage({ user }: Props) {
     queryKey: ["volleyball", "lineup", selectedEventKey] as const,
     queryFn: () => apiGet<LineupPayload>(`/api/v1/volleyball/lineup?event_key=${encodeURIComponent(selectedEventKey)}`),
     enabled: Boolean(user),
+    staleTime: 30_000,
+    placeholderData: (previousData) => previousData,
   });
-  const selectedPool = selectedEventKey === huntingtonKey ? teamsHbQ.data : teamsQ.data;
+  const salaryByPlayer = useMemo(() => {
+    const prices = new Map<string, number>();
+    for (const player of playerPoolQ.data?.players ?? []) prices.set(player.player_name, player.waki_cash);
+    return prices;
+  }, [playerPoolQ.data?.players]);
   const playerOptions = useMemo(() => {
-    const names = new Set<string>();
-    for (const t of selectedPool?.teams ?? []) {
-      const p1 = t.player_one.trim();
-      const p2 = t.player_two.trim();
-      if (p1) names.add(p1);
-      if (p2) names.add(p2);
-    }
-    return Array.from(names).sort((a, b) => a.localeCompare(b));
-  }, [selectedPool?.teams]);
+    return (playerPoolQ.data?.players ?? []).map((p) => p.player_name);
+  }, [playerPoolQ.data?.players]);
   const selectedNames = [captain, flex1, flex2, flex3, flex4].filter(Boolean);
-  const totalSalary = selectedNames.reduce((sum, name) => sum + wakiCashForPlayer(name, selectedEventKey), 0);
+  const totalSalary = selectedNames.reduce((sum, name) => sum + (salaryByPlayer.get(name) ?? 0), 0);
   const salaryRemaining = VOLLEYBALL_SALARY_CAP - totalSalary;
   const hasDuplicateSelections = new Set(selectedNames).size !== selectedNames.length;
   const lineupCount = selectedNames.length;
@@ -119,8 +97,7 @@ export default function VolleyballHubPage({ user }: Props) {
     setFlex3(flexes[2] ?? "");
     setFlex4(flexes[3] ?? "");
   }, [lineupQ.data]);
-  const teamsErr = teamsQ.error instanceof Error ? teamsQ.error.message : null;
-  const teamsHbErr = teamsHbQ.error instanceof Error ? teamsHbQ.error.message : null;
+  const teamsErr = playerPoolQ.error instanceof Error ? playerPoolQ.error.message : null;
   async function saveLineup() {
     if (!user) return;
     setSaveErr(null);
@@ -182,8 +159,7 @@ export default function VolleyballHubPage({ user }: Props) {
       ) : null}
 
       {teamsErr ? <p className="dash-error">{teamsErr}</p> : null}
-      {teamsHbErr ? <p className="dash-error">{teamsHbErr}</p> : null}
-      {teamsQ.isLoading || teamsHbQ.isLoading ? <p className="dash-loading">Loading players…</p> : null}
+      {playerPoolQ.isLoading ? <p className="dash-loading">Loading players…</p> : null}
       <section style={{ marginTop: 28 }} aria-labelledby="avp-lineup-builder">
         <h2 id="avp-lineup-builder" className="dash-sub" style={{ fontWeight: 800, fontSize: "1.05rem" }}>
           Volleyball lineup builder
@@ -214,7 +190,7 @@ export default function VolleyballHubPage({ user }: Props) {
               <option value="">Select captain</option>
               {selectOptions(captain).map((n) => (
                 <option key={`cap-${n}`} value={n}>
-                  {wcLabel(n, selectedEventKey)}
+                  {wcLabel(n, salaryByPlayer)}
                 </option>
               ))}
             </select>
@@ -225,7 +201,7 @@ export default function VolleyballHubPage({ user }: Props) {
               <option value="">Select player</option>
               {selectOptions(flex1).map((n) => (
                 <option key={`f1-${n}`} value={n}>
-                  {wcLabel(n, selectedEventKey)}
+                  {wcLabel(n, salaryByPlayer)}
                 </option>
               ))}
             </select>
@@ -236,7 +212,7 @@ export default function VolleyballHubPage({ user }: Props) {
               <option value="">Select player</option>
               {selectOptions(flex2).map((n) => (
                 <option key={`f2-${n}`} value={n}>
-                  {wcLabel(n, selectedEventKey)}
+                  {wcLabel(n, salaryByPlayer)}
                 </option>
               ))}
             </select>
@@ -247,7 +223,7 @@ export default function VolleyballHubPage({ user }: Props) {
               <option value="">Select player</option>
               {selectOptions(flex3).map((n) => (
                 <option key={`f3-${n}`} value={n}>
-                  {wcLabel(n, selectedEventKey)}
+                  {wcLabel(n, salaryByPlayer)}
                 </option>
               ))}
             </select>
@@ -258,7 +234,7 @@ export default function VolleyballHubPage({ user }: Props) {
               <option value="">Select player</option>
               {selectOptions(flex4).map((n) => (
                 <option key={`f4-${n}`} value={n}>
-                  {wcLabel(n, selectedEventKey)}
+                  {wcLabel(n, salaryByPlayer)}
                 </option>
               ))}
             </select>

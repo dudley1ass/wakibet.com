@@ -73,6 +73,15 @@ const VOLLEYBALL_TOURNAMENT_KEY = "volleyball_avp_2026";
 const VOLLEYBALL_SEASON_KEY = "volleyball_2026";
 const VOLLEYBALL_CAP = 100;
 const authPre = { preHandler: [requireAuthUser] };
+const TEAM_POOL_CACHE_TTL_MS = 5 * 60 * 1000;
+const teamPoolCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    pool: Awaited<ReturnType<typeof resolveTeamPoolAndAthletes>>["pool"];
+    athleteMap: Map<string, AvpAthleteProfile>;
+  }
+>();
 
 function stableHash(input: string): number {
   let h = 0;
@@ -97,6 +106,11 @@ async function resolveTeamPoolAndAthletes(event_key: string): Promise<{
   pool: { title: string; teams: ReturnType<typeof avpRegisteredTeamPoolForEvent> extends infer R ? (R extends { teams: infer T } ? T : never) : never };
   athleteMap: Map<string, AvpAthleteProfile>;
 }> {
+  const cached = teamPoolCache.get(event_key);
+  if (cached && Date.now() < cached.expiresAt) {
+    return { pool: cached.pool, athleteMap: cached.athleteMap };
+  }
+
   let pool = avpRegisteredTeamPoolForEvent(event_key);
   let athleteMap = new Map<string, AvpAthleteProfile>();
 
@@ -108,7 +122,18 @@ async function resolveTeamPoolAndAthletes(event_key: string): Promise<{
     athleteMap = await loadAvpSouthBeachAthleteMap();
   }
   if (!pool) throw new Error(`No registered team list for event_key: ${event_key}`);
-  return { pool: pool as NonNullable<typeof pool>, athleteMap };
+  const resolved = { pool: pool as NonNullable<typeof pool>, athleteMap };
+  teamPoolCache.set(event_key, {
+    ...resolved,
+    expiresAt: Date.now() + TEAM_POOL_CACHE_TTL_MS,
+  });
+  return resolved;
+}
+
+function estimatedAmericanOddsFromWakiCash(wc: number): number {
+  const p = Math.max(0.05, Math.min(0.95, wc / 60));
+  if (p >= 0.5) return -Math.round((100 * p) / (1 - p));
+  return Math.round((100 * (1 - p)) / p);
 }
 
 export const volleyballRoutes: FastifyPluginAsync = async (app) => {
@@ -223,6 +248,63 @@ export const volleyballRoutes: FastifyPluginAsync = async (app) => {
         athletes_csv_row_count: athleteMap.size,
         roster_players_missing_profile: [...missing].sort((a, b) => a.localeCompare(b)),
         teams,
+      };
+    },
+  );
+
+  typed.get(
+    "/player-pool",
+    {
+      schema: {
+        tags: ["volleyball"],
+        querystring: EventKeyQuery,
+        response: {
+          200: z.object({
+            event_key: z.string(),
+            player_count: z.number().int(),
+            salary_cap: z.number().int(),
+            players: z.array(
+              z.object({
+                player_name: z.string(),
+                waki_cash: z.number().int(),
+                estimated_odds: z.number().int(),
+              }),
+            ),
+          }),
+          404: z.object({ message: z.string() }),
+        },
+      },
+    },
+    async (req, reply) => {
+      const { event_key } = req.query;
+      let pool: Awaited<ReturnType<typeof resolveTeamPoolAndAthletes>>["pool"];
+      try {
+        ({ pool } = await resolveTeamPoolAndAthletes(event_key));
+      } catch {
+        return reply.code(404).send({ message: `No registered team list for event_key: ${event_key}` } as const);
+      }
+      const names = new Set<string>();
+      for (const t of pool.teams) {
+        const p1 = t.player_one.trim();
+        const p2 = t.player_two.trim();
+        if (p1) names.add(p1);
+        if (p2) names.add(p2);
+      }
+      const players = [...names]
+        .sort((a, b) => a.localeCompare(b))
+        .map((player_name) => {
+          const waki_cash = wakiCashForVolleyballPlayer(player_name, event_key);
+          return {
+            player_name,
+            waki_cash,
+            estimated_odds: estimatedAmericanOddsFromWakiCash(waki_cash),
+          };
+        });
+      return {
+        event_key,
+        player_count: players.length,
+        salary_cap: VOLLEYBALL_CAP,
+        players,
       };
     },
   );
