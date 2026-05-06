@@ -54,6 +54,11 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "WSOP Las Vegas (May–Jul 2026) fantasy: Tier 1 flagship slates, elite championship slates, 6 picks and 100 WakiCash, simple scoring — rankings reference and featured pools on WakiBet.",
   },
+  "/poker/scoring": {
+    title: `WSOP fantasy — WakiCash & scoring table | ${SITE}`,
+    description:
+      "WSOP Las Vegas fantasy on WakiBet: 100 WakiCash cap, 6-player lineups, finish-based points, event tier multipliers, optional bonuses, and MVP scoring formula.",
+  },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,
     description:

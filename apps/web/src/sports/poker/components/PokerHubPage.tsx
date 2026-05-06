@@ -103,6 +103,9 @@ export default function PokerHubPage({ user: _user }: Props) {
         {cfg ? fmtIsoRange(cfg.start_date, cfg.end_date) : "May 26 – Jul 15, 2026"}). Other tours stay out of scope for
         now — lineup building stays simple and emotional, not spreadsheet simulator poker.
       </p>
+      <p className="dash-sub" style={{ marginBottom: 12 }}>
+        <Link to="/poker/scoring">WSOP fantasy — full WakiCash &amp; scoring table →</Link>
+      </p>
 
       {wsopQ.isLoading ? (
         <p className="dash-loading">Loading WSOP fantasy rules…</p>

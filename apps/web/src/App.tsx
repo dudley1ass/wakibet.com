@@ -39,6 +39,9 @@ const ContactPage = lazy(() =>
 const ScoringTablePage = lazy(() =>
   import("./components/StaticPages").then((m) => ({ default: m.ScoringTablePage })),
 );
+const PokerFantasyScoringPage = lazy(() =>
+  import("./components/StaticPages").then((m) => ({ default: m.PokerFantasyScoringPage })),
+);
 const FantasyRulesPage = lazy(() =>
   import("./components/StaticPages").then((m) => ({ default: m.FantasyRulesPage })),
 );
@@ -233,6 +236,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
       <Route path="/poker" element={<PokerHubPage user={session} />} />
+      <Route path="/poker/scoring" element={<PokerFantasyScoringPage />} />
       <Route path="/lacrosse/scoring" element={<LacrosseScoringTablePage />} />
       <Route path="/volleyball/scoring" element={<VolleyballScoringTablePage />} />
       <Route

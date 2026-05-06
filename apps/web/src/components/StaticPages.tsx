@@ -357,6 +357,168 @@ export function ScoringTablePage() {
   );
 }
 
+export function PokerFantasyScoringPage() {
+  return (
+    <StaticLayout title="WSOP Fantasy — WakiCash & Scoring">
+      <p className="scoring-lede">
+        <strong>WakiBet Poker Fantasy</strong> uses a <strong>100 WakiCash</strong> salary cap. You build a lineup of{" "}
+        <strong>six</strong> poker players for selected <strong>WSOP Las Vegas</strong> slates.{" "}
+        <strong>No real-money wagering.</strong> WakiCash is only an in-app fantasy budget; lineup scores are fantasy
+        points, not cash.
+      </p>
+
+      <h3>1. Slate structure</h3>
+      <p>
+        Each contest ties to one WSOP event or a defined group of events. Examples: Main Event, Monster Stack,
+        Millionaire Maker, High Roller, Mixed Games.
+      </p>
+      <p>
+        <strong>Recommended V1 slate types:</strong> Main Event, Monster Stack, Millionaire Maker, Mystery Millions,
+        Colossus, High Roller events, $10K championship events. Do not include random local circuit events in V1.
+      </p>
+
+      <h3>2. Lineup rules</h3>
+      <ul>
+        <li>
+          <strong>Salary cap:</strong> 100 WakiCash total.
+        </li>
+        <li>
+          <strong>Roster size:</strong> exactly 6 players.
+        </li>
+        <li>
+          <strong>Valid lineup:</strong> 6 unique players, total cost ≤ 100 WakiCash, locks when the slate begins.
+        </li>
+      </ul>
+
+      <div className="scoring-example" role="note">
+        <div className="scoring-example-kicker">Example lineup (100 WakiCash)</div>
+        <p className="scoring-example-body">
+          Player A — 28 · Player B — 22 · Player C — 18 · Player D — 14 · Player E — 10 · Player F — 8 ·{" "}
+          <strong>Total: 100</strong>
+        </p>
+      </div>
+
+      <h3>3. Player pool</h3>
+      <p>
+        Each slate uses a <strong>curated</strong> pool (recommended <strong>50–150</strong> players). Include names
+        based on WSOP history, Hendon Mob–style earnings, bracelets, recent results, popularity, media relevance, and
+        sleeper value. You do <strong>not</strong> need every live entrant in the pool.
+      </p>
+
+      <div className="scoring-board">
+        <ScoringBlock
+          title="WakiCash pricing (per player)"
+          rows={[
+            { label: "Elite superstar", pts: "25–30 WC" },
+            { label: "High-level pro", pts: "20–24 WC" },
+            { label: "Strong regular", pts: "15–19 WC" },
+            { label: "Value player", pts: "10–14 WC" },
+            { label: "Sleeper / wildcard", pts: "5–9 WC" },
+            { label: "Allowed range (floor / ceiling)", pts: "5–30 WC" },
+          ]}
+        />
+        <ScoringBlock
+          title="Example salaries (illustrative)"
+          rows={[
+            { label: "Daniel Negreanu", pts: "28 WC" },
+            { label: "Phil Ivey", pts: "27 WC" },
+            { label: "Shaun Deeb", pts: "24 WC" },
+            { label: "Jeremy Ausmus", pts: "23 WC" },
+            { label: "Chris Brewer", pts: "22 WC" },
+            { label: "Strong grinder", pts: "16 WC" },
+            { label: "Sleeper pick", pts: "9 WC" },
+            { label: "Unknown wildcard", pts: "5 WC" },
+          ]}
+        />
+      </div>
+
+      <p className="dash-sub" style={{ marginTop: 12 }}>
+        <strong>Important — finish points:</strong> You earn points for your <strong>single best</strong> qualifying
+        finish tier below (tiers do <strong>not</strong> stack). Example: a 3rd-place finish earns <strong>140</strong>{" "}
+        points, not the sum of every lower tier.
+      </p>
+
+      <div className="scoring-board">
+        <ScoringBlock
+          title="Base scoring (by best finish)"
+          rows={[
+            { label: "Entered event, did not cash", pts: "0" },
+            { label: "Cashed", pts: "+10" },
+            { label: "Top 25% of paid field", pts: "+20" },
+            { label: "Top 100", pts: "+30" },
+            { label: "Top 50", pts: "+45" },
+            { label: "Top 27", pts: "+60" },
+            { label: "Final table", pts: "+90" },
+            { label: "Top 3", pts: "+140" },
+            { label: "Bracelet winner", pts: "+220" },
+          ]}
+        />
+        <ScoringBlock
+          title="Event tier multipliers (applied to base finish points)"
+          rows={[
+            { label: "Tier 1 — Main Event", pts: "×1.50" },
+            { label: "Tier 2 — $10K championships / high rollers", pts: "×1.25" },
+            { label: "Tier 3 — major large-field events", pts: "×1.15" },
+            { label: "Tier 4 — standard bracelet events", pts: "×1.00" },
+          ]}
+        />
+      </div>
+
+      <div className="scoring-example" role="note">
+        <div className="scoring-example-kicker">Multiplier example</div>
+        <p className="scoring-example-body">
+          Final table base = 90 pts → Main Event: 90 × 1.50 = <strong>135</strong> · High roller tier: 90 × 1.25 ={" "}
+          <strong>112.5</strong> → <strong>113</strong> rounded · Standard: <strong>90</strong>. Round final scores to
+          whole numbers.
+        </p>
+      </div>
+
+      <h3>Optional bonuses (when data exists)</h3>
+      <p className="dash-sub">Added after the multiplied finish score: bracelet bonus, chip-leader bonus, multi-cash, sleeper.</p>
+
+      <div className="scoring-board">
+        <ScoringBlock
+          title="Optional bonus layer"
+          rows={[
+            { label: "Bracelet winner bonus (extra)", pts: "+25" },
+            { label: "Final-table chip leader (entering FT)", pts: "+10" },
+            { label: "Multi-cash (same slate / multi-event ruleset): 2 cashes", pts: "+10" },
+            { label: "Multi-cash: 3 cashes", pts: "+25" },
+            { label: "Multi-cash: 4+ cashes", pts: "+50" },
+            { label: "Sleeper FT (player cost ≤10 WC & makes final table)", pts: "+25" },
+          ]}
+        />
+      </div>
+
+      <h3>MVP scoring formula</h3>
+      <p>
+        <code>player_score = Math.round(finish_points × event_multiplier + bonus_points)</code>
+        <br />
+        <code>lineup_score = sum of all 6 player_score values</code>
+      </p>
+
+      <h3>MVP product copy</h3>
+      <ul>
+        <li>Build a 6-player WSOP fantasy lineup using 100 WakiCash.</li>
+        <li>Players score by cashing, deep runs, final tables, and bracelets.</li>
+        <li>Big events (Main Event, $10K championships) use higher multipliers.</li>
+        <li>WakiCash is not real money — only for fantasy lineup building.</li>
+      </ul>
+
+      <h3>Recommended first slate</h3>
+      <p>
+        Start with <strong>WSOP Main Event Fantasy</strong>: 6 players, 100 WakiCash cap, roughly{" "}
+        <strong>100–150</strong> featured players, scores from final placements, leaderboard after the event. Prefer{" "}
+        <strong>final-results scoring</strong> for V1; avoid overbuilding live scoring until core scoring is stable.
+      </p>
+
+      <p className="scoring-foot">
+        WSOP hub: <a href="/poker">Poker fantasy</a> · General fantasy rules: <a href="/fantasy-rules">How fantasy works</a>
+      </p>
+    </StaticLayout>
+  );
+}
+
 export function FantasyRulesPage() {
   return (
     <StaticLayout title="How Fantasy Works (v1)">

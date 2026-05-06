@@ -31,6 +31,7 @@ export default function SiteFooter() {
               <Link to="/scoring-table">Pickleball scoring</Link>
               <Link to="/volleyball/scoring">Volleyball scoring</Link>
               <Link to="/lacrosse/scoring">Lacrosse scoring</Link>
+              <Link to="/poker/scoring">WSOP fantasy scoring</Link>
               <Link to="/fantasy-rules">How fantasy works</Link>
             </div>
             <div className="site-footer-links site-footer-links--app">

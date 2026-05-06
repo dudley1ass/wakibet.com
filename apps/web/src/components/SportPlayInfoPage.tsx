@@ -136,35 +136,41 @@ const PAGES: Record<
     body: (
       <>
         <p>
-          WSOP-focused poker fantasy keeps the same tension as other WakiBet games: build a lineup under a{" "}
-          <strong>WakiCash</strong> salary cap; scoring uses simple outcome tables so results are easy to follow.
+          <strong>WakiBet WSOP Fantasy</strong> uses a <strong>100 WakiCash</strong> salary cap and{" "}
+          <strong>six-player</strong> lineups for Las Vegas WSOP slates. No real-money wagering — WakiCash is only your
+          fantasy budget.
         </p>
         <h3>WakiCash</h3>
         <ul>
           <li>
-            Each slate gives you a roster of several players (launch configs commonly use <strong>six picks</strong>) and
-            a single <strong>100 WakiCash</strong> salary cap across them.
+            Spend up to <strong>100 WakiCash</strong> on exactly <strong>6 unique</strong> players from each slate&apos;s
+            curated pool (typically <strong>50–150</strong> names). Player prices usually fall between <strong>5 and 30</strong>{" "}
+            WakiCash by tier.
           </li>
           <li>
-            Featured slates use a curated player pool — not the entire WSOP field — so casual fans can shop stars, second
-            tiers, sleepers, and a wildcard without drowning in names.
+            Lineups must be at or under cap, no duplicates, and <strong>lock when the slate begins</strong>.
           </li>
-          <li>Lineups lock when the slate rules say they lock (typically around event start).</li>
         </ul>
-        <h3>WakiPoints</h3>
+        <h3>Scoring</h3>
         <ul>
           <li>
-            Each slate publishes clear point values for outcomes (deep runs, cashes, final-table appearances, etc.) — check
-            the live hub for the active slate&apos;s chart.
+            Finish-based <strong>base points</strong> (cash, depth, final table, top 3, bracelet) — you get your{" "}
+            <strong>best</strong> tier only, not a running sum of every row.
           </li>
           <li>
-            Your fantasy score for the slate is the sum of what your roster earns under that table — then leaderboards stack
-            slate results like other sports seasons on WakiBet.
+            Multiply base points by the slate&apos;s <strong>event tier</strong> (Main Event and flagship events earn more).
+          </li>
+          <li>
+            Optional <strong>bonuses</strong> (bracelet bonus, chip leader, multi-cash, sleeper final table) when the data
+            supports them.
+          </li>
+          <li>
+            <strong>Lineup score</strong> = sum of all six players&apos; fantasy scores after rounding rules.
           </li>
         </ul>
         <p className="scoring-foot">
-          Live slate list and examples: <a href="/poker">WSOP fantasy hub</a>. Global fantasy conventions:{" "}
-          <a href="/fantasy-rules">How fantasy works</a>.
+          Full tables, multipliers, and MVP formula: <a href="/poker/scoring">WSOP fantasy scoring table</a>. Hub:{" "}
+          <a href="/poker">Poker fantasy</a> · <a href="/fantasy-rules">How fantasy works</a>.
         </p>
       </>
     ),
