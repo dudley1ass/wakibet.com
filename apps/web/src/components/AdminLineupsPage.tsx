@@ -47,10 +47,6 @@ export default function AdminLineupsPage({ user }: Props) {
   const [resetBusy, setResetBusy] = useState<string | null>(null);
   const [resetMsg, setResetMsg] = useState<string | null>(null);
   const [resetErr, setResetErr] = useState<string | null>(null);
-  const [refreshSlateKey, setRefreshSlateKey] = useState("");
-  const [refreshBusy, setRefreshBusy] = useState(false);
-  const [refreshMsg, setRefreshMsg] = useState<string | null>(null);
-  const [refreshErr, setRefreshErr] = useState<string | null>(null);
 
   const query = useQuery({
     queryKey: ["admin", "lineups", submitted] as const,
@@ -103,29 +99,6 @@ export default function AdminLineupsPage({ user }: Props) {
       setResetErr(e instanceof Error ? e.message : "Reset failed.");
     } finally {
       setResetBusy(null);
-    }
-  }
-
-  async function handleRefreshLacrosseWakiPicks() {
-    setRefreshErr(null);
-    setRefreshMsg(null);
-    setRefreshBusy(true);
-    try {
-      const res = await apiPost<{
-        ok: true;
-        slate_key: string;
-        regenerated_lines: number;
-        cleared_lineups: number;
-      }>("/api/v1/lacrosse/admin/refresh-wakipicks", {
-        ...(refreshSlateKey.trim() ? { slate_key: refreshSlateKey.trim() } : {}),
-      });
-      setRefreshMsg(
-        `Refreshed ${res.slate_key}: rebuilt ${res.regenerated_lines} lines, cleared ${res.cleared_lineups} saved lineups for this editable slate.`,
-      );
-    } catch (e) {
-      setRefreshErr(e instanceof Error ? e.message : "Could not refresh lacrosse WakiPicks.");
-    } finally {
-      setRefreshBusy(false);
     }
   }
 
@@ -228,29 +201,6 @@ export default function AdminLineupsPage({ user }: Props) {
               </>
             ) : null}
           </p>
-        </div>
-        <div className="dash-card" style={{ marginTop: 12 }}>
-          <div className="wf-label" style={{ marginBottom: 6 }}>
-            Refresh lacrosse WakiPicks for tournament
-          </div>
-          <p className="dash-sub" style={{ marginTop: 0 }}>
-            Rebuilds match picks for an editable slate only. Existing saved picks for that slate are cleared.
-          </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <input
-              className="wf-select"
-              style={{ flex: "1 1 260px", maxWidth: 340 }}
-              value={refreshSlateKey}
-              onChange={(e) => setRefreshSlateKey(e.target.value)}
-              placeholder="Optional slate key (blank = current)"
-              disabled={refreshBusy}
-            />
-            <button type="button" className="dash-main-btn" disabled={refreshBusy} onClick={() => void handleRefreshLacrosseWakiPicks()}>
-              {refreshBusy ? "Refreshing..." : "Refresh WakiPicks"}
-            </button>
-          </div>
-          {refreshErr ? <p className="dash-error" style={{ marginTop: 8 }}>{refreshErr}</p> : null}
-          {refreshMsg ? <p style={{ color: "#166534", marginTop: 8 }}>{refreshMsg}</p> : null}
         </div>
 
         <p className="dash-sub" style={{ marginTop: 8 }}>
