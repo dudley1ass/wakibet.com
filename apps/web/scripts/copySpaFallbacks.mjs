@@ -48,6 +48,7 @@ const nestedRoutes = [
   ["nascar", "rosters"],
   ["nascar", "scoring"],
   ["poker", "scoring"],
+  ["poker", "pick"],
   ["lacrosse", "rosters"],
   ["lacrosse", "scoring"],
   ["admin", "lineups"],

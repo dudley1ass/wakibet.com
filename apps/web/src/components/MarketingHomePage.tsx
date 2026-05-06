@@ -266,7 +266,10 @@ export default function MarketingHomePage() {
                 scoreboard.
               </p>
 
-              <div className="landing-hero__cta-row" aria-label="How each sport works on WakiBet">
+              <div
+                className="landing-hero__cta-row landing-hero__cta-row--four-across"
+                aria-label="How each sport works on WakiBet"
+              >
                 <Link className="dash-ghost-btn" to="/info/pickleball">
                   Pickleball info
                 </Link>

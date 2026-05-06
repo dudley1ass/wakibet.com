@@ -158,7 +158,8 @@ const PAGES: Record<
             <strong>best</strong> tier only, not a running sum of every row.
           </li>
           <li>
-            Multiply base points by the slate&apos;s <strong>event tier</strong> (Main Event and flagship events earn more).
+            <strong>V1:</strong> the featured Main Event slate applies the flagship <strong>×1.50</strong> multiplier to base
+            finish points; more event types can follow.
           </li>
           <li>
             Optional <strong>bonuses</strong> (bracelet bonus, chip leader, multi-cash, sleeper final table) when the data

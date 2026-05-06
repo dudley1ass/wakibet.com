@@ -59,6 +59,11 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "WSOP Las Vegas fantasy on WakiBet: 100 WakiCash cap, 6-player lineups, finish-based points, event tier multipliers, optional bonuses, and MVP scoring formula.",
   },
+  "/poker/pick": {
+    title: `WSOP fantasy — pick your lineup | ${SITE}`,
+    description:
+      "Build a 6-player WSOP fantasy lineup under a 100 WakiCash cap using the featured pool — same dashboard styling as pickleball picks.",
+  },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,
     description:

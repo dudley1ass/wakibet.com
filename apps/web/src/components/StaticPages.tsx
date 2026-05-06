@@ -1,16 +1,27 @@
 import { MLP_TEAM_FANTASY_RULES, WINTER_FANTASY_RULES } from "@wakibet/shared";
 import { FormEvent, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { apiPost } from "../api";
 
-export function StaticLayout({ title, children }: { title: string; children: ReactNode }) {
+export function StaticLayout({
+  title,
+  children,
+  headerActions,
+}: {
+  title: string;
+  children: ReactNode;
+  headerActions?: ReactNode;
+}) {
   return (
     <div className="static-page-wrap">
       <div className="static-page-card">
         <div className="dash-head" style={{ marginBottom: 8 }}>
           <h1 style={{ margin: 0 }}>{title}</h1>
-          <a className="dash-ghost-btn" href="/">
-            Back to Dashboard
-          </a>
+          {headerActions ?? (
+            <a className="dash-ghost-btn" href="/">
+              Back to Dashboard
+            </a>
+          )}
         </div>
         <div className="static-page-body">{children}</div>
       </div>
@@ -359,7 +370,19 @@ export function ScoringTablePage() {
 
 export function PokerFantasyScoringPage() {
   return (
-    <StaticLayout title="WSOP Fantasy — WakiCash & Scoring">
+    <StaticLayout
+      title="WSOP Fantasy — WakiCash & Scoring"
+      headerActions={
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <Link className="dash-main-btn" to="/">
+            Dashboard
+          </Link>
+          <Link className="dash-ghost-btn" to="/poker">
+            Poker hub
+          </Link>
+        </div>
+      }
+    >
       <p className="scoring-lede">
         <strong>WakiBet Poker Fantasy</strong> uses a <strong>100 WakiCash</strong> salary cap. You build a lineup of{" "}
         <strong>six</strong> poker players for selected <strong>WSOP Las Vegas</strong> slates.{" "}
@@ -369,12 +392,13 @@ export function PokerFantasyScoringPage() {
 
       <h3>1. Slate structure</h3>
       <p>
-        Each contest ties to one WSOP event or a defined group of events. Examples: Main Event, Monster Stack,
-        Millionaire Maker, High Roller, Mixed Games.
+        <strong>V1 focus:</strong> ship the <strong>WSOP Main Event</strong> fantasy slate first — one clear flagship
+        tournament for players and scoring. Additional WSOP events (other bracelet fields, large majors, etc.) can layer in
+        later once the Main Event loop is live.
       </p>
       <p>
-        <strong>Recommended V1 slate types:</strong> Main Event, Monster Stack, Millionaire Maker, Mystery Millions,
-        Colossus, High Roller events, $10K championship events. Do not include random local circuit events in V1.
+        Each contest still ties to one WSOP event or a defined group of events on the calendar; avoid random local circuit
+        stops until core fantasy is stable.
       </p>
 
       <h3>2. Lineup rules</h3>
@@ -454,22 +478,20 @@ export function PokerFantasyScoringPage() {
           ]}
         />
         <ScoringBlock
-          title="Event tier multipliers (applied to base finish points)"
-          rows={[
-            { label: "Tier 1 — Main Event", pts: "×1.50" },
-            { label: "Tier 2 — $10K championships / high rollers", pts: "×1.25" },
-            { label: "Tier 3 — major large-field events", pts: "×1.15" },
-            { label: "Tier 4 — standard bracelet events", pts: "×1.00" },
-          ]}
+          title="Event multiplier (V1)"
+          rows={[{ label: "WSOP Main Event (flagship slate)", pts: "×1.50 on base finish points" }]}
         />
       </div>
+      <p className="dash-sub" style={{ marginTop: 10 }}>
+        Future tiers (e.g. other bracelet championships, large-field majors, standard events with ×1.00–1.25) can be added
+        later — <strong>V1 keeps scoring simple</strong> by launching with the Main Event multiplier only.
+      </p>
 
       <div className="scoring-example" role="note">
-        <div className="scoring-example-kicker">Multiplier example</div>
+        <div className="scoring-example-kicker">Multiplier example (V1)</div>
         <p className="scoring-example-body">
-          Final table base = 90 pts → Main Event: 90 × 1.50 = <strong>135</strong> · High roller tier: 90 × 1.25 ={" "}
-          <strong>112.5</strong> → <strong>113</strong> rounded · Standard: <strong>90</strong>. Round final scores to
-          whole numbers.
+          Final table base = 90 pts → Main Event slate: 90 × 1.50 = <strong>135</strong> fantasy points (after rounding
+          rules on the full player score).
         </p>
       </div>
 
@@ -501,7 +523,7 @@ export function PokerFantasyScoringPage() {
       <ul>
         <li>Build a 6-player WSOP fantasy lineup using 100 WakiCash.</li>
         <li>Players score by cashing, deep runs, final tables, and bracelets.</li>
-        <li>Big events (Main Event, $10K championships) use higher multipliers.</li>
+        <li>V1 uses the Main Event multiplier on finish points; more events later.</li>
         <li>WakiCash is not real money — only for fantasy lineup building.</li>
       </ul>
 

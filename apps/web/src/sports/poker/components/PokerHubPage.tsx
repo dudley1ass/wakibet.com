@@ -103,9 +103,14 @@ export default function PokerHubPage({ user: _user }: Props) {
         {cfg ? fmtIsoRange(cfg.start_date, cfg.end_date) : "May 26 – Jul 15, 2026"}). Other tours stay out of scope for
         now — lineup building stays simple and emotional, not spreadsheet simulator poker.
       </p>
-      <p className="dash-sub" style={{ marginBottom: 12 }}>
-        <Link to="/poker/scoring">WSOP fantasy — full WakiCash &amp; scoring table →</Link>
-      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 12 }}>
+        <Link className="dash-main-btn" to="/poker/pick">
+          Pick your lineup
+        </Link>
+        <Link className="dash-ghost-btn" to="/poker/scoring">
+          WakiCash &amp; scoring table →
+        </Link>
+      </div>
 
       {wsopQ.isLoading ? (
         <p className="dash-loading">Loading WSOP fantasy rules…</p>
@@ -131,28 +136,10 @@ export default function PokerHubPage({ user: _user }: Props) {
           </section>
 
           <h2 className="dash-title" style={{ fontSize: "1.35rem", marginTop: 20, marginBottom: 8 }}>
-            Tier 1 — flagship fantasy events (always featured)
+            Featured slates (V1 — Main Event first)
           </h2>
-          <p className="dash-sub" style={{ marginBottom: 12 }}>
-            Product default: these slates stay front-and-center — main attraction energy (Super Bowl / Masters-level for
-            poker fantasy).
-          </p>
           <ul className="dash-list" style={{ marginBottom: 24, paddingLeft: 18 }}>
             {cfg.tier1_slates.map((s) => (
-              <li key={s.slate_key}>
-                <strong>{s.title}</strong> — {s.rationale}
-              </li>
-            ))}
-          </ul>
-
-          <h2 className="dash-title" style={{ fontSize: "1.35rem", marginTop: 8, marginBottom: 8 }}>
-            Tier 2 — elite pro slates
-          </h2>
-          <p className="dash-sub" style={{ marginBottom: 12 }}>
-            Built for hardcore fans: rankings debates, “who’s elite?”, championship-level narratives.
-          </p>
-          <ul className="dash-list" style={{ marginBottom: 24, paddingLeft: 18 }}>
-            {cfg.tier2_slates.map((s) => (
               <li key={s.slate_key}>
                 <strong>{s.title}</strong> — {s.rationale}
               </li>

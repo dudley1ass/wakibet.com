@@ -16,6 +16,7 @@ const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components
 const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
 const VolleyballHubPage = lazy(() => import("./sports/volleyball/components/VolleyballHubPage"));
 const PokerHubPage = lazy(() => import("./sports/poker/components/PokerHubPage"));
+const PokerPickPage = lazy(() => import("./sports/poker/components/PokerPickPage"));
 const VolleyballRostersPage = lazy(() => import("./sports/volleyball/components/VolleyballRostersPage"));
 const VolleyballScoringTablePage = lazy(() => import("./sports/volleyball/components/VolleyballScoringTablePage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
@@ -237,6 +238,23 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
       <Route path="/poker" element={<PokerHubPage user={session} />} />
       <Route path="/poker/scoring" element={<PokerFantasyScoringPage />} />
+      <Route
+        path="/poker/pick"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to build your WSOP fantasy lineup.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <PokerPickPage user={session} />
+          )
+        }
+      />
       <Route path="/lacrosse/scoring" element={<LacrosseScoringTablePage />} />
       <Route path="/volleyball/scoring" element={<VolleyballScoringTablePage />} />
       <Route
