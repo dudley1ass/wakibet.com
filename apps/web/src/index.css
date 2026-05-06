@@ -422,7 +422,7 @@ body {
 
 .landing-hero {
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(251, 191, 36, 0.22);
@@ -458,38 +458,32 @@ body {
 .landing-hero__grid {
   position: relative;
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(280px, 1.15fr) minmax(260px, 1fr);
-  padding: 28px 24px 32px;
+  gap: 0;
+  grid-template-columns: 1fr;
+  padding: 18px 22px 20px;
   z-index: 1;
 }
 
-@media (max-width: 900px) {
-  .landing-hero__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .landing-hero__title {
-  margin: 0 0 10px;
-  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 3.6vw, 2.1rem);
   line-height: 1.12;
   color: #f8fafc;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
 .landing-hero__lede {
-  margin: 0 0 20px;
+  margin: 0 0 14px;
   color: #cbd5e1;
   font-size: 15px;
   line-height: 1.55;
-  max-width: 52ch;
+  max-width: none;
 }
 
 .landing-hero__cta-primary {
   display: flex;
-  justify-content: center;
-  margin-bottom: 14px;
+  justify-content: flex-start;
+  margin-bottom: 10px;
 }
 
 .landing-cta-rankings {
@@ -519,128 +513,7 @@ body {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: center;
-}
-
-.landing-hero__visual {
-  position: relative;
-  min-height: 220px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.landing-hero__silhouettes {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 18px;
-  padding-bottom: 12px;
-  opacity: 0.55;
-}
-
-.landing-silhouette {
-  width: 56px;
-  border-radius: 8px 8px 4px 4px;
-  background: linear-gradient(180deg, rgba(251, 191, 36, 0.35) 0%, rgba(15, 23, 42, 0.9) 100%);
-  animation: landing-bob 4s ease-in-out infinite;
-}
-
-.landing-silhouette--a {
-  height: 120px;
-  animation-delay: 0s;
-}
-
-.landing-silhouette--b {
-  height: 152px;
-  animation-delay: 0.4s;
-}
-
-.landing-silhouette--c {
-  height: 108px;
-  animation-delay: 0.8s;
-}
-
-@keyframes landing-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.landing-rank-cards {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  height: 160px;
-  margin-top: 8px;
-}
-
-.landing-rank-cards__card {
-  position: absolute;
-  left: 50%;
-  width: 92%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #e5e7eb;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(8px);
-  transform: translateX(-50%);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-  animation: landing-card-float 5s ease-in-out infinite;
-}
-
-.landing-rank-cards__card--1 {
-  top: 0;
-  z-index: 3;
-  border-color: rgba(251, 191, 36, 0.45);
-}
-
-.landing-rank-cards__card--2 {
-  top: 52px;
-  z-index: 2;
-  animation-delay: 0.5s;
-}
-
-.landing-rank-cards__card--3 {
-  top: 104px;
-  z-index: 1;
-  animation-delay: 1s;
-}
-
-@keyframes landing-card-float {
-  0%,
-  100% {
-    transform: translate(-50%, 0);
-  }
-  50% {
-    transform: translate(-50%, -5px);
-  }
-}
-
-.landing-rank-cards__mv {
-  color: #4ade80;
-  margin-right: 6px;
-}
-
-.landing-rank-cards__fire {
-  margin-right: 6px;
-}
-
-.landing-hero__live-stat {
-  margin: 12px 0 0;
-  font-size: 12px;
-  color: #94a3b8;
-  text-align: center;
+  justify-content: flex-start;
 }
 
 .marketing-section {

@@ -421,7 +421,7 @@ export function PokerWsopFantasyDraftNamesBody() {
         variance tolerance, and discipline across ugly middling fields.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Who is the most overdrafted poker player every summer?
+        <strong>Who is the most overdrafted poker player every summer?</strong>
       </p>
       <ArticleRedditCta slug="poker-wsop-fantasy-draft-names-not-results" />
     </>
@@ -440,7 +440,7 @@ export function PokerBraceletsVsConsistencyBody() {
         differently. Good—fantasy does too.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Would you rather have one bracelet or fifty deep runs?
+        <strong>Would you rather have one bracelet or fifty deep runs?</strong>
       </p>
       <ArticleRedditCta slug="poker-bracelets-vs-consistency-not-best-player" />
     </>
@@ -459,7 +459,7 @@ export function PokerMainEventSurvivalVsSkillBody() {
         trophy measures pure EV excellence or the broader circus—and admit both answers partly fit.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Is the Main Event really the best measure of poker skill?
+        <strong>Is the Main Event really the best measure of poker skill?</strong>
       </p>
       <ArticleRedditCta slug="poker-main-event-survival-vs-skill" />
     </>
@@ -477,7 +477,7 @@ export function Pickleball50VsProQualifiersBody() {
         DUPR snapshots and regional pools inflate differently—call out your zip code before defending anyone’s badge rating.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Is amateur pickleball massively overrated right now?
+        <strong>Is amateur pickleball massively overrated right now?</strong>
       </p>
       <ArticleRedditCta slug="pickleball-50-ratings-vs-pro-qualifiers" />
     </>
@@ -496,7 +496,7 @@ export function PickleballBangersVsDinksRecBody() {
         rewrite every cliché.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> At rec level, does soft game actually matter?
+        <strong>At rec level, does soft game actually matter?</strong>
       </p>
       <ArticleRedditCta slug="pickleball-bangers-vs-soft-game-rec" />
     </>
@@ -514,7 +514,7 @@ export function Pickleball45ToProGapBody() {
         Training debates flare because ego hates logarithmic gaps—same reason fantasy pricing shocks rookies every season.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> What rating did you finally admit was lying to you—and what broke the illusion?
+        <strong>What rating did you finally admit was lying to you—and what broke the illusion?</strong>
       </p>
       <ArticleRedditCta slug="pickleball-45-to-pro-gap-ego-check" />
     </>
@@ -533,7 +533,7 @@ export function VolleyballServeReceiveUnderratedBody() {
         familiar?
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Most underrated volleyball skill—what’s yours?
+        <strong>Most underrated volleyball skill—what’s yours?</strong>
       </p>
       <ArticleRedditCta slug="volleyball-serve-receive-still-underrated" />
     </>
@@ -551,7 +551,7 @@ export function VolleyballClubHypeVsDevelopmentBody() {
         Call your shot: what club culture does right, where it grifts, and how you’d fix incentives overnight.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Is club volleyball culture more about hype than player development?
+        <strong>Is club volleyball culture more about hype than player development?</strong>
       </p>
       <ArticleRedditCta slug="volleyball-club-hype-vs-player-development" />
     </>
@@ -569,7 +569,7 @@ export function LacrosseAttackCreditBody() {
         Defense-first fans want receipts; offense-first fans bring clips. PLL arguments thrive in that collision—good.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> Who does the dirty work your favorite star depends on?
+        <strong>Who does the dirty work your favorite star depends on?</strong>
       </p>
       <ArticleRedditCta slug="lacrosse-attack-gets-too-much-credit" />
     </>
@@ -587,7 +587,7 @@ export function LacrosseHighlightsVsFundamentalsBody() {
         Tag your favorite “boring” PLL sequence that decided a playoff game—then argue why feeds refuse to promote it.
       </p>
       <p>
-        <strong>Reddit prompt:</strong> What fundamental disappeared first when everyone filmed everything?
+        <strong>What fundamental disappeared first when everyone filmed everything?</strong>
       </p>
       <ArticleRedditCta slug="lacrosse-highlights-vs-fundamentals" />
     </>

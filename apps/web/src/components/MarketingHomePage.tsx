@@ -18,7 +18,7 @@ const badgeStyle: React.CSSProperties = {
   border: "1px solid rgba(251, 191, 36, 0.45)",
   color: "#fcd34d",
   fontSize: 12,
-  marginBottom: 10,
+  marginBottom: 6,
 };
 
 const SPORT_HUBS: {
@@ -73,52 +73,84 @@ const FEATURED_ARTICLES: {
   thumbMod: string;
 }[] = [
   {
-    slug: "pickleball-10-players-everyone-overrates",
-    title: "10 Pickleball Players Everyone Overrates (And What to Look at Instead)",
+    slug: "poker-wsop-fantasy-draft-names-not-results",
+    title: "Most WSOP Fantasy Players Draft Names Instead of Results",
+    category: "Poker",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pk",
+  },
+  {
+    slug: "poker-bracelets-vs-consistency-not-best-player",
+    title: "Bracelets Don’t Mean You’re the Best Tournament Player",
+    category: "Poker",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pk",
+  },
+  {
+    slug: "poker-main-event-survival-vs-skill",
+    title: "The WSOP Main Event Rewards Survival More Than Skill",
+    category: "Poker",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pk",
+  },
+  {
+    slug: "pickleball-50-ratings-vs-pro-qualifiers",
+    title: "Most 5.0 Players Would Get Destroyed in Pro Qualifiers",
     category: "Pickleball",
-    comments: 47,
+    comments: 0,
     trending: true,
     thumbMod: "article-thumb--pb",
   },
   {
-    slug: "lacrosse-why-defense-wins-championships",
-    title: "Why Defense Still Wins Championships in Professional Lacrosse",
-    category: "Lacrosse",
-    comments: 31,
-    trending: true,
-    thumbMod: "article-thumb--lx",
+    slug: "pickleball-bangers-vs-soft-game-rec",
+    title: "Bangers Win More Recreational Games Than Dinkers",
+    category: "Pickleball",
+    comments: 0,
+    trending: false,
+    thumbMod: "article-thumb--pb",
   },
   {
-    slug: "volleyball-most-underrated-skill",
-    title: "The Most Underrated Skill in Beach Volleyball",
+    slug: "pickleball-45-to-pro-gap-ego-check",
+    title: "The Gap Between 4.5 and Pro Is Bigger Than Most Players Realize",
+    category: "Pickleball",
+    comments: 0,
+    trending: false,
+    thumbMod: "article-thumb--pb",
+  },
+  {
+    slug: "volleyball-serve-receive-still-underrated",
+    title: "Most Players Underrate Serve Receive Because It Isn’t Flashy",
     category: "Volleyball",
-    comments: 22,
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--vb",
+  },
+  {
+    slug: "volleyball-club-hype-vs-player-development",
+    title: "Club Volleyball Culture Is Becoming More About Hype Than Development",
+    category: "Volleyball",
+    comments: 0,
     trending: false,
     thumbMod: "article-thumb--vb",
   },
   {
-    slug: "poker-wsop-fantasy-strategy-explained",
-    title: "WSOP Fantasy Strategy Explained",
-    category: "Poker",
-    comments: 58,
+    slug: "lacrosse-attack-gets-too-much-credit",
+    title: "Attack Players Get Too Much Credit for Team Success",
+    category: "Lacrosse",
+    comments: 0,
     trending: true,
-    thumbMod: "article-thumb--pk",
+    thumbMod: "article-thumb--lx",
   },
   {
-    slug: "poker-which-poker-ranking-is-real",
-    title: "Which Poker Ranking List Is the “Real” One",
-    category: "Poker",
-    comments: 12,
+    slug: "lacrosse-highlights-vs-fundamentals",
+    title: "Highlight Culture Is Hurting Lacrosse Fundamentals",
+    category: "Lacrosse",
+    comments: 0,
     trending: false,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "poker-wsop-leaderboard-vs-featured-pools",
-    title: "Why the WSOP Leaderboard Is Not Your Fantasy Pool",
-    category: "Poker",
-    comments: 9,
-    trending: false,
-    thumbMod: "article-thumb--pk",
+    thumbMod: "article-thumb--lx",
   },
 ];
 
@@ -282,7 +314,7 @@ export default function MarketingHomePage() {
           <div className="landing-hero__grid">
             <div className="landing-hero__copy">
               <div style={badgeStyle}>Sports media + fantasy ecosystem</div>
-              <p style={{ margin: "0 0 10px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
+              <p style={{ margin: "0 0 6px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
                 100% free to play — no entry fees, no deposits required.
               </p>
               <h1 className="landing-hero__title">Where Sports Fans Compete Beyond the Scoreboard</h1>
@@ -305,30 +337,6 @@ export default function MarketingHomePage() {
                   Enter Fantasy Contest
                 </Link>
               </div>
-            </div>
-
-            <div className="landing-hero__visual" aria-hidden="true">
-              <div className="landing-hero__silhouettes">
-                <span className="landing-silhouette landing-silhouette--a" />
-                <span className="landing-silhouette landing-silhouette--b" />
-                <span className="landing-silhouette landing-silhouette--c" />
-              </div>
-              <div className="landing-rank-cards">
-                <div className="landing-rank-cards__card landing-rank-cards__card--1">
-                  <span className="landing-rank-cards__mv">▲</span> Rank #4 → #2
-                </div>
-                <div className="landing-rank-cards__card landing-rank-cards__card--2">
-                  <span className="landing-rank-cards__fire">🔥</span> Debate heating up
-                </div>
-                <div className="landing-rank-cards__card landing-rank-cards__card--3">
-                  Live picks · {liveSpotlight ? liveSpotlight.label_short : "MLP / AVP"}
-                </div>
-              </div>
-              {pbGap != null ? (
-                <p className="landing-hero__live-stat">
-                  Pickleball rating gap today: <strong>{pbGap}</strong>
-                </p>
-              ) : null}
             </div>
           </div>
         </section>
@@ -446,9 +454,10 @@ export default function MarketingHomePage() {
 
         {/* Featured articles — card layout */}
         <section className="marketing-section">
-          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Featured Articles</h2>
+          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Start the debate</h2>
           <p className="dash-sub" style={{ marginTop: 0, marginBottom: 16 }}>
-            Long reads — thumbnails and engagement are preview-style until comments ship site-wide.
+            Hot takes with a Reddit thread on every piece — open an article, then jump to the discussion link at the
+            bottom and keep arguing where the internet actually argues.
           </p>
           <div className="featured-articles-grid">
             {FEATURED_ARTICLES.map((a) => (
@@ -460,7 +469,7 @@ export default function MarketingHomePage() {
                 <div className="featured-article-card__body">
                   <h3 className="featured-article-card__title">{a.title}</h3>
                   <div className="featured-article-card__meta">
-                    <span>{a.comments} comments</span>
+                    <span>{a.comments > 0 ? `${a.comments} comments` : "Discussion linked"}</span>
                     <span>Read →</span>
                   </div>
                 </div>
