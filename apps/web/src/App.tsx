@@ -15,6 +15,7 @@ const LacrosseHubPage = lazy(() => import("./sports/lacrosse/components/Lacrosse
 const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components/LacrosseScoringTablePage"));
 const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
 const VolleyballHubPage = lazy(() => import("./sports/volleyball/components/VolleyballHubPage"));
+const PokerHubPage = lazy(() => import("./sports/poker/components/PokerHubPage"));
 const VolleyballRostersPage = lazy(() => import("./sports/volleyball/components/VolleyballRostersPage"));
 const VolleyballScoringTablePage = lazy(() => import("./sports/volleyball/components/VolleyballScoringTablePage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
@@ -229,6 +230,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
+      <Route path="/poker" element={<PokerHubPage user={session} />} />
       <Route path="/lacrosse/scoring" element={<LacrosseScoringTablePage />} />
       <Route path="/volleyball/scoring" element={<VolleyballScoringTablePage />} />
       <Route

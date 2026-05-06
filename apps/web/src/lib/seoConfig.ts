@@ -49,6 +49,11 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "2026 AVP League, Heritage, and Contender tour stops with dates and locations on WakiBet — fantasy lineups and scoring coming soon (pickleball-style WakiCash and captains).",
   },
+  "/poker": {
+    title: `Poker fantasy — world rankings & 2026 live tour calendar | ${SITE}`,
+    description:
+      "Global poker player rankings (top 200) with composite ratings plus the 2026 live festival calendar — WakiCash lineups and scoring on WakiBet as contests open.",
+  },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,
     description:

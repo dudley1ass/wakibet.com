@@ -27,6 +27,7 @@ const SPORT_HUBS: {
   hover: string;
   debates: number;
   pulse?: string;
+  to?: string;
 }[] = [
   {
     label: "Pickleball",
@@ -53,12 +54,13 @@ const SPORT_HUBS: {
     pulse: "PLL slate",
   },
   {
-    label: "Poker — Coming soon!!",
+    label: "Poker",
     icon: "♠️",
     hover:
-      "Poker fantasy (coming soon): bracket-style picks, season games, and fun competition — still no real-money wagering on WakiBet.",
+      "Poker fantasy: 2026 live tour calendar (WSOP, EPT, festivals) — WakiCash lineups and scoring as contests open. No real-money wagering on WakiBet.",
     debates: 0,
-    pulse: "soon",
+    pulse: "2026 stops",
+    to: "/poker",
   },
 ];
 
@@ -396,22 +398,33 @@ export default function MarketingHomePage() {
             Hover for fantasy rules · activity is illustrative until full community launch.
           </p>
           <div className="sport-hub-grid">
-            {SPORT_HUBS.map((hub) => (
-              <div key={hub.label} title={hub.hover} className="sport-hub-card">
-                <div className="sport-hub-card__icon">{hub.icon}</div>
-                <div className="sport-hub-card__label">{hub.label}</div>
-                <div className="sport-hub-card__stats">
-                  {hub.debates > 0 ? (
-                    <>
-                      <span className="sport-hub-card__heat">🔥 {hub.debates} active debates</span>
+            {SPORT_HUBS.map((hub) => {
+              const cardInner = (
+                <>
+                  <div className="sport-hub-card__icon">{hub.icon}</div>
+                  <div className="sport-hub-card__label">{hub.label}</div>
+                  <div className="sport-hub-card__stats">
+                    {hub.debates > 0 ? (
+                      <>
+                        <span className="sport-hub-card__heat">🔥 {hub.debates} active debates</span>
+                        <span className="sport-hub-card__pulse">{hub.pulse}</span>
+                      </>
+                    ) : (
                       <span className="sport-hub-card__pulse">{hub.pulse}</span>
-                    </>
-                  ) : (
-                    <span className="sport-hub-card__pulse">{hub.pulse}</span>
-                  )}
+                    )}
+                  </div>
+                </>
+              );
+              return hub.to ? (
+                <Link key={hub.label} to={hub.to} title={hub.hover} className="sport-hub-card">
+                  {cardInner}
+                </Link>
+              ) : (
+                <div key={hub.label} title={hub.hover} className="sport-hub-card">
+                  {cardInner}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

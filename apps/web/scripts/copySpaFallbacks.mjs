@@ -31,6 +31,7 @@ const routes = [
   "rosters",
   "fantasy-rules",
   "lacrosse",
+  "poker",
   "admin",
   "nascar-texas-picks",
   "week-picks",
