@@ -2,6 +2,11 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { apiGet } from "../api";
+import {
+  getMarketingHotTakes,
+  isThursdayHotTakeDay,
+  marketingHotTakePeriodIndex,
+} from "../lib/marketingHotTakes";
 
 const sectionCard: React.CSSProperties = {
   background: "rgba(20, 20, 24, 0.92)",
@@ -154,39 +159,6 @@ const FEATURED_ARTICLES: {
   },
 ];
 
-const HOT_TAKES_SEED = [
-  {
-    id: "ht1",
-    text: "Ben Johns is overrated in doubles when the pace gets messy — change my mind.",
-    agree: 342,
-    disagree: 189,
-  },
-  {
-    id: "ht2",
-    text: "PLL defenses are finally catching up to the offensive explosion.",
-    agree: 267,
-    disagree: 112,
-  },
-  {
-    id: "ht3",
-    text: "Volleyball analytics over-weight kills and under-weight side-out sustainability.",
-    agree: 198,
-    disagree: 203,
-  },
-  {
-    id: "ht4",
-    text: "Pickleball 5.0 ratings are inflated at half the clubs in Florida.",
-    agree: 421,
-    disagree: 156,
-  },
-  {
-    id: "ht5",
-    text: "Fantasy should reward boring consistency over one viral highlight reel.",
-    agree: 512,
-    disagree: 89,
-  },
-];
-
 function HotTakeCard({
   text,
   agreeStart,
@@ -279,6 +251,17 @@ export default function MarketingHomePage() {
   });
   const spotlightItems = spotlightQuery.data?.items ?? [];
   const liveSpotlight = spotlightItems.find((x) => x.status === "live") ?? spotlightItems[0];
+
+  const hotTakePeriod = marketingHotTakePeriodIndex();
+  const hotTakeThursday = isThursdayHotTakeDay();
+  const hotTakes = useMemo(
+    () =>
+      getMarketingHotTakes({
+        spotlightItems,
+        lacrosseSlateName: lacrosseQuery.data?.name,
+      }),
+    [hotTakePeriod, hotTakeThursday, spotlightItems, lacrosseQuery.data?.name],
+  );
   const lacrosseLines = lacrosseQuery.data?.lines ?? [];
 
   const pbGap = useMemo(() => {
@@ -358,10 +341,14 @@ export default function MarketingHomePage() {
         <section className="marketing-section marketing-section--hot">
           <div className="marketing-section__head">
             <h2 className="marketing-section__title">Hot Takes</h2>
-            <span className="marketing-section__subtitle">Agree, disagree, argue — the feed that drives the community.</span>
+            <span className="marketing-section__subtitle">
+              {hotTakeThursday
+                ? "Thursday focus — who’s winning this weekend’s tournaments? Spotlights pull from this week’s stops."
+                : "Fresh set every two days — agree, disagree, argue."}
+            </span>
           </div>
           <div className="hot-take-scroller">
-            {HOT_TAKES_SEED.map((t) => (
+            {hotTakes.map((t) => (
               <HotTakeCard key={t.id} text={t.text} agreeStart={t.agree} disagreeStart={t.disagree} />
             ))}
           </div>
