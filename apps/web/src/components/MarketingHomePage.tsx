@@ -20,6 +20,29 @@ const badgeStyle: React.CSSProperties = {
   marginBottom: 10,
 };
 
+const SPORT_HUBS: { label: string; hover: string }[] = [
+  {
+    label: "Pickleball",
+    hover:
+      "Fantasy pickleball: build multi-event lineups with a WakiCash budget, set captains, and score WakiPoints across tournaments and leaderboards.",
+  },
+  {
+    label: "Volleyball",
+    hover:
+      "Beach volleyball fantasy: roster picks tied to tour events, caps and captains — compete for season and event standings when live.",
+  },
+  {
+    label: "Lacrosse",
+    hover:
+      "Lacrosse fantasy: PLL-style slates — spread lines, confidence picks, and WakiCash-style allocations on game outcomes.",
+  },
+  {
+    label: "Poker — Coming soon!!",
+    hover:
+      "Poker fantasy (coming soon): bracket-style picks, season games, and fun competition — still no real-money wagering on WakiBet.",
+  },
+];
+
 export default function MarketingHomePage() {
   const spotlightQuery = useQuery({
     queryKey: ["landing", "picks-spotlight"] as const,
@@ -73,7 +96,7 @@ export default function MarketingHomePage() {
 
   return (
     <div style={{ maxWidth: 1140, margin: "0 auto", padding: "20px 16px 48px", color: "#e5e7eb" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 24 }}>
+      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 16 }}>
         <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: 34, width: "auto" }} />
         <nav style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link className="dash-ghost-btn" to="/auth?mode=login">
@@ -84,6 +107,23 @@ export default function MarketingHomePage() {
           </Link>
         </nav>
       </header>
+
+      <p
+        style={{
+          margin: "0 0 16px",
+          padding: "10px 14px",
+          borderRadius: 12,
+          border: "1px solid rgba(251, 191, 36, 0.4)",
+          background: "rgba(30, 27, 10, 0.85)",
+          color: "#fef3c7",
+          fontSize: 13,
+          lineHeight: 1.45,
+          textAlign: "center",
+        }}
+      >
+        <strong>Fantasy only — no real-money wagering YET!!</strong> Coming Soon!! WakiBet is for skill-based fantasy and
+        community play, not sports betting.
+      </p>
 
       <section
         style={{
@@ -96,6 +136,9 @@ export default function MarketingHomePage() {
       >
         <div>
           <div style={badgeStyle}>Sports media + fantasy ecosystem</div>
+          <p style={{ margin: "0 0 10px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
+            100% free to play — no entry fees, no deposits required.
+          </p>
           <h1 style={{ margin: "0 0 10px", fontSize: 36, lineHeight: 1.1, color: "#f8fafc" }}>
             Where Sports Fans Compete Beyond the Scoreboard
           </h1>
@@ -194,16 +237,22 @@ export default function MarketingHomePage() {
 
       <section style={{ ...sectionCard, marginBottom: 16 }}>
         <h2 style={{ marginTop: 0 }}>Sport Hubs</h2>
+        <p className="dash-sub" style={{ marginTop: 0, marginBottom: 12 }}>
+          Hover a sport for a quick take on how fantasy works on WakiBet.
+        </p>
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-          {[
-            liveSpotlight ? `Pickleball: ${liveSpotlight.label_short}` : "Pickleball",
-            "Volleyball",
-            lacrosseQuery.data ? `Lacrosse: ${lacrosseQuery.data.slate_key}` : "Lacrosse",
-            "Poker",
-            "More Coming Soon",
-          ].map((sport) => (
-            <div key={sport} style={{ ...sectionCard, padding: 12, textAlign: "center" }}>
-              {sport}
+          {SPORT_HUBS.map((hub) => (
+            <div
+              key={hub.label}
+              title={hub.hover}
+              style={{
+                ...sectionCard,
+                padding: 12,
+                textAlign: "center",
+                cursor: "help",
+              }}
+            >
+              {hub.label}
             </div>
           ))}
         </div>
@@ -245,13 +294,6 @@ export default function MarketingHomePage() {
             <div>{text}</div>
           </article>
         ))}
-      </section>
-
-      <section style={{ ...sectionCard, marginBottom: 16 }}>
-        <h2 style={{ marginTop: 0 }}>Social Proof</h2>
-        <p style={{ margin: 0, color: "#cbd5e1" }}>
-          1,200+ debates created · 10,000+ community votes · 500+ fantasy lineups submitted
-        </p>
       </section>
 
       <section style={{ ...sectionCard, textAlign: "center" }}>
