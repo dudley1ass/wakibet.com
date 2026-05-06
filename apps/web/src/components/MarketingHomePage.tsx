@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { apiGet } from "../api";
 
 const sectionCard: React.CSSProperties = {
@@ -20,28 +21,164 @@ const badgeStyle: React.CSSProperties = {
   marginBottom: 10,
 };
 
-const SPORT_HUBS: { label: string; hover: string }[] = [
+const SPORT_HUBS: {
+  label: string;
+  icon: string;
+  hover: string;
+  debates: number;
+  pulse?: string;
+}[] = [
   {
     label: "Pickleball",
+    icon: "🏓",
     hover:
       "Fantasy pickleball: build multi-event lineups with a WakiCash budget, set captains, and score WakiPoints across tournaments and leaderboards.",
+    debates: 212,
+    pulse: "+18 today",
   },
   {
     label: "Volleyball",
+    icon: "🏐",
     hover:
       "Beach volleyball fantasy: roster picks tied to tour events, caps and captains — compete for season and event standings when live.",
+    debates: 94,
+    pulse: "live stops",
   },
   {
     label: "Lacrosse",
+    icon: "🥍",
     hover:
       "Lacrosse fantasy: PLL-style slates — spread lines, confidence picks, and WakiCash-style allocations on game outcomes.",
+    debates: 156,
+    pulse: "PLL slate",
   },
   {
     label: "Poker — Coming soon!!",
+    icon: "♠️",
     hover:
       "Poker fantasy (coming soon): bracket-style picks, season games, and fun competition — still no real-money wagering on WakiBet.",
+    debates: 0,
+    pulse: "soon",
   },
 ];
+
+const FEATURED_ARTICLES: {
+  slug: string;
+  title: string;
+  category: string;
+  comments: number;
+  trending: boolean;
+  thumbMod: string;
+}[] = [
+  {
+    slug: "pickleball-10-players-everyone-overrates",
+    title: "10 Pickleball Players Everyone Overrates (And What to Look at Instead)",
+    category: "Pickleball",
+    comments: 47,
+    trending: true,
+    thumbMod: "article-thumb--pb",
+  },
+  {
+    slug: "lacrosse-why-defense-wins-championships",
+    title: "Why Defense Still Wins Championships in Professional Lacrosse",
+    category: "Lacrosse",
+    comments: 31,
+    trending: true,
+    thumbMod: "article-thumb--lx",
+  },
+  {
+    slug: "volleyball-most-underrated-skill",
+    title: "The Most Underrated Skill in Beach Volleyball",
+    category: "Volleyball",
+    comments: 22,
+    trending: false,
+    thumbMod: "article-thumb--vb",
+  },
+  {
+    slug: "poker-wsop-fantasy-strategy-explained",
+    title: "WSOP Fantasy Strategy Explained",
+    category: "Poker",
+    comments: 58,
+    trending: true,
+    thumbMod: "article-thumb--pk",
+  },
+];
+
+const HOT_TAKES_SEED = [
+  {
+    id: "ht1",
+    text: "Ben Johns is overrated in doubles when the pace gets messy — change my mind.",
+    agree: 342,
+    disagree: 189,
+  },
+  {
+    id: "ht2",
+    text: "PLL defenses are finally catching up to the offensive explosion.",
+    agree: 267,
+    disagree: 112,
+  },
+  {
+    id: "ht3",
+    text: "Volleyball analytics over-weight kills and under-weight side-out sustainability.",
+    agree: 198,
+    disagree: 203,
+  },
+  {
+    id: "ht4",
+    text: "Pickleball 5.0 ratings are inflated at half the clubs in Florida.",
+    agree: 421,
+    disagree: 156,
+  },
+  {
+    id: "ht5",
+    text: "Fantasy should reward boring consistency over one viral highlight reel.",
+    agree: 512,
+    disagree: 89,
+  },
+];
+
+function HotTakeCard({
+  text,
+  agreeStart,
+  disagreeStart,
+}: {
+  text: string;
+  agreeStart: number;
+  disagreeStart: number;
+}) {
+  const [agree, setAgree] = useState(agreeStart);
+  const [disagree, setDisagree] = useState(disagreeStart);
+  const [vote, setVote] = useState<"agree" | "disagree" | null>(null);
+
+  function pick(side: "agree" | "disagree") {
+    if (vote === side) return;
+    if (vote === "agree") setAgree((n) => n - 1);
+    if (vote === "disagree") setDisagree((n) => n - 1);
+    if (side === "agree") setAgree((n) => n + 1);
+    else setDisagree((n) => n + 1);
+    setVote(side);
+  }
+
+  const total = agree + disagree;
+
+  return (
+    <article className="hot-take-card">
+      <p className="hot-take-card__quote">&ldquo;{text}&rdquo;</p>
+      <div className="hot-take-card__actions">
+        <button type="button" className="hot-take-card__btn hot-take-card__btn--agree" onClick={() => pick("agree")}>
+          Agree · {agree}
+        </button>
+        <button type="button" className="hot-take-card__btn hot-take-card__btn--disagree" onClick={() => pick("disagree")}>
+          Disagree · {disagree}
+        </button>
+      </div>
+      <div className="hot-take-card__meta">
+        <span>{total} votes</span>
+        <span className="hot-take-card__hint">Tap to vote (demo)</span>
+      </div>
+    </article>
+  );
+}
 
 export default function MarketingHomePage() {
   const spotlightQuery = useQuery({
@@ -94,222 +231,246 @@ export default function MarketingHomePage() {
   const liveSpotlight = spotlightItems.find((x) => x.status === "live") ?? spotlightItems[0];
   const lacrosseLines = lacrosseQuery.data?.lines ?? [];
 
+  const pbGap = useMemo(() => {
+    if (!oddsQuery.data) return null;
+    return Math.abs(
+      oddsQuery.data.markets.pickleball.team_a.rating - oddsQuery.data.markets.pickleball.team_b.rating,
+    );
+  }, [oddsQuery.data]);
+
   return (
-    <div style={{ maxWidth: 1140, margin: "0 auto", padding: "20px 16px 48px", color: "#e5e7eb" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 16 }}>
-        <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: 34, width: "auto" }} />
-        <nav style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link className="dash-ghost-btn" to="/auth?mode=login">
-            Log in
-          </Link>
-          <Link className="dash-main-btn" to="/auth?mode=register">
-            Create account
-          </Link>
-        </nav>
-      </header>
-
-      <p
-        style={{
-          margin: "0 0 16px",
-          padding: "10px 14px",
-          borderRadius: 12,
-          border: "1px solid rgba(251, 191, 36, 0.4)",
-          background: "rgba(30, 27, 10, 0.85)",
-          color: "#fef3c7",
-          fontSize: 13,
-          lineHeight: 1.45,
-          textAlign: "center",
-        }}
-      >
-        <strong>Fantasy only — no real-money wagering YET!!</strong> Coming Soon!! WakiBet is for skill-based fantasy and
-        community play, not sports betting.
-      </p>
-
-      <section
-        style={{
-          ...sectionCard,
-          display: "grid",
-          gap: 18,
-          gridTemplateColumns: "minmax(280px, 1.2fr) minmax(280px, 1fr)",
-          marginBottom: 16,
-        }}
-      >
-        <div>
-          <div style={badgeStyle}>Sports media + fantasy ecosystem</div>
-          <p style={{ margin: "0 0 10px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
-            100% free to play — no entry fees, no deposits required.
-          </p>
-          <h1 style={{ margin: "0 0 10px", fontSize: 36, lineHeight: 1.1, color: "#f8fafc" }}>
-            Where Sports Fans Compete Beyond the Scoreboard
-          </h1>
-          <p style={{ margin: "0 0 14px", color: "#cbd5e1" }}>
-            Fantasy games, rankings, hot takes, player debates, and community-driven competition for emerging sports.
-          </p>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+    <div className="marketing-page">
+      <div style={{ maxWidth: 1140, margin: "0 auto", padding: "20px 16px 48px", color: "#e5e7eb" }}>
+        <header className="marketing-header">
+          <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: 34, width: "auto" }} />
+          <nav style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link className="dash-ghost-btn" to="/auth?mode=login">
+              Log in
+            </Link>
             <Link className="dash-main-btn" to="/auth?mode=register">
-              Join Early Access
+              Create account
+            </Link>
+          </nav>
+        </header>
+
+        <p className="marketing-disclaimer">
+          <strong>Fantasy only — no real-money wagering YET!!</strong> Coming Soon!! WakiBet is for skill-based fantasy and
+          community play, not sports betting.
+        </p>
+
+        {/* Hero — visual energy + motion */}
+        <section className="landing-hero">
+          <div className="landing-hero__mesh" aria-hidden />
+          <div className="landing-hero__grid">
+            <div className="landing-hero__copy">
+              <div style={badgeStyle}>Sports media + fantasy ecosystem</div>
+              <p style={{ margin: "0 0 10px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
+                100% free to play — no entry fees, no deposits required.
+              </p>
+              <h1 className="landing-hero__title">Where Sports Fans Compete Beyond the Scoreboard</h1>
+              <p className="landing-hero__lede">
+                Rankings, debates, hot takes, and fantasy — built for fans who live in the comments section as much as the
+                scoreboard.
+              </p>
+
+              {/* Primary CTA = Explore Rankings (community / viral hook) */}
+              <div className="landing-hero__cta-primary">
+                <Link className="dash-main-btn landing-cta-rankings" to="/week-picks">
+                  Explore Rankings &amp; Picks Hub
+                </Link>
+              </div>
+              <div className="landing-hero__cta-row">
+                <Link className="dash-ghost-btn" to="/auth?mode=register">
+                  Join Early Access
+                </Link>
+                <Link className="dash-ghost-btn" to="/auth?mode=register">
+                  Enter Fantasy Contest
+                </Link>
+              </div>
+            </div>
+
+            <div className="landing-hero__visual" aria-hidden="true">
+              <div className="landing-hero__silhouettes">
+                <span className="landing-silhouette landing-silhouette--a" />
+                <span className="landing-silhouette landing-silhouette--b" />
+                <span className="landing-silhouette landing-silhouette--c" />
+              </div>
+              <div className="landing-rank-cards">
+                <div className="landing-rank-cards__card landing-rank-cards__card--1">
+                  <span className="landing-rank-cards__mv">▲</span> Rank #4 → #2
+                </div>
+                <div className="landing-rank-cards__card landing-rank-cards__card--2">
+                  <span className="landing-rank-cards__fire">🔥</span> Debate heating up
+                </div>
+                <div className="landing-rank-cards__card landing-rank-cards__card--3">
+                  Live picks · {liveSpotlight ? liveSpotlight.label_short : "MLP / AVP"}
+                </div>
+              </div>
+              {pbGap != null ? (
+                <p className="landing-hero__live-stat">
+                  Pickleball rating gap today: <strong>{pbGap}</strong>
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
+        <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
+          {[
+            ["Fantasy Contests", "Predict performances and compete with friends."],
+            ["Community Rankings", "Debate overrated and underrated players."],
+            ["Sports Intelligence", "Stats, matchups, trends, and hot takes."],
+          ].map(([title, body]) => (
+            <article key={title} style={sectionCard}>
+              <h3 style={{ margin: "0 0 8px", color: "#f8fafc" }}>{title}</h3>
+              <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
+            </article>
+          ))}
+        </section>
+
+        {/* Hot Takes — scroll feed + votes */}
+        <section className="marketing-section marketing-section--hot">
+          <div className="marketing-section__head">
+            <h2 className="marketing-section__title">Hot Takes</h2>
+            <span className="marketing-section__subtitle">Agree, disagree, argue — the feed that drives the community.</span>
+          </div>
+          <div className="hot-take-scroller">
+            {HOT_TAKES_SEED.map((t) => (
+              <HotTakeCard key={t.id} text={t.text} agreeStart={t.agree} disagreeStart={t.disagree} />
+            ))}
+          </div>
+        </section>
+
+        <section style={{ ...sectionCard, marginBottom: 16 }}>
+          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Trending Content</h2>
+          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+            {(spotlightItems.length
+              ? spotlightItems.map((item) => `${item.label_short} — ${item.venue}`)
+              : [
+                  "Most overrated 5.0 pickleball player?",
+                  "Hardest position in lacrosse?",
+                  "Would old-school volleyball teams survive today?",
+                  "Best sleeper picks this week",
+                  "Players trending upward right now",
+                  "Who wins this matchup?",
+                ]
+            ).map((item) => (
+              <div key={item} style={{ ...sectionCard, padding: 12 }}>
+                {item}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", marginBottom: 16 }}>
+          {[
+            [
+              "🔥 Trending Debates",
+              liveSpotlight
+                ? `${liveSpotlight.label_full} (${liveSpotlight.status.toUpperCase()})`
+                : "Most heated conversations in the last 24h.",
+            ],
+            [
+              "📈 Fastest Rising Players",
+              pbGap != null ? `Pickleball rating gap: ${pbGap}` : "Names climbing fast in community rankings.",
+            ],
+            [
+              "🏆 Weekly Fantasy Leaders",
+              lacrosseQuery.data ? `${lacrosseQuery.data.name} (${lacrosseLines.length} active lines)` : "Top fantasy performers across active contests.",
+            ],
+            [
+              "🎯 Most Picked Sleeper",
+              lacrosseLines[0] ? `${lacrosseLines[0].team_a} vs ${lacrosseLines[0].team_b}` : "Most-backed underdog selections this week.",
+            ],
+          ].map(([title, body]) => (
+            <article key={title} style={sectionCard}>
+              <h3 style={{ margin: "0 0 8px" }}>{title}</h3>
+              <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
+            </article>
+          ))}
+        </section>
+
+        <section style={{ ...sectionCard, marginBottom: 16 }}>
+          <h2 style={{ marginTop: 0 }}>Sport Hubs</h2>
+          <p className="dash-sub" style={{ marginTop: 0, marginBottom: 12 }}>
+            Hover for fantasy rules · activity is illustrative until full community launch.
+          </p>
+          <div className="sport-hub-grid">
+            {SPORT_HUBS.map((hub) => (
+              <div key={hub.label} title={hub.hover} className="sport-hub-card">
+                <div className="sport-hub-card__icon">{hub.icon}</div>
+                <div className="sport-hub-card__label">{hub.label}</div>
+                <div className="sport-hub-card__stats">
+                  {hub.debates > 0 ? (
+                    <>
+                      <span className="sport-hub-card__heat">🔥 {hub.debates} active debates</span>
+                      <span className="sport-hub-card__pulse">{hub.pulse}</span>
+                    </>
+                  ) : (
+                    <span className="sport-hub-card__pulse">{hub.pulse}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Featured articles — card layout */}
+        <section className="marketing-section">
+          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Featured Articles</h2>
+          <p className="dash-sub" style={{ marginTop: 0, marginBottom: 16 }}>
+            Long reads — thumbnails and engagement are preview-style until comments ship site-wide.
+          </p>
+          <div className="featured-articles-grid">
+            {FEATURED_ARTICLES.map((a) => (
+              <Link key={a.slug} to={`/articles/${a.slug}`} className="featured-article-card">
+                <div className={`featured-article-card__thumb ${a.thumbMod}`}>
+                  {a.trending ? <span className="featured-article-card__badge">Trending</span> : null}
+                  <span className="featured-article-card__cat">{a.category}</span>
+                </div>
+                <div className="featured-article-card__body">
+                  <h3 className="featured-article-card__title">{a.title}</h3>
+                  <div className="featured-article-card__meta">
+                    <span>{a.comments} comments</span>
+                    <span>Read →</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <p className="dash-sub" style={{ marginTop: 16, marginBottom: 0 }}>
+            <Link to="/articles">Browse all articles →</Link>
+          </p>
+        </section>
+
+        <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
+          {[
+            ["1", "Pick a sport"],
+            ["2", "Enter contests or predictions"],
+            ["3", "Climb leaderboards and win rewards"],
+          ].map(([step, text]) => (
+            <article key={step} style={sectionCard}>
+              <div style={{ color: "#fcd34d", fontWeight: 700, marginBottom: 6 }}>Step {step}</div>
+              <div>{text}</div>
+            </article>
+          ))}
+        </section>
+
+        <section style={{ ...sectionCard, textAlign: "center" }}>
+          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Join Before Public Launch</h2>
+          <p style={{ color: "#cbd5e1" }}>
+            Early users get exclusive contests, rankings access, and beta features.
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+            <Link className="dash-main-btn" to="/auth?mode=register">
+              Create account
             </Link>
             <Link className="dash-ghost-btn" to="/auth?mode=login">
-              Explore Rankings
-            </Link>
-            <Link className="dash-ghost-btn" to="/auth?mode=register">
-              Enter Fantasy Contest
+              Log in
             </Link>
           </div>
-        </div>
-        <div style={{ ...sectionCard, background: "rgba(15, 23, 42, 0.65)", borderColor: "rgba(56, 189, 248, 0.35)" }}>
-          <div style={{ color: "#93c5fd", fontWeight: 700, marginBottom: 8 }}>Live Hubs</div>
-          <p style={{ margin: "0 0 12px", color: "#dbeafe" }}>
-            Pickleball, lacrosse, volleyball, poker, leaderboards, and fantasy strategy in one home feed.
-          </p>
-          <ul style={{ margin: 0, paddingLeft: 18, color: "#d1d5db", lineHeight: 1.6 }}>
-            <li>Daily hot takes and debates</li>
-            <li>Rising players and community rankings</li>
-            <li>Fantasy lineup strategy and matchup picks</li>
-            <li>Sport-specific pages that feel alive</li>
-          </ul>
-        </div>
-      </section>
-
-      <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
-        {[
-          ["Fantasy Contests", "Predict performances and compete with friends."],
-          ["Community Rankings", "Debate overrated and underrated players."],
-          ["Sports Intelligence", "Stats, matchups, trends, and hot takes."],
-        ].map(([title, body]) => (
-          <article key={title} style={sectionCard}>
-            <h3 style={{ margin: "0 0 8px", color: "#f8fafc" }}>{title}</h3>
-            <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
-          </article>
-        ))}
-      </section>
-
-      <section style={{ ...sectionCard, marginBottom: 16 }}>
-        <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Trending Content</h2>
-        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-          {(spotlightItems.length
-            ? spotlightItems.map((item) => `${item.label_short} — ${item.venue}`)
-            : [
-                "Most overrated 5.0 pickleball player?",
-                "Hardest position in lacrosse?",
-                "Would old-school volleyball teams survive today?",
-                "Best sleeper picks this week",
-                "Players trending upward right now",
-                "Who wins this matchup?",
-              ]
-          ).map((item) => (
-            <div key={item} style={{ ...sectionCard, padding: 12 }}>
-              {item}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", marginBottom: 16 }}>
-        {[
-          [
-            "🔥 Trending Debates",
-            liveSpotlight
-              ? `${liveSpotlight.label_full} (${liveSpotlight.status.toUpperCase()})`
-              : "Most heated conversations in the last 24h.",
-          ],
-          [
-            "📈 Fastest Rising Players",
-            oddsQuery.data
-              ? `Pickleball rating gap: ${Math.abs(oddsQuery.data.markets.pickleball.team_a.rating - oddsQuery.data.markets.pickleball.team_b.rating)}`
-              : "Names climbing fast in community rankings.",
-          ],
-          [
-            "🏆 Weekly Fantasy Leaders",
-            lacrosseQuery.data ? `${lacrosseQuery.data.name} (${lacrosseLines.length} active lines)` : "Top fantasy performers across active contests.",
-          ],
-          [
-            "🎯 Most Picked Sleeper",
-            lacrosseLines[0] ? `${lacrosseLines[0].team_a} vs ${lacrosseLines[0].team_b}` : "Most-backed underdog selections this week.",
-          ],
-        ].map(([title, body]) => (
-          <article key={title} style={sectionCard}>
-            <h3 style={{ margin: "0 0 8px" }}>{title}</h3>
-            <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
-          </article>
-        ))}
-      </section>
-
-      <section style={{ ...sectionCard, marginBottom: 16 }}>
-        <h2 style={{ marginTop: 0 }}>Sport Hubs</h2>
-        <p className="dash-sub" style={{ marginTop: 0, marginBottom: 12 }}>
-          Hover a sport for a quick take on how fantasy works on WakiBet.
-        </p>
-        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-          {SPORT_HUBS.map((hub) => (
-            <div
-              key={hub.label}
-              title={hub.hover}
-              style={{
-                ...sectionCard,
-                padding: 12,
-                textAlign: "center",
-                cursor: "help",
-              }}
-            >
-              {hub.label}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ ...sectionCard, marginBottom: 16 }}>
-        <h2 style={{ marginTop: 0 }}>Featured Articles</h2>
-        <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
-          <li>
-            <Link to="/articles/pickleball-10-players-everyone-overrates">
-              10 Pickleball Players Everyone Overrates
-            </Link>
-          </li>
-          <li>
-            <Link to="/articles/lacrosse-why-defense-wins-championships">
-              Why Defense Wins Championships Again in Lacrosse
-            </Link>
-          </li>
-          <li>
-            <Link to="/articles/volleyball-most-underrated-skill">Most Underrated Skill in Volleyball</Link>
-          </li>
-          <li>
-            <Link to="/articles/poker-wsop-fantasy-strategy-explained">WSOP Fantasy Strategy Explained</Link>
-          </li>
-        </ul>
-        <p className="dash-sub" style={{ marginTop: 12, marginBottom: 0 }}>
-          <Link to="/articles">Browse all articles →</Link>
-        </p>
-      </section>
-
-      <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
-        {[
-          ["1", "Pick a sport"],
-          ["2", "Enter contests or predictions"],
-          ["3", "Climb leaderboards and win rewards"],
-        ].map(([step, text]) => (
-          <article key={step} style={sectionCard}>
-            <div style={{ color: "#fcd34d", fontWeight: 700, marginBottom: 6 }}>Step {step}</div>
-            <div>{text}</div>
-          </article>
-        ))}
-      </section>
-
-      <section style={{ ...sectionCard, textAlign: "center" }}>
-        <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Join Before Public Launch</h2>
-        <p style={{ color: "#cbd5e1" }}>
-          Early users get exclusive contests, rankings access, and beta features.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-          <Link className="dash-main-btn" to="/auth?mode=register">
-            Create account
-          </Link>
-          <Link className="dash-ghost-btn" to="/auth?mode=login">
-            Log in
-          </Link>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
