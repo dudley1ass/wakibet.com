@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { redisIncrWithExpiry } from "../lib/redisOptional.js";
 
 const ContactTopic = z.enum([
   "General Support",
@@ -28,20 +29,34 @@ const ErrorMessage = z.object({ message: z.string() });
 const RATE_WINDOW_MS = 15 * 60 * 1000;
 const RATE_MAX_PER_WINDOW = 5;
 const rateByKey = new Map<string, { count: number; resetAt: number }>();
+const MAX_RATE_KEYS_IN_MEMORY = 20_000;
 
 function rateLimitKey(ip: string, email: string): string {
   return `${ip}::${email.toLowerCase()}`;
 }
 
-function isRateLimited(key: string): boolean {
+function isRateLimitedMemory(key: string): boolean {
   const now = Date.now();
   const row = rateByKey.get(key);
   if (!row || now > row.resetAt) {
+    if (rateByKey.size >= MAX_RATE_KEYS_IN_MEMORY && !rateByKey.has(key)) {
+      const first = rateByKey.keys().next().value as string | undefined;
+      if (first !== undefined) rateByKey.delete(first);
+    }
     rateByKey.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return false;
   }
   row.count += 1;
   return row.count > RATE_MAX_PER_WINDOW;
+}
+
+async function isRateLimited(key: string): Promise<boolean> {
+  const windowSec = Math.ceil(RATE_WINDOW_MS / 1000);
+  const redisCount = await redisIncrWithExpiry(`contact-rl:${key}`, windowSec);
+  if (redisCount !== null) {
+    return redisCount > RATE_MAX_PER_WINDOW;
+  }
+  return isRateLimitedMemory(key);
 }
 
 function escapeHtml(s: string): string {
@@ -89,7 +104,7 @@ export const publicContactRoutes: FastifyPluginAsync = async (app) => {
     async (req, reply) => {
       const body = req.body;
       const key = rateLimitKey(req.ip, body.email);
-      if (isRateLimited(key)) {
+      if (await isRateLimited(key)) {
         return reply.code(429).send({
           message: "Too many contact requests. Please wait a bit and try again.",
         } as const);

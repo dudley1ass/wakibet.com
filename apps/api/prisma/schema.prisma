@@ -75,7 +75,7 @@ model WinterFantasyPick {
   @@index([rosterId])
 }
 
-/** Season / multi-event fantasy: one submission per user per tournament (see docs/fantasy-tournament-lineups-spec.md). */
+/** Canonical pickleball fantasy for the live product (`FantasyTournament*`); not salary-cap `Contest`/`Lineup` (see `docs/contest-vs-pickleball-fantasy-lineups.md`). Season / multi-event: one submission per user per tournament (see docs/fantasy-tournament-lineups-spec.md). */
 model FantasyTournamentLineup {
   id             String                       @id @default(cuid())
   userId         String
@@ -1015,6 +1015,7 @@ enum ContestVisibility {
   PRIVATE
 }
 
+/// Salary-cap contest entries use generic `Lineup` + wallet ledger flows; pickleball season fantasy uses `FantasyTournamentLineup` instead — see `docs/contest-vs-pickleball-fantasy-lineups.md`.
 model Contest {
   id                String            @id @default(cuid())
   name              String

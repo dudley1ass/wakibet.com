@@ -1,13 +1,13 @@
-const PROD_API_FALLBACK = "https://wakibet-com-2.onrender.com";
-const API_BASE =
-  (typeof import.meta !== "undefined" &&
-    (import.meta.env?.VITE_API_BASE || (import.meta.env.PROD ? PROD_API_FALLBACK : ""))) ||
-  "";
+const viteApiBase =
+  typeof import.meta !== "undefined" ? String(import.meta.env?.VITE_API_BASE ?? "").trim() : "";
 
-const MISSING_BASE_HELP =
-  "This production build has no VITE_API_BASE, so it is using a built-in API fallback origin. " +
-  "In Render → your Static Site → Environment, set VITE_API_BASE = your API origin (no trailing slash), " +
-  "then redeploy with Clear build cache.";
+if (typeof import.meta !== "undefined" && import.meta.env.PROD && !viteApiBase) {
+  throw new Error(
+    "Production build requires VITE_API_BASE (API origin, no trailing slash). Set it in your static host environment and rebuild.",
+  );
+}
+
+const API_BASE = viteApiBase;
 
 const DEFAULT_FETCH_MS = import.meta.env.PROD ? 90_000 : 20_000;
 
@@ -73,9 +73,6 @@ function baseUrl(): string {
 function assertJsonResponse(res: Response, path: string): void {
   const ct = res.headers.get("content-type") || "";
   if (res.ok && !ct.includes("application/json")) {
-    if (!API_BASE && import.meta.env.PROD) {
-      throw new Error(MISSING_BASE_HELP);
-    }
     throw new Error(
       `Expected JSON from ${path} but got "${ct}". Check VITE_API_BASE and API CORS.`,
     );
@@ -131,9 +128,6 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) {
     throw new Error(formatError(data, res));
   }
-  if (import.meta.env.PROD && !API_BASE && Object.keys(data).length === 0) {
-    throw new Error(MISSING_BASE_HELP);
-  }
   return data as T;
 }
 
@@ -174,11 +168,8 @@ export async function finalizeAuthFromLoginResponse(raw: Record<string, unknown>
     envelope.token) as string | undefined;
   if (!access_token) {
     const keys = Object.keys(raw).length ? Object.keys(raw).join(", ") : "(empty JSON)";
-    if (!API_BASE && import.meta.env.PROD) {
-      throw new Error(MISSING_BASE_HELP);
-    }
     throw new Error(
-      `Server did not return an access token (response keys: ${keys}). Check the API / network tab.`,
+      `Server did not return an access token (response keys: ${keys}). Check VITE_API_BASE, the API / network tab, and CORS.`,
     );
   }
   setAccessToken(access_token);

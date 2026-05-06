@@ -8,8 +8,12 @@ import {
   playerWakiCashCost,
   WINTER_FANTASY_ROSTER_SIZE,
 } from "@wakibet/shared";
-import { prisma } from "../lib/prisma.js";
+import { Prisma, prisma } from "../lib/prisma.js";
+import { createKeyedMutex } from "../lib/asyncMutex.js";
+import { HttpReplyError } from "../lib/httpReplyError.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
+
+const fantasyLineupSaveMutex = createKeyedMutex();
 import {
   displayLabelForCatalogRow,
   filterMatchesForDivision,
@@ -576,39 +580,77 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         }
       }
 
-      let totalSpend = 0;
-      for (const inc of incoming) {
-        const cat = catalogByKey.get(inc.event_key)!;
-        const pool = await playerPoolForEvent(tournamentKey, cat.scheduleDivisionKey, data);
-        const costMap = new Map(pool.map((p) => [normName(p.player_name), p.waki_cash]));
-        for (const p of inc.picks) {
-          totalSpend += costMap.get(normName(p.player_name)) ?? 0;
-        }
-      }
-      for (const ex of existingPicks) {
-        if (isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
-          const pool = await playerPoolForEvent(tournamentKey, ex.scheduleDivisionKey, data);
-          const costMap = new Map(pool.map((p) => [normName(p.player_name), p.waki_cash]));
-          for (const s of ex.slots) {
-            totalSpend += costMap.get(normName(s.playerName)) ?? 0;
+      let lineup;
+      try {
+        lineup = await fantasyLineupSaveMutex(`${uid}:${tournamentKey}:${seasonKey}`, () =>
+          prisma.$transaction(async (tx) => {
+          const header = await tx.fantasyTournamentLineup.upsert({
+          where: { userId_tournamentKey_seasonKey: { userId: uid, tournamentKey, seasonKey } },
+          create: {
+            userId: uid,
+            tournamentKey,
+            seasonKey,
+            wakicashBudget: rules.budget,
+            wakicashSpent: 0,
+          },
+          update: {},
+        });
+
+        await tx.$executeRaw(
+          Prisma.sql`SELECT 1 FROM "FantasyTournamentLineup" WHERE id = ${header.id} FOR UPDATE`,
+        );
+
+        const existingSnap = await tx.fantasyTournamentLineup.findUnique({
+          where: { id: header.id },
+          include: {
+            eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
+          },
+        });
+        const existingPicksTx = existingSnap?.eventPicks ?? [];
+
+        // Authoritative lock check vs snapshot taken after row lock (handles races with other tabs / double-submit).
+        for (const inc of incoming) {
+          const ex = existingPicksTx.find((x) => x.eventKey === inc.event_key);
+          if (ex && isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
+            if (
+              !sameEventPayload(
+                {
+                  slots: ex.slots,
+                  mlpTeamName: ex.mlpTeamName,
+                  predictedTotalMatches: ex.predictedTotalMatches ?? null,
+                },
+                inc,
+              )
+            ) {
+              throw new HttpReplyError(409, {
+                message: "This event is locked; picks cannot be changed.",
+                code: "EVENT_LOCKED",
+                event_key: inc.event_key,
+              });
+            }
           }
         }
-      }
 
-      const header = await prisma.fantasyTournamentLineup.upsert({
-        where: { userId_tournamentKey_seasonKey: { userId: uid, tournamentKey, seasonKey } },
-        create: {
-          userId: uid,
-          tournamentKey,
-          seasonKey,
-          wakicashBudget: rules.budget,
-          wakicashSpent: 0,
-        },
-        update: {},
-      });
+        let totalSpend = 0;
+        for (const inc of incoming) {
+          const cat = catalogByKey.get(inc.event_key)!;
+          const pool = await playerPoolForEvent(tournamentKey, cat.scheduleDivisionKey, data);
+          const costMap = new Map(pool.map((p) => [normName(p.player_name), p.waki_cash]));
+          for (const p of inc.picks) {
+            totalSpend += costMap.get(normName(p.player_name)) ?? 0;
+          }
+        }
+        for (const ex of existingPicksTx) {
+          if (isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
+            const pool = await playerPoolForEvent(tournamentKey, ex.scheduleDivisionKey, data);
+            const costMap = new Map(pool.map((p) => [normName(p.player_name), p.waki_cash]));
+            for (const s of ex.slots) {
+              totalSpend += costMap.get(normName(s.playerName)) ?? 0;
+            }
+          }
+        }
 
-      const lineup = await prisma.$transaction(async (tx) => {
-        const toDelete = existingPicks
+        const toDelete = existingPicksTx
           .filter((ex) => !isEventLocked(ex.firstMatchStartsAt, ex.lockedAt))
           .map((ex) => ex.id);
         if (toDelete.length) {
@@ -617,7 +659,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
 
         const now = new Date();
         for (const inc of incoming) {
-          const ex = existingPicks.find((x) => x.eventKey === inc.event_key);
+          const ex = existingPicksTx.find((x) => x.eventKey === inc.event_key);
           if (ex && isEventLocked(ex.firstMatchStartsAt, ex.lockedAt)) {
             continue;
           }
@@ -670,7 +712,15 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
             },
           },
         });
-      });
+        }),
+        );
+      } catch (e) {
+        if (e instanceof HttpReplyError) {
+          reply.statusCode = e.status;
+          return reply.send(e.body as never);
+        }
+        throw e;
+      }
 
       const refreshedCatalog = await prisma.tournamentEventCatalog.findMany({
         where: { tournamentKey },

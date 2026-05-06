@@ -9,6 +9,7 @@ import {
   TOURNAMENT_KEYS,
   type TournamentKey,
 } from "../sports/pickleball/lib/index.js";
+import { redisGetJson, redisSetJson } from "./redisOptional.js";
 
 export type PickleballFantasyLeaderboardRow = {
   user_id: string;
@@ -94,6 +95,13 @@ export async function getCachedPickleballFantasyLeaderboard(): Promise<Picklebal
   const now = Date.now();
   const hit = lbCache.get(key);
   if (hit && now - hit.at < LB_CACHE_MS) return hit.data;
+
+  const redisHit = await redisGetJson<PickleballFantasyLeaderboardRow[]>(key);
+  if (redisHit !== null) {
+    lbCache.set(key, { at: Date.now(), data: redisHit });
+    return redisHit;
+  }
+
   if (lbInFlight) return lbInFlight;
 
   lbInFlight = (async () => {
@@ -129,6 +137,7 @@ export async function getCachedPickleballFantasyLeaderboard(): Promise<Picklebal
       tournamentDataByKey,
     });
     lbCache.set(key, { at: Date.now(), data });
+    await redisSetJson(key, data, Math.ceil(LB_CACHE_MS / 1000));
     return data;
   })().finally(() => {
     lbInFlight = null;

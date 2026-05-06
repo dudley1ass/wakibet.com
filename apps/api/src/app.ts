@@ -23,17 +23,33 @@ import { fantasyTournamentRoutes, winterFantasyRoutes } from "./sports/picklebal
 import { publicContactRoutes } from "./routes/publicContact.js";
 import { picksSpotlightRoutes } from "./routes/picksSpotlight.js";
 
+function resolveCorsOrigin(): boolean | string[] {
+  const raw = process.env.CORS_ORIGINS?.trim();
+  if (raw) {
+    const list = raw.split(",").map((s) => s.trim()).filter(Boolean);
+    return list.length ? list : false;
+  }
+  if (process.env.NODE_ENV === "production") {
+    logger.warn(
+      "CORS_ORIGINS is not set; no browser origins are allowlisted until you set CORS_ORIGINS (comma-separated HTTPS origins, no trailing slash).",
+    );
+    return false;
+  }
+  return ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:4173"];
+}
+
 export async function buildApp() {
   const app = Fastify({
     loggerInstance: logger,
     requestIdHeader: "x-request-id",
     disableRequestLogging: false,
+    trustProxy: true,
   }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
-  await app.register(cors, { origin: true });
+  await app.register(cors, { origin: resolveCorsOrigin() });
 
   /** Render / browser hits `/` — API has no SPA; return JSON instead of 404. */
   app.get("/", { schema: { hide: true } }, async () => ({

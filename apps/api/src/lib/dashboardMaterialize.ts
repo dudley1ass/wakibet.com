@@ -27,7 +27,8 @@ import {
 } from "../sports/pickleball/lib/index.js";
 import type { AuthUser } from "./requireAuthUser.js";
 import { isMlpTournament } from "./mlpTournamentData.js";
-import { rankPickleballFantasyFromLoaded } from "./pickleballFantasyLeaderboard.js";
+import { getCachedPickleballFantasyLeaderboard } from "./pickleballFantasyLeaderboard.js";
+import { redisGetJson, redisSetJson } from "./redisOptional.js";
 
 type TournamentDataByKey = Record<TournamentKey, Awaited<ReturnType<typeof getTournamentData>>>;
 
@@ -148,12 +149,27 @@ export type DashboardFullPayload = {
 
 const cache = new Map<string, { at: number; data: DashboardFullPayload }>();
 const CACHE_MS = 4000;
+const MAX_DASHBOARD_CACHE_USERS = 512;
 const inFlight = new Map<string, Promise<DashboardFullPayload>>();
+
+function touchBoundedUserCache<V>(
+  map: Map<string, V>,
+  key: string,
+  val: V,
+  maxKeys: number,
+): void {
+  if (map.size >= maxKeys && !map.has(key)) {
+    const first = map.keys().next().value as string | undefined;
+    if (first !== undefined) map.delete(first);
+  }
+  map.set(key, val);
+}
 
 export type DashboardSummaryOnly = Pick<DashboardFullPayload, "profile" | "open_contests" | "tournament_schedules">;
 
 const summaryCache = new Map<string, { at: number; data: DashboardSummaryOnly }>();
 const summaryInFlight = new Map<string, Promise<DashboardSummaryOnly>>();
+const MAX_SUMMARY_CACHE_USERS = 512;
 
 async function loadTournamentDataByKeyForDashboard(): Promise<
   Record<(typeof TOURNAMENT_KEYS)[number], Awaited<ReturnType<typeof getTournamentData>>>
@@ -235,7 +251,7 @@ export async function getCachedDashboardSummary(user: AuthUser): Promise<Dashboa
 
   p = computeDashboardSummaryOnly(user)
     .then((data) => {
-      summaryCache.set(user.id, { at: Date.now(), data });
+      touchBoundedUserCache(summaryCache, user.id, { at: Date.now(), data }, MAX_SUMMARY_CACHE_USERS);
       summaryInFlight.delete(user.id);
       return data;
     })
@@ -251,17 +267,11 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
   const userId = user.id;
   const tournamentDataByKey = await loadTournamentDataByKeyForDashboard();
 
-  const [fantasyRows, allFantasyRows, myFantasyTourneys, allFantasyTourneys, catalogAll] = await Promise.all([
+  const [fantasyRows, myFantasyTourneys, catalogAll, leaderboardRanked] = await Promise.all([
     prisma.winterFantasyRoster.findMany({
       where: { userId },
       include: { picks: { orderBy: { slotIndex: "asc" } } },
       orderBy: { updatedAt: "desc" },
-    }),
-    prisma.winterFantasyRoster.findMany({
-      include: {
-        picks: { orderBy: { slotIndex: "asc" } },
-        user: { select: { displayName: true } },
-      },
     }),
     prisma.fantasyTournamentLineup.findMany({
       where: {
@@ -273,17 +283,8 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
         eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
       },
     }),
-    prisma.fantasyTournamentLineup.findMany({
-      where: {
-        seasonKey: "",
-        tournamentKey: { in: [...TOURNAMENT_KEYS] },
-      },
-      include: {
-        user: { select: { displayName: true } },
-        eventPicks: { include: { slots: { orderBy: { slotIndex: "asc" } } } },
-      },
-    }),
     prisma.tournamentEventCatalog.findMany(),
+    getCachedPickleballFantasyLeaderboard(),
   ]);
   const catMap = new Map(catalogAll.map((c) => [c.eventKey, c]));
   const myTourneyTournamentKeys = new Set(
@@ -478,12 +479,6 @@ async function computeDashboardFull(user: AuthUser): Promise<DashboardFullPayloa
     note: "",
   };
 
-  const leaderboardRanked = rankPickleballFantasyFromLoaded({
-    allFantasyRows,
-    allFantasyTourneys,
-    catalogAll,
-    tournamentDataByKey,
-  });
   const rank_players_count = leaderboardRanked.length;
   const myLb = leaderboardRanked.find((r) => r.user_id === userId);
   const my_rank = myLb?.rank ?? null;
@@ -574,20 +569,33 @@ export async function getCachedDashboardFull(user: AuthUser): Promise<DashboardF
   const hit = cache.get(user.id);
   if (hit && now - hit.at < CACHE_MS) return hit.data;
 
+  const redisKey = `dash-full:${user.id}`;
+  const fromRedis = await redisGetJson<DashboardFullPayload>(redisKey);
+  if (fromRedis) {
+    touchBoundedUserCache(cache, user.id, { at: Date.now(), data: fromRedis }, MAX_DASHBOARD_CACHE_USERS);
+    return fromRedis;
+  }
+
   let p = inFlight.get(user.id);
   if (p) return p;
 
   p = computeDashboardFull(user)
     .then((data) => {
-      cache.set(user.id, { at: Date.now(), data });
-      summaryCache.set(user.id, {
-        at: Date.now(),
-        data: {
-          profile: data.profile,
-          open_contests: data.open_contests,
-          tournament_schedules: data.tournament_schedules,
+      touchBoundedUserCache(cache, user.id, { at: Date.now(), data }, MAX_DASHBOARD_CACHE_USERS);
+      touchBoundedUserCache(
+        summaryCache,
+        user.id,
+        {
+          at: Date.now(),
+          data: {
+            profile: data.profile,
+            open_contests: data.open_contests,
+            tournament_schedules: data.tournament_schedules,
+          },
         },
-      });
+        MAX_SUMMARY_CACHE_USERS,
+      );
+      void redisSetJson(redisKey, data, Math.ceil(CACHE_MS / 1000));
       inFlight.delete(user.id);
       return data;
     })
