@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import ArticleRedditCta from "./ArticleRedditCta";
 
 /** Long-form article bodies (each section targets 600+ words). */
 
@@ -94,6 +95,15 @@ export function PickleballOverratedBody() {
         Ready to test your eye? Jump into <Link to="/week-picks">this week’s fantasy picks</Link>, read the{" "}
         <Link to="/fantasy-rules">fantasy rules</Link>, and compare your pre-tournament predictions to how the slate
         actually plays out. The leaderboard will not care about your favorite narrative—it will care about points.
+      </p>
+      <p>
+        <a
+          href="https://www.reddit.com/r/Fantasy_Pickleball/comments/1t5k7e6/10_pickleball_players_everyone_overrates_and_what/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Join the Discussion at Reddit
+        </a>
       </p>
     </>
   );
@@ -393,6 +403,193 @@ export function PokerWsopLeaderboardVsFeaturedPoolsBody() {
         Publish what your contest measures (single Series, single slate, hybrid season), then align the pool with those
         incentives. The leaderboard is a compass; the featured pool is the trail you actually hike with friends.
       </p>
+    </>
+  );
+}
+
+/** Short debate starters — link out to Reddit for the real argument. */
+
+export function PokerWsopFantasyDraftNamesBody() {
+  return (
+    <>
+      <p>
+        WSOP fantasy drafts behave like red-carpet seating charts: the loudest names eat salary cap while anonymous grinders
+        quietly soak points when formats reward cashes, ladders, and boring advancement. That tension is the entire game.
+      </p>
+      <p>
+        None of this says marquee pros cannot smash—it says public drafts overweight familiarity and underweight schedule fit,
+        variance tolerance, and discipline across ugly middling fields.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Who is the most overdrafted poker player every summer?
+      </p>
+      <ArticleRedditCta slug="poker-wsop-fantasy-draft-names-not-results" />
+    </>
+  );
+}
+
+export function PokerBraceletsVsConsistencyBody() {
+  return (
+    <>
+      <p>
+        Bracelets are snapshots—often heroic ones—but “best tournament player” fights mix eras, buy-ins, and opponents like
+        comparing box scores across decades.
+      </p>
+      <p>
+        Stack bracelets against consistency (deep runs, ITM rates in tough HR fields), and suddenly everyone defines winning
+        differently. Good—fantasy does too.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Would you rather have one bracelet or fifty deep runs?
+      </p>
+      <ArticleRedditCta slug="poker-bracelets-vs-consistency-not-best-player" />
+    </>
+  );
+}
+
+export function PokerMainEventSurvivalVsSkillBody() {
+  return (
+    <>
+      <p>
+        The Main Event’s mythology sells poker to Earth—but tens of thousands of runners and survival-heavy payout ladders mean
+        variance dwarfs micro-edges for many stretches.
+      </p>
+      <p>
+        Skill still matters; so does lasting seven days of turbulence without stepping on rakes with ego punts. Ask whether the
+        trophy measures pure EV excellence or the broader circus—and admit both answers partly fit.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Is the Main Event really the best measure of poker skill?
+      </p>
+      <ArticleRedditCta slug="poker-main-event-survival-vs-skill" />
+    </>
+  );
+}
+
+export function Pickleball50VsProQualifiersBody() {
+  return (
+    <>
+      <p>
+        Self-ratings love optimism; qualifier carnage loves humility. Local legends bump “five-point-oh” vibes until someone
+        quietly eats them alive on transition balls they never see at league night.
+      </p>
+      <p>
+        DUPR snapshots and regional pools inflate differently—call out your zip code before defending anyone’s badge rating.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Is amateur pickleball massively overrated right now?
+      </p>
+      <ArticleRedditCta slug="pickleball-50-ratings-vs-pro-qualifiers" />
+    </>
+  );
+}
+
+export function PickleballBangersVsDinksRecBody() {
+  return (
+    <>
+      <p>
+        Rec leagues reward aggression because chaos wins weekends: blast winners and people remember your name. Patient
+        rollers shrink variance—but fewer viral swings means louder narratives steal credit.
+      </p>
+      <p>
+        Bring receipts from your local ladder night before declaring universal truth—surface, wind, and partner chemistry
+        rewrite every cliché.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> At rec level, does soft game actually matter?
+      </p>
+      <ArticleRedditCta slug="pickleball-bangers-vs-soft-game-rec" />
+    </>
+  );
+}
+
+export function Pickleball45ToProGapBody() {
+  return (
+    <>
+      <p>
+        Half-step jumps on paper hide giant leaps on court: athletic density, decision speed, and penalty tolerance explode as
+        soon as sets tighten.
+      </p>
+      <p>
+        Training debates flare because ego hates logarithmic gaps—same reason fantasy pricing shocks rookies every season.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> What rating did you finally admit was lying to you—and what broke the illusion?
+      </p>
+      <ArticleRedditCta slug="pickleball-45-to-pro-gap-ego-check" />
+    </>
+  );
+}
+
+export function VolleyballServeReceiveUnderratedBody() {
+  return (
+    <>
+      <p>
+        Serve receive never trends because “perfect pass” clips lack soundtrack—yet sides live or die on first touch when
+        servers hunt seams.
+      </p>
+      <p>
+        Fantasy formats that reward kills will always shout louder than formats rewarding stable platform touches—sound
+        familiar?
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Most underrated volleyball skill—what’s yours?
+      </p>
+      <ArticleRedditCta slug="volleyball-serve-receive-still-underrated" />
+    </>
+  );
+}
+
+export function VolleyballClubHypeVsDevelopmentBody() {
+  return (
+    <>
+      <p>
+        Travel circuits burn fuel and budgets fast—without deliberate reps and recovery, hype reels replace fundamentals while
+        families chase scholarships like lottery tickets.
+      </p>
+      <p>
+        Call your shot: what club culture does right, where it grifts, and how you’d fix incentives overnight.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Is club volleyball culture more about hype than player development?
+      </p>
+      <ArticleRedditCta slug="volleyball-club-hype-vs-player-development" />
+    </>
+  );
+}
+
+export function LacrosseAttackCreditBody() {
+  return (
+    <>
+      <p>
+        Attackmen inherit highlights because goals finish sentences—but clears, slides, and goalie bailouts author possessions
+        long before anyone spikes stats on Twitter.
+      </p>
+      <p>
+        Defense-first fans want receipts; offense-first fans bring clips. PLL arguments thrive in that collision—good.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> Who does the dirty work your favorite star depends on?
+      </p>
+      <ArticleRedditCta slug="lacrosse-attack-gets-too-much-credit" />
+    </>
+  );
+}
+
+export function LacrosseHighlightsVsFundamentalsBody() {
+  return (
+    <>
+      <p>
+        Algorithms reward ankle-breakers; coaches reward clears that nobody screenshots. When highlights warp training hours,
+        fundamentals starve first—especially for kids chasing likes before lungs catch up.
+      </p>
+      <p>
+        Tag your favorite “boring” PLL sequence that decided a playoff game—then argue why feeds refuse to promote it.
+      </p>
+      <p>
+        <strong>Reddit prompt:</strong> What fundamental disappeared first when everyone filmed everything?
+      </p>
+      <ArticleRedditCta slug="lacrosse-highlights-vs-fundamentals" />
     </>
   );
 }
