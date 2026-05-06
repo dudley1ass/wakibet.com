@@ -26,49 +26,6 @@ const badgeStyle: React.CSSProperties = {
   marginBottom: 6,
 };
 
-const SPORT_HUBS: {
-  label: string;
-  icon: string;
-  hover: string;
-  debates: number;
-  pulse?: string;
-  to?: string;
-}[] = [
-  {
-    label: "Pickleball",
-    icon: "🏓",
-    hover:
-      "Fantasy pickleball: build multi-event lineups with a WakiCash budget, set captains, and score WakiPoints across tournaments and leaderboards.",
-    debates: 212,
-    pulse: "+18 today",
-  },
-  {
-    label: "Volleyball",
-    icon: "🏐",
-    hover:
-      "Beach volleyball fantasy: roster picks tied to tour events, caps and captains — compete for season and event standings when live.",
-    debates: 94,
-    pulse: "live stops",
-  },
-  {
-    label: "Lacrosse",
-    icon: "🥍",
-    hover:
-      "Lacrosse fantasy: PLL-style slates — spread lines, confidence picks, and WakiCash-style allocations on game outcomes.",
-    debates: 156,
-    pulse: "PLL slate",
-  },
-  {
-    label: "Poker",
-    icon: "♠️",
-    hover:
-      "WSOP Las Vegas 2026 fantasy: flagship slates, 6 picks, 100 WakiCash, simple scoring — no real-money wagering on WakiBet.",
-    debates: 0,
-    pulse: "WSOP ’26",
-    to: "/poker",
-  },
-];
-
 const FEATURED_ARTICLES: {
   slug: string;
   title: string;
@@ -277,6 +234,9 @@ export default function MarketingHomePage() {
         <header className="marketing-header">
           <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: 34, width: "auto" }} />
           <nav style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link className="dash-ghost-btn" to="/articles">
+              Articles
+            </Link>
             <Link className="dash-ghost-btn" to="/auth?mode=login">
               Log in
             </Link>
@@ -306,18 +266,18 @@ export default function MarketingHomePage() {
                 scoreboard.
               </p>
 
-              {/* Primary CTA = Explore Rankings (community / viral hook) */}
-              <div className="landing-hero__cta-primary">
-                <Link className="dash-main-btn landing-cta-rankings" to="/week-picks">
-                  Explore Rankings &amp; Picks Hub
+              <div className="landing-hero__cta-row" aria-label="How each sport works on WakiBet">
+                <Link className="dash-ghost-btn" to="/info/pickleball">
+                  Pickleball info
                 </Link>
-              </div>
-              <div className="landing-hero__cta-row">
-                <Link className="dash-ghost-btn" to="/auth?mode=register">
-                  Join Early Access
+                <Link className="dash-ghost-btn" to="/info/volleyball">
+                  Volleyball info
                 </Link>
-                <Link className="dash-ghost-btn" to="/auth?mode=register">
-                  Enter Fantasy Contest
+                <Link className="dash-ghost-btn" to="/info/lacrosse">
+                  Lacrosse info
+                </Link>
+                <Link className="dash-ghost-btn" to="/info/poker">
+                  Poker info
                 </Link>
               </div>
             </div>
@@ -401,42 +361,6 @@ export default function MarketingHomePage() {
               <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
             </article>
           ))}
-        </section>
-
-        <section style={{ ...sectionCard, marginBottom: 16 }}>
-          <h2 style={{ marginTop: 0 }}>Sport Hubs</h2>
-          <p className="dash-sub" style={{ marginTop: 0, marginBottom: 12 }}>
-            Hover for fantasy rules · activity is illustrative until full community launch.
-          </p>
-          <div className="sport-hub-grid">
-            {SPORT_HUBS.map((hub) => {
-              const cardInner = (
-                <>
-                  <div className="sport-hub-card__icon">{hub.icon}</div>
-                  <div className="sport-hub-card__label">{hub.label}</div>
-                  <div className="sport-hub-card__stats">
-                    {hub.debates > 0 ? (
-                      <>
-                        <span className="sport-hub-card__heat">🔥 {hub.debates} active debates</span>
-                        <span className="sport-hub-card__pulse">{hub.pulse}</span>
-                      </>
-                    ) : (
-                      <span className="sport-hub-card__pulse">{hub.pulse}</span>
-                    )}
-                  </div>
-                </>
-              );
-              return hub.to ? (
-                <Link key={hub.label} to={hub.to} title={hub.hover} className="sport-hub-card">
-                  {cardInner}
-                </Link>
-              ) : (
-                <div key={hub.label} title={hub.hover} className="sport-hub-card">
-                  {cardInner}
-                </div>
-              );
-            })}
-          </div>
         </section>
 
         {/* Featured articles — card layout */}

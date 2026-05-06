@@ -59,6 +59,26 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "WakiBet fantasy rules: WakiCash budgets, roster sizes, captains, gender mix for MLP, locks, and fair play.",
   },
+  "/info/pickleball": {
+    title: `Pickleball fantasy — WakiCash & WakiPoints | ${SITE}`,
+    description:
+      "How WakiBet pickleball fantasy works: WakiCash budgets, captains, earning WakiPoints from tournaments, and links to the full scoring table.",
+  },
+  "/info/volleyball": {
+    title: `Volleyball fantasy — WakiCash & lineups | ${SITE}`,
+    description:
+      "How WakiBet beach volleyball fantasy works: 100 WakiCash salary cap, five-player rosters, captains, and WakiPoints from tour results.",
+  },
+  "/info/lacrosse": {
+    title: `Lacrosse fantasy — WakiCash on PLL slates | ${SITE}`,
+    description:
+      "How WakiBet PLL lacrosse slates work: allocating 100 WakiCash across lines, locks, and how returns relate to posted odds and ratings.",
+  },
+  "/info/poker": {
+    title: `Poker fantasy — WSOP WakiCash lineups | ${SITE}`,
+    description:
+      "How WakiBet WSOP fantasy works: salary-cap lineups in WakiCash, featured player pools, and scoring from published outcome tables.",
+  },
   "/week-picks": {
     title: `This week’s fantasy picks — MLP Dallas & AVP | ${SITE}`,
     description:

@@ -47,6 +47,7 @@ const WakiOddsPage = lazy(() =>
 );
 const ArticleIndexPage = lazy(() => import("./articles/ArticleIndexPage"));
 const ArticleDetailPage = lazy(() => import("./articles/ArticleDetailPage"));
+const SportPlayInfoPage = lazy(() => import("./components/SportPlayInfoPage"));
 
 export type SessionUser = {
   user_id: string;
@@ -228,6 +229,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/scoring-table" element={<ScoringTablePage />} />
       <Route path="/wakiodds" element={<WakiOddsPage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
+      <Route path="/info/:sportKey" element={<SportPlayInfoPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
       <Route path="/poker" element={<PokerHubPage user={session} />} />

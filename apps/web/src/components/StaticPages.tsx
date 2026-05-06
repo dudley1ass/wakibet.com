@@ -2,7 +2,7 @@ import { MLP_TEAM_FANTASY_RULES, WINTER_FANTASY_RULES } from "@wakibet/shared";
 import { FormEvent, useState, type ReactNode } from "react";
 import { apiPost } from "../api";
 
-function StaticLayout({ title, children }: { title: string; children: ReactNode }) {
+export function StaticLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="static-page-wrap">
       <div className="static-page-card">
