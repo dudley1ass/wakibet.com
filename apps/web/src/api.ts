@@ -11,6 +11,24 @@ const MISSING_BASE_HELP =
 
 const DEFAULT_FETCH_MS = import.meta.env.PROD ? 90_000 : 20_000;
 
+/** Login/register can hit slow API cold starts; allow one extra attempt like idempotent GETs. */
+const AUTH_POST_RETRY_PATHS = new Set(["/api/v1/auth/login", "/api/v1/auth/register"]);
+
+function effectiveTimeoutMs(path: string, method: string | undefined, budgetMs: number): number {
+  const m = (method ?? "GET").toUpperCase();
+  if (m === "POST" && AUTH_POST_RETRY_PATHS.has(path)) {
+    return Math.max(budgetMs, import.meta.env.PROD ? 135_000 : 45_000);
+  }
+  return budgetMs;
+}
+
+function shouldRetryOnTimeout(path: string, method: string | undefined, attempt: number): boolean {
+  if (attempt >= 2) return false;
+  const m = (method ?? "GET").toUpperCase();
+  if (m === "GET") return true;
+  return m === "POST" && AUTH_POST_RETRY_PATHS.has(path);
+}
+
 let accessToken: string | null = null;
 
 function createTimeoutSignal(ms: number): AbortSignal {
@@ -28,19 +46,19 @@ function isTimedOut(e: unknown): boolean {
 }
 
 async function apiFetch(path: string, init: RequestInit, attempt = 1, timeoutMs = DEFAULT_FETCH_MS): Promise<Response> {
+  const waitMs = effectiveTimeoutMs(path, init.method, timeoutMs);
   try {
     return await fetch(`${baseUrl()}${path}`, {
       ...init,
-      signal: createTimeoutSignal(timeoutMs),
+      signal: createTimeoutSignal(waitMs),
     });
   } catch (e) {
     if (isTimedOut(e)) {
-      // Render cold starts can exceed typical request budgets; retry idempotent reads once.
-      if ((init.method == null || init.method.toUpperCase() === "GET") && attempt < 2) {
+      if (shouldRetryOnTimeout(path, init.method, attempt)) {
         return apiFetch(path, init, attempt + 1, timeoutMs);
       }
       throw new Error(
-        `Request to ${path} timed out after ${timeoutMs / 1000}s. Check VITE_API_BASE, that the API is running, and your network.`,
+        `Request to ${path} timed out after ${waitMs / 1000}s. Check VITE_API_BASE, that the API is running, and your network.`,
       );
     }
     throw e;
