@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
+import MarketingHomePage from "./components/MarketingHomePage";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
 import SiteFooter from "./components/SiteFooter";
 import GoogleAnalyticsRouteListener from "./components/GoogleAnalyticsRouteListener";
@@ -336,7 +337,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
         }
       />
       <Route
-        path="/"
+        path="/auth"
         element={
           booting ? (
             <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
@@ -344,6 +345,20 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
             </p>
           ) : !session ? (
             <LoginPage onAuthSuccess={onAuthSuccess} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <MarketingHomePage />
           ) : (
             <Dashboard user={session} onLogout={onLogout} />
           )

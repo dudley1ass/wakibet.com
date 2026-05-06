@@ -23,6 +23,19 @@ type AdminUserRow = {
 };
 
 type AdminLineupsResponse = { users: AdminUserRow[] };
+type AdminNewAccountsResponse = {
+  range_start: string;
+  range_end: string;
+  total_new_accounts: number;
+  daily: { date: string; new_accounts: number }[];
+};
+type AdminGaNewUsersResponse = {
+  range_start: string;
+  range_end: string;
+  ga4_property_id: string | null;
+  new_users: number | null;
+  configured: boolean;
+};
 
 type Props = { user: SessionUser };
 
@@ -46,6 +59,19 @@ export default function AdminLineupsPage({ user }: Props) {
   });
 
   const users = query.data?.users ?? [];
+  const newAccountsQuery = useQuery({
+    queryKey: ["admin", "new-accounts", 28] as const,
+    queryFn: () => apiGet<AdminNewAccountsResponse>("/api/v1/admin/users/new-accounts?days=28"),
+    staleTime: 20_000,
+  });
+  const gaNewUsersQuery = useQuery({
+    queryKey: ["admin", "ga-new-users", 28] as const,
+    queryFn: () => apiGet<AdminGaNewUsersResponse>("/api/v1/admin/users/ga-new-users?days=28"),
+    staleTime: 20_000,
+  });
+  const gaNewUsersNumber = gaNewUsersQuery.data?.new_users ?? null;
+  const hasGaNewUsers = typeof gaNewUsersNumber === "number";
+  const dbNewAccounts28d = newAccountsQuery.data?.total_new_accounts ?? 0;
   const totals = useMemo(
     () => ({
       users: users.length,
@@ -156,6 +182,53 @@ export default function AdminLineupsPage({ user }: Props) {
         ) : null}
         {resetErr ? <p className="dash-error">{resetErr}</p> : null}
         {resetMsg ? <p style={{ color: "#166534", marginTop: 8 }}>{resetMsg}</p> : null}
+        <div className="dash-card" style={{ marginTop: 12 }}>
+          <div className="wf-label" style={{ marginBottom: 6 }}>
+            New users (GA) vs new accounts (DB) — last 28 days
+          </div>
+          <p className="dash-sub" style={{ marginTop: 0 }}>
+            GA "new users" = first-time site visitors. DB "new accounts" = successful account registrations.
+          </p>
+          {gaNewUsersQuery.error ? (
+            <p className="dash-error">
+              {gaNewUsersQuery.error instanceof Error ? gaNewUsersQuery.error.message : "Could not load GA new users."}
+            </p>
+          ) : null}
+          {newAccountsQuery.error ? (
+            <p className="dash-error">
+              {newAccountsQuery.error instanceof Error ? newAccountsQuery.error.message : "Could not load DB new accounts."}
+            </p>
+          ) : null}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="dash-ghost-btn"
+              onClick={() => {
+                void Promise.all([newAccountsQuery.refetch(), gaNewUsersQuery.refetch()]);
+              }}
+              disabled={newAccountsQuery.isFetching || gaNewUsersQuery.isFetching}
+            >
+              {newAccountsQuery.isFetching || gaNewUsersQuery.isFetching ? "Refreshing..." : "Refresh GA + DB"}
+            </button>
+          </div>
+          {gaNewUsersQuery.data && !gaNewUsersQuery.data.configured ? (
+            <p className="dash-sub" style={{ marginTop: 8 }}>
+              GA fetch not configured yet. Set <code>GA4_PROPERTY_ID</code> and <code>GA4_SERVICE_ACCOUNT_JSON</code> on
+              the API service.
+            </p>
+          ) : null}
+          <p className="dash-sub" style={{ marginTop: 8 }}>
+            DB new accounts ({newAccountsQuery.data?.range_start ?? "..." } to {newAccountsQuery.data?.range_end ?? "..."}):{" "}
+            <strong>{dbNewAccounts28d}</strong>
+            {hasGaNewUsers ? (
+              <>
+                {" "}
+                · GA new users: <strong>{gaNewUsersNumber}</strong> · Difference:{" "}
+                <strong>{(gaNewUsersNumber ?? 0) - dbNewAccounts28d}</strong>
+              </>
+            ) : null}
+          </p>
+        </div>
         <div className="dash-card" style={{ marginTop: 12 }}>
           <div className="wf-label" style={{ marginBottom: 6 }}>
             Refresh lacrosse WakiPicks for tournament

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcryptjs";
+import { google } from "googleapis";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { getCachedDashboardFull, getCachedDashboardSummary } from "../lib/dashboardMaterialize.js";
@@ -163,6 +164,30 @@ const DashboardInsightsResponse = DashboardResponse.pick({
 });
 
 const ErrorMessage = z.object({ message: z.string() });
+const NewAccountsQuery = z.object({
+  days: z.coerce.number().int().min(1).max(90).optional().default(28),
+});
+const NewAccountsResponse = z.object({
+  range_start: z.string(),
+  range_end: z.string(),
+  total_new_accounts: z.number().int(),
+  daily: z.array(
+    z.object({
+      date: z.string(),
+      new_accounts: z.number().int(),
+    }),
+  ),
+});
+const GaNewUsersQuery = z.object({
+  days: z.coerce.number().int().min(1).max(90).optional().default(28),
+});
+const GaNewUsersResponse = z.object({
+  range_start: z.string(),
+  range_end: z.string(),
+  ga4_property_id: z.string().nullable(),
+  new_users: z.number().int().nullable(),
+  configured: z.boolean(),
+});
 
 const authPre = { preHandler: [requireAuthUser] };
 const adminEmails = new Set(
@@ -239,6 +264,123 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       return {
         fantasy_pulse: full.fantasy_pulse,
         fantasy_what_if: full.fantasy_what_if,
+      };
+    },
+  );
+
+  typed.get(
+    "/api/v1/admin/users/new-accounts",
+    {
+      preHandler: [requireAuthUser, requireAdminUser],
+      schema: {
+        tags: ["users", "admin"],
+        querystring: NewAccountsQuery,
+        response: {
+          200: NewAccountsResponse,
+          401: ErrorMessage,
+          403: ErrorMessage,
+          503: ErrorMessage,
+        },
+      },
+    },
+    async (req) => {
+      const days = req.query.days;
+      const end = new Date();
+      const start = new Date(end);
+      start.setUTCDate(start.getUTCDate() - (days - 1));
+      start.setUTCHours(0, 0, 0, 0);
+
+      const rawDaily = await prisma.$queryRaw<Array<{ day: Date; count: bigint | number }>>`
+        SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS count
+        FROM "User"
+        WHERE "createdAt" >= ${start} AND "createdAt" <= ${end}
+        GROUP BY 1
+        ORDER BY 1 ASC
+      `;
+      const countByDay = new Map(
+        rawDaily.map((r) => [r.day.toISOString().slice(0, 10), Number(r.count)]),
+      );
+
+      const daily = Array.from({ length: days }, (_, i) => {
+        const d = new Date(start);
+        d.setUTCDate(start.getUTCDate() + i);
+        const key = d.toISOString().slice(0, 10);
+        return { date: key, new_accounts: countByDay.get(key) ?? 0 };
+      });
+
+      return {
+        range_start: daily[0]?.date ?? start.toISOString().slice(0, 10),
+        range_end: daily[daily.length - 1]?.date ?? end.toISOString().slice(0, 10),
+        total_new_accounts: daily.reduce((sum, row) => sum + row.new_accounts, 0),
+        daily,
+      };
+    },
+  );
+
+  typed.get(
+    "/api/v1/admin/users/ga-new-users",
+    {
+      preHandler: [requireAuthUser, requireAdminUser],
+      schema: {
+        tags: ["users", "admin"],
+        querystring: GaNewUsersQuery,
+        response: {
+          200: GaNewUsersResponse,
+          401: ErrorMessage,
+          403: ErrorMessage,
+          503: ErrorMessage,
+        },
+      },
+    },
+    async (req) => {
+      const days = req.query.days;
+      const propertyId = (process.env.GA4_PROPERTY_ID || "").trim();
+      const serviceAccountJson = (process.env.GA4_SERVICE_ACCOUNT_JSON || "").trim();
+      const endDate = new Date();
+      const startDate = new Date(endDate);
+      startDate.setUTCDate(startDate.getUTCDate() - (days - 1));
+      const rangeStart = startDate.toISOString().slice(0, 10);
+      const rangeEnd = endDate.toISOString().slice(0, 10);
+
+      if (!propertyId || !serviceAccountJson) {
+        return {
+          range_start: rangeStart,
+          range_end: rangeEnd,
+          ga4_property_id: propertyId || null,
+          new_users: null,
+          configured: false,
+        };
+      }
+
+      const creds = JSON.parse(serviceAccountJson) as {
+        client_email?: string;
+        private_key?: string;
+      };
+      if (!creds.client_email || !creds.private_key) {
+        throw new Error("GA4_SERVICE_ACCOUNT_JSON is missing client_email/private_key.");
+      }
+
+      const auth = new google.auth.JWT({
+        email: creds.client_email,
+        key: creds.private_key,
+        scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
+      });
+      const analyticsData = google.analyticsdata({ version: "v1beta", auth });
+      const report = await analyticsData.properties.runReport({
+        property: `properties/${propertyId}`,
+        requestBody: {
+          dateRanges: [{ startDate: rangeStart, endDate: rangeEnd }],
+          metrics: [{ name: "newUsers" }],
+        },
+      });
+      const newUsersValue = report.data.rows?.[0]?.metricValues?.[0]?.value ?? "0";
+
+      return {
+        range_start: rangeStart,
+        range_end: rangeEnd,
+        ga4_property_id: propertyId,
+        new_users: Number.parseInt(newUsersValue, 10) || 0,
+        configured: true,
       };
     },
   );

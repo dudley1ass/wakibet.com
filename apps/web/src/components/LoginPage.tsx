@@ -1,4 +1,5 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { apiPost, finalizeAuthFromLoginResponse } from "../api";
 import ThisWeekPicksHomeSection from "./ThisWeekPicksHomeSection";
 import "./dashboard.css";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function LoginPage({ onAuthSuccess }: Props) {
+  const location = useLocation();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +27,18 @@ export default function LoginPage({ onAuthSuccess }: Props) {
     setMessage(null);
     setError(null);
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const requestedMode = params.get("mode");
+    if (requestedMode === "register") {
+      setMode("register");
+      return;
+    }
+    if (requestedMode === "login") {
+      setMode("login");
+    }
+  }, [location.search]);
 
   async function handleLogin() {
     resetMessages();
