@@ -50,9 +50,9 @@ const ROUTES: Record<string, SeoEntry> = {
       "2026 AVP League, Heritage, and Contender tour stops with dates and locations on WakiBet — fantasy lineups and scoring coming soon (pickleball-style WakiCash and captains).",
   },
   "/poker": {
-    title: `Poker fantasy — world rankings & 2026 live tour calendar | ${SITE}`,
+    title: `WSOP Las Vegas 2026 fantasy — slates, WakiCash & scoring | ${SITE}`,
     description:
-      "Global poker player rankings (top 200) with composite ratings plus the 2026 live festival calendar — WakiCash lineups and scoring on WakiBet as contests open.",
+      "WSOP Las Vegas (May–Jul 2026) fantasy: Tier 1 flagship slates, elite championship slates, 6 picks and 100 WakiCash, simple scoring — rankings reference and featured pools on WakiBet.",
   },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,

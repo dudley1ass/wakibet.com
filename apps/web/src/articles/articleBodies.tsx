@@ -296,3 +296,103 @@ export function PokerWsopFantasyBody() {
     </>
   );
 }
+
+export function PokerRankingWhichIsRealBody() {
+  return (
+    <>
+      <p>
+        Ask three poker fans who the “best player in the world” is and you might get three correct answers—because each
+        person is secretly answering a different question. Global indexes, Hendon-style career stats, WSOP earnings
+        boards, and whatever list your group chat believes in are all{" "}
+        <strong>real data tied to different definitions of greatness</strong>. The mistake is treating them like rival
+        truths instead of rival lenses.
+      </p>
+      <h2>Composite rankings reward prediction and consistency</h2>
+      <p>
+        Many public “top player” lists blend tournament results over time, field strength, buy-in tier, and recency. They
+        behave like power ratings: useful for comparing who has run deep against credible competition lately. They can miss
+        pure volume grinders who rarely beat the world’s hardest fields, and they can overweight short streaks—same as any
+        rating system in sports.
+      </p>
+      <h2>Hendon-style databases reward documented history</h2>
+      <p>
+        Career cashes, ROI debates, and sample-size fights live here. These tables are invaluable for fact-checking
+        narratives (“has he ever actually cashed that event?”), but they are not automatically the same as “who wins
+        tomorrow.” Fantasy players should love this layer for research—and still separate it from story-driven picks.
+      </p>
+      <h2>WSOP earnings boards reward the Series itself</h2>
+      <p>
+        A leaderboard dominated by World Series results highlights who prints money under bright lights in Vegas (and who
+        captures public imagination there). That can diverge sharply from a global index if someone’s volume is outside
+        the Rio—or Horseshoe—calendar. Neither list is fake; they optimize different tournaments.
+      </p>
+      <h2>So which list should fantasy use?</h2>
+      <p>
+        Use <strong>the list that matches your scoring rules</strong>. If your game rewards bracelets and deep WSOP runs,
+        WSOP-centric signals deserve more weight. If your format rewards consistency across regions and years, composite
+        indexes and databases matter more. On WakiBet, we care about emotional lineup builds first—then we anchor salaries
+        and pools to transparent sources so arguments stay grounded.
+      </p>
+      <p>
+        Still hungry for formats and vibes? Pair this with{" "}
+        <Link to="/articles/poker-wsop-fantasy-strategy-explained">WSOP fantasy strategy</Link> and the{" "}
+        <Link to="/poker">WSOP hub</Link>, where we keep publishing how each layer of data plugs into featured pools—not
+        spreadsheet cosplay.
+      </p>
+      <h2>A practical rule for arguments</h2>
+      <p>
+        When someone posts a ranking screenshot, ask two questions: what time window does it cover, and what outcomes
+        does it actually count? Once those are explicit, most “ranking wars” shrink into preferences—not physics. That is
+        good news for fantasy operators: pick the definition of greatness that fits your game, disclose it, and let the
+        sweat handle the drama.
+      </p>
+    </>
+  );
+}
+
+export function PokerWsopLeaderboardVsFeaturedPoolsBody() {
+  return (
+    <>
+      <p>
+        The WSOP website can surface an earnings-driven top-player table that feels authoritative—because it is{" "}
+        <em>authoritative for what it measures</em>. But fantasy products cannot dump the entire historical leaderboard
+        into a pick screen and expect engagement. Users need legible pools, realistic salaries, and room for storytelling.
+        That is why WakiBet targets{" "}
+        <strong>roughly fifty to one hundred fifty featured names per slate</strong>, not every badge holder in the
+        database.
+      </p>
+      <h2>Site boards optimize for legacy Series volume</h2>
+      <p>
+        When leaderboards emphasize WSOP earnings or bracelet-adjacent totals, they naturally elevate players who camp
+        the Series, fire big fields, and accumulate volume in Las Vegas. That is excellent context—and also why the same
+        board might omit crushers who rarely play the Series or who specialize elsewhere until July.
+      </p>
+      <h2>Fantasy pools optimize for playability</h2>
+      <p>
+        A featured pool must fit salary constraints, avoid paralysis, and leave oxygen for sleepers and qualifiers. Even
+        if someone ranks fortieth on a website table, they might miss the cut if they are redundant with another star or
+        if pricing collapses roster diversity. Conversely, a storyline qualifier might earn a slot despite thinner career
+        totals—because fantasy rewards sweat and narrative as much as spreadsheets.
+      </p>
+      <h2>How WakiBet stitches sources together</h2>
+      <p>
+        We treat official WSOP-facing boards, composite indexes, and curated adds as <strong>inputs</strong>, not as the
+        entire answer. Operators still hand-tune sleepers, regional heroes, and social heat so lineups feel human. The goal
+        is drama without overwhelm—six picks, one hundred WakiCash, clear scoring.
+      </p>
+      <p>
+        Want the philosophical comparison of ranking lists? Read{" "}
+        <Link to="/articles/poker-which-poker-ranking-is-real">which ranking list is “real.”</Link> When you are ready to
+        translate philosophy into picks, jump to the <Link to="/poker">WSOP fantasy hub</Link> where we show both the
+        site-style board and the global reference table side by side—so your league debates stay informed without turning
+        into Excel camp.
+      </p>
+      <h2>Takeaway for commissioners</h2>
+      <p>
+        If your community argues that “the website says” someone must be priced highest, smile and agree—with context.
+        Publish what your contest measures (single Series, single slate, hybrid season), then align the pool with those
+        incentives. The leaderboard is a compass; the featured pool is the trail you actually hike with friends.
+      </p>
+    </>
+  );
+}

@@ -57,9 +57,9 @@ const SPORT_HUBS: {
     label: "Poker",
     icon: "♠️",
     hover:
-      "Poker fantasy: 2026 live tour calendar (WSOP, EPT, festivals) — WakiCash lineups and scoring as contests open. No real-money wagering on WakiBet.",
+      "WSOP Las Vegas 2026 fantasy: flagship slates, 6 picks, 100 WakiCash, simple scoring — no real-money wagering on WakiBet.",
     debates: 0,
-    pulse: "2026 stops",
+    pulse: "WSOP ’26",
     to: "/poker",
   },
 ];
@@ -102,6 +102,22 @@ const FEATURED_ARTICLES: {
     category: "Poker",
     comments: 58,
     trending: true,
+    thumbMod: "article-thumb--pk",
+  },
+  {
+    slug: "poker-which-poker-ranking-is-real",
+    title: "Which Poker Ranking List Is the “Real” One",
+    category: "Poker",
+    comments: 12,
+    trending: false,
+    thumbMod: "article-thumb--pk",
+  },
+  {
+    slug: "poker-wsop-leaderboard-vs-featured-pools",
+    title: "Why the WSOP Leaderboard Is Not Your Fantasy Pool",
+    category: "Poker",
+    comments: 9,
+    trending: false,
     thumbMod: "article-thumb--pk",
   },
 ];

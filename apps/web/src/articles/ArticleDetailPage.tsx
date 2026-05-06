@@ -4,7 +4,9 @@ import { getArticleBySlug } from "./registry";
 import {
   LacrosseDefenseBody,
   PickleballOverratedBody,
+  PokerRankingWhichIsRealBody,
   PokerWsopFantasyBody,
+  PokerWsopLeaderboardVsFeaturedPoolsBody,
   VolleyballUnderratedSkillBody,
 } from "./articleBodies";
 
@@ -13,6 +15,8 @@ const BODY_BY_SLUG = {
   "lacrosse-why-defense-wins-championships": LacrosseDefenseBody,
   "volleyball-most-underrated-skill": VolleyballUnderratedSkillBody,
   "poker-wsop-fantasy-strategy-explained": PokerWsopFantasyBody,
+  "poker-which-poker-ranking-is-real": PokerRankingWhichIsRealBody,
+  "poker-wsop-leaderboard-vs-featured-pools": PokerWsopLeaderboardVsFeaturedPoolsBody,
 } as const;
 
 export default function ArticleDetailPage() {

@@ -4,7 +4,9 @@ export type ArticleSlug =
   | "pickleball-10-players-everyone-overrates"
   | "lacrosse-why-defense-wins-championships"
   | "volleyball-most-underrated-skill"
-  | "poker-wsop-fantasy-strategy-explained";
+  | "poker-wsop-fantasy-strategy-explained"
+  | "poker-which-poker-ranking-is-real"
+  | "poker-wsop-leaderboard-vs-featured-pools";
 
 export type ArticleRecord = {
   slug: ArticleSlug;
@@ -60,6 +62,24 @@ export const ARTICLES: ArticleRecord[] = [
     keywords: ["WSOP fantasy", "poker fantasy", "World Series of Poker", "fantasy poker strategy", "WakiBet"],
     datePublished: "2026-05-04",
     dateModified: "2026-05-06",
+  },
+  {
+    slug: "poker-which-poker-ranking-is-real",
+    headline: "Which Poker Ranking List Is the “Real” One — And Why None of Them Lie",
+    description:
+      "GPI-style indexes, Hendon Mob stats, WSOP earnings boards, and media hype measure different things. A plain-language map so fantasy players pick the right signal for each decision.",
+    keywords: ["poker rankings", "GPI poker", "Hendon Mob", "WSOP leaderboard", "poker fantasy", "WakiBet"],
+    datePublished: "2026-05-07",
+    dateModified: "2026-05-07",
+  },
+  {
+    slug: "poker-wsop-leaderboard-vs-featured-pools",
+    headline: "Why the WSOP Website Leaderboard Is Not Your Fantasy Player Pool",
+    description:
+      "Site earnings boards reward legacy volume and visibility; WakiBet featured pools reward playability. How to translate one list into the other without drowning users in names.",
+    keywords: ["WSOP leaderboard", "poker fantasy pool", "featured players", "salary cap fantasy", "WakiBet"],
+    datePublished: "2026-05-07",
+    dateModified: "2026-05-07",
   },
 ];
 
