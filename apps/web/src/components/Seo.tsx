@@ -1,9 +1,11 @@
 import { useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { articleJsonLdGraph, pathnameToArticle } from "../articles/registry";
 import { getSeoForPathname } from "../lib/seoConfig";
 import { getSiteOrigin } from "../lib/siteOrigin";
 
 const LD_JSON_ID = "wakibet-ld-json-website";
+const LD_JSON_ARTICLE_ID = "wakibet-ld-json-article";
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {
   const safeKey = key.replace(/"/g, "");
@@ -56,6 +58,21 @@ function removeJsonLdWebsite() {
   document.getElementById(LD_JSON_ID)?.remove();
 }
 
+function setJsonLdArticle(payload: Record<string, unknown>) {
+  let el = document.getElementById(LD_JSON_ARTICLE_ID) as HTMLScriptElement | null;
+  if (!el) {
+    el = document.createElement("script");
+    el.type = "application/ld+json";
+    el.id = LD_JSON_ARTICLE_ID;
+    document.head.appendChild(el);
+  }
+  el.textContent = JSON.stringify(payload);
+}
+
+function removeJsonLdArticle() {
+  document.getElementById(LD_JSON_ARTICLE_ID)?.remove();
+}
+
 /**
  * SPA head tags for search + sharing. Runs on every client navigation.
  * Set `VITE_SITE_ORIGIN` in production so canonical and og:url match your public domain.
@@ -66,6 +83,7 @@ export default function Seo() {
   const origin = getSiteOrigin();
   const canonical =
     pathname === "/" ? `${origin}/` : `${origin}${pathname.replace(/\/+$/, "") || "/"}`;
+  const articleRecord = pathnameToArticle(pathname);
 
   useLayoutEffect(() => {
     document.title = seo.title;
@@ -81,9 +99,22 @@ export default function Seo() {
     upsertMeta("property", "og:title", seo.title);
     upsertMeta("property", "og:description", seo.description);
     upsertMeta("property", "og:url", canonical);
-    upsertMeta("property", "og:type", "website");
     upsertMeta("property", "og:site_name", "WakiBet");
     upsertMeta("property", "og:image", `${origin}/brand/logo-primary.svg`);
+
+    if (articleRecord) {
+      upsertMeta("property", "og:type", "article");
+      upsertMeta("property", "article:published_time", `${articleRecord.datePublished}T12:00:00.000Z`);
+      upsertMeta("property", "article:modified_time", `${articleRecord.dateModified}T12:00:00.000Z`);
+      upsertMeta("name", "keywords", articleRecord.keywords.join(", "));
+      setJsonLdArticle(articleJsonLdGraph({ article: articleRecord, canonicalUrl: canonical, origin }));
+    } else {
+      upsertMeta("property", "og:type", "website");
+      removeMeta("property", "article:published_time");
+      removeMeta("property", "article:modified_time");
+      removeMeta("name", "keywords");
+      removeJsonLdArticle();
+    }
 
     upsertMeta("name", "twitter:card", "summary");
     upsertMeta("name", "twitter:title", seo.title);
@@ -97,7 +128,7 @@ export default function Seo() {
     } else {
       removeJsonLdWebsite();
     }
-  }, [pathname, seo.title, seo.description, seo.noindex, canonical, origin]);
+  }, [pathname, seo.title, seo.description, seo.noindex, canonical, origin, articleRecord]);
 
   return null;
 }

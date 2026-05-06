@@ -212,11 +212,26 @@ export default function MarketingHomePage() {
       <section style={{ ...sectionCard, marginBottom: 16 }}>
         <h2 style={{ marginTop: 0 }}>Featured Articles</h2>
         <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
-          <li>10 Pickleball Players Everyone Overrates</li>
-          <li>Why Defense Wins Championships Again in Lacrosse</li>
-          <li>Most Underrated Skill in Volleyball</li>
-          <li>WSOP Fantasy Strategy Explained</li>
+          <li>
+            <Link to="/articles/pickleball-10-players-everyone-overrates">
+              10 Pickleball Players Everyone Overrates
+            </Link>
+          </li>
+          <li>
+            <Link to="/articles/lacrosse-why-defense-wins-championships">
+              Why Defense Wins Championships Again in Lacrosse
+            </Link>
+          </li>
+          <li>
+            <Link to="/articles/volleyball-most-underrated-skill">Most Underrated Skill in Volleyball</Link>
+          </li>
+          <li>
+            <Link to="/articles/poker-wsop-fantasy-strategy-explained">WSOP Fantasy Strategy Explained</Link>
+          </li>
         </ul>
+        <p className="dash-sub" style={{ marginTop: 12, marginBottom: 0 }}>
+          <Link to="/articles">Browse all articles →</Link>
+        </p>
       </section>
 
       <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>

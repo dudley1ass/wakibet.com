@@ -1,3 +1,5 @@
+import { ARTICLE_SEO_ROUTES } from "../articles/registry";
+
 export type SeoEntry = {
   title: string;
   description: string;
@@ -94,6 +96,12 @@ const ROUTES: Record<string, SeoEntry> = {
     description: "Internal WakiBet admin tools for support staff.",
     noindex: true,
   },
+  "/auth": {
+    title: `Sign in or create account | ${SITE}`,
+    description:
+      "Log in or register for WakiBet: free-to-play fantasy pickleball, lacrosse, volleyball, and community competition.",
+  },
+  ...ARTICLE_SEO_ROUTES,
 };
 
 const DEFAULT: SeoEntry = {

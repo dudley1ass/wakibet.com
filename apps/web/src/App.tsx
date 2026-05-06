@@ -44,6 +44,8 @@ const FantasyRulesPage = lazy(() =>
 const WakiOddsPage = lazy(() =>
   import("./components/StaticPages").then((m) => ({ default: m.WakiOddsPage })),
 );
+const ArticleIndexPage = lazy(() => import("./articles/ArticleIndexPage"));
+const ArticleDetailPage = lazy(() => import("./articles/ArticleDetailPage"));
 
 export type SessionUser = {
   user_id: string;
@@ -217,6 +219,8 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
     >
       <Routes>
         <Route path="/terms" element={<TermsPage />} />
+      <Route path="/articles" element={<ArticleIndexPage />} />
+      <Route path="/articles/:slug" element={<ArticleDetailPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/responsible-play" element={<ResponsiblePlayPage />} />
       <Route path="/contact" element={<ContactPage />} />
