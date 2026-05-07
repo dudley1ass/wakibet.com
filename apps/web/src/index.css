@@ -539,24 +539,67 @@ body {
   line-height: 1.25;
 }
 
-.landing-hero__prizes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 10px;
+/* Landing hero — rotating prize showcase */
+.landing-hero-prize-rotator {
   margin-top: 12px;
   width: 100%;
   max-width: 980px;
-}
-
-.landing-hero__prize-card {
   border: 1px solid rgba(251, 191, 36, 0.28);
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.58);
-  padding: 10px;
+  padding: 10px 12px 12px;
+  box-sizing: border-box;
 }
 
-.landing-hero__prize-kicker {
+.landing-hero-prize-rotator__eyebrow {
   margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fcd34d;
+}
+
+.landing-hero-prize-rotator__stage {
+  position: relative;
+  min-height: 260px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.landing-hero-prize-rotator__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.65s ease-in-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-hero-prize-rotator__slide--active {
+  opacity: 1;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-prize-rotator__slide {
+    transition: none;
+  }
+}
+
+.landing-hero-prize-rotator__card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.landing-hero-prize-rotator__kicker {
+  margin: 0 0 10px;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -564,39 +607,50 @@ body {
   color: #fcd34d;
 }
 
-.landing-hero__prize-image {
+.landing-hero-prize-rotator__img {
+  flex: 1;
   width: 100%;
   min-height: 180px;
-  max-height: 240px;
+  max-height: 220px;
   object-fit: contain;
   border-radius: 10px;
-  background: rgba(2, 6, 23, 0.65);
+  background: transparent;
 }
 
-.landing-hero__prize-image--poker {
-  min-height: 210px;
+.landing-hero-prize-rotator__img--tall {
+  min-height: 200px;
+  max-height: 240px;
 }
 
-.landing-hero__pickleball-prizes {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-}
-
-.landing-hero__prize-or {
-  display: inline-flex;
-  align-items: center;
+.landing-hero-prize-rotator__dots {
+  display: flex;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 2px;
+}
+
+.landing-hero-prize-rotator__dot {
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   border: 1px solid rgba(251, 191, 36, 0.45);
-  background: rgba(120, 53, 15, 0.45);
-  color: #fde68a;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.07em;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.landing-hero-prize-rotator__dot:hover {
+  border-color: #fde68a;
+  transform: scale(1.08);
+}
+
+.landing-hero-prize-rotator__dot--active {
+  background: linear-gradient(135deg, #f59e0b, #b45309);
+  border-color: #fde68a;
+  box-shadow: 0 0 0 2px rgba(253, 230, 138, 0.2);
 }
 
 .poker-wakicash-hero {

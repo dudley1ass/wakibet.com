@@ -4,18 +4,35 @@ const ROTATE_MS = 6000;
 
 const PRIZE_SLIDES = [
   {
-    id: "pickleball",
+    id: "pickleball-paddle",
     sport: "Pickleball",
     headline: "Tournament winner",
     prize: "New paddle of your choice",
     src: "/dashboard/season-prizes/pickleball.png",
+    dotAriaLabel: "Show pickleball paddle prize",
+  },
+  {
+    id: "pickleball-signed-ball",
+    sport: "Pickleball",
+    headline: "Tournament winner",
+    prize: "Ben Johns signed ball (or new paddle)",
+    src: "/landing/prizes/pickleball-ben-johns-signed-ball.png",
+    dotAriaLabel: "Show Ben Johns signed pickleball prize",
+  },
+  {
+    id: "pickleball-alw-signed",
+    sport: "Pickleball",
+    headline: "Tournament winner",
+    prize: "Anna Leigh Waters signed photo (or other prizes)",
+    src: "/landing/prizes/pickleball-alw-signed-photo.png",
+    dotAriaLabel: "Show Anna Leigh Waters signed pickleball prize",
   },
   {
     id: "volleyball",
     sport: "Volleyball",
     headline: "Tournament winner",
     prize: "Win a new Volleyball!!!",
-    src: "/dashboard/season-prizes/volleyball.png",
+    src: "/landing/prizes/volleyball-wakibet-champion.png",
   },
   {
     id: "lacrosse",
@@ -23,6 +40,13 @@ const PRIZE_SLIDES = [
     headline: "Tournament winner",
     prize: "PLL team-of-choice jersey",
     src: "/dashboard/season-prizes/lacrosse.png",
+  },
+  {
+    id: "poker",
+    sport: "Poker",
+    headline: "Tournament winner",
+    prize: "WSOP champion chip prize set",
+    src: "/landing/prizes/poker-wsop-chip-prize.png",
   },
 ] as const;
 
@@ -93,7 +117,7 @@ export default function DashboardSeasonPrizesStrip() {
             aria-selected={i === index}
             className={`dash-season-prizes-dot${i === index ? " dash-season-prizes-dot--active" : ""}`}
             onClick={() => go(i)}
-            aria-label={`Show ${slide.sport} prize`}
+            aria-label={"dotAriaLabel" in slide && slide.dotAriaLabel ? slide.dotAriaLabel : `Show ${slide.sport} prize`}
           />
         ))}
       </div>
