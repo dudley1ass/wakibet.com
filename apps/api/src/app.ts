@@ -22,6 +22,7 @@ import { volleyballRoutes } from "./routes/volleyball.js";
 import { fantasyTournamentRoutes, winterFantasyRoutes } from "./sports/pickleball/routes/index.js";
 import { publicContactRoutes } from "./routes/publicContact.js";
 import { picksSpotlightRoutes } from "./routes/picksSpotlight.js";
+import { articlesRoutes } from "./routes/articles.js";
 
 function resolveCorsOrigin(): boolean | string[] {
   const raw = process.env.CORS_ORIGINS?.trim();
@@ -124,6 +125,7 @@ export async function buildApp() {
   await app.register(authRoutes);
   await app.register(publicContactRoutes);
   await app.register(picksSpotlightRoutes, { prefix: "/api/v1/picks" });
+  await app.register(articlesRoutes);
   await app.register(usersRoutes);
   await app.register(wakiOddsRoutes);
   await app.register(lacrosseRoutes, { prefix: "/api/v1/lacrosse" });

@@ -112,10 +112,12 @@ function formatError(data: Record<string, unknown>, res: Response): string {
   return res.statusText;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+type ApiWriteOpts = { headers?: Record<string, string> };
+
+export async function apiPost<T>(path: string, body: unknown, opts?: ApiWriteOpts): Promise<T> {
   const res = await apiFetch(path, {
     method: "POST",
-    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    headers: { ...authHeaders(), ...(opts?.headers ?? {}), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   assertJsonResponse(res, path);
@@ -131,10 +133,10 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return data as T;
 }
 
-export async function apiPut<T>(path: string, body: unknown): Promise<T> {
+export async function apiPut<T>(path: string, body: unknown, opts?: ApiWriteOpts): Promise<T> {
   const res = await apiFetch(path, {
     method: "PUT",
-    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    headers: { ...authHeaders(), ...(opts?.headers ?? {}), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   assertJsonResponse(res, path);
@@ -194,14 +196,14 @@ export async function finalizeAuthFromLoginResponse(raw: Record<string, unknown>
   };
 }
 
-export type ApiGetOpts = { timeoutMs?: number };
+export type ApiGetOpts = { timeoutMs?: number; headers?: Record<string, string> };
 
 export async function apiGet<T>(path: string, opts?: ApiGetOpts): Promise<T> {
   const timeoutMs = opts?.timeoutMs ?? DEFAULT_FETCH_MS;
   const res = await apiFetch(
     path,
     {
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(opts?.headers ?? {}) },
     },
     1,
     timeoutMs,

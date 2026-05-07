@@ -37,6 +37,8 @@ model User {
   lacrosseLineups          LacrosseLineup[]
   wfRosters                WfRoster[]
   wfSeasonScores           WfSeasonScore[]
+  articleReactions         ArticleReaction[]
+  articlePollVotes         ArticlePollVote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1066,6 +1068,49 @@ model ContestEntry {
   @@unique([contestId, userId, lineupId])
   @@index([contestId])
   @@index([userId])
+}
+
+enum ArticleReactionType {
+  HOT_TAKE
+  TERRIBLE_TAKE
+  SHARP
+  SLEEPER
+}
+
+enum ArticlePollOption {
+  OVERRATED
+  FAIR_VALUE
+  SLEEPER
+}
+
+model ArticleReaction {
+  id           String              @id @default(cuid())
+  articleSlug  String
+  reactionType ArticleReactionType
+  userId       String?
+  user         User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonId       String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([articleSlug, userId])
+  @@unique([articleSlug, anonId])
+  @@index([articleSlug, reactionType])
+}
+
+model ArticlePollVote {
+  id          String            @id @default(cuid())
+  articleSlug String
+  option      ArticlePollOption
+  userId      String?
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonId      String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([articleSlug, userId])
+  @@unique([articleSlug, anonId])
+  @@index([articleSlug, option])
 }
 
 model Lineup {
