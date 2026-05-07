@@ -1,6 +1,20 @@
 import type { SeoEntry } from "../lib/seoConfig";
 
 export type ArticleSlug =
+  | "pickleball-anna-leigh-waters-bad-for-pickleball"
+  | "pickleball-dupr-ratings-inflated"
+  | "pickleball-pro-too-predictable"
+  | "pickleball-mixed-doubles-carrying-viewership"
+  | "poker-wsop-main-event-endurance-more-than-skill"
+  | "poker-bracelets-overrated"
+  | "poker-pros-better-at-branding-than-poker"
+  | "poker-gto-made-poker-less-interesting"
+  | "poker-phil-hellmuth-best-tournament-player-alive"
+  | "lacrosse-high-school-rankings-are-politics"
+  | "lacrosse-travel-ball-hurting-development"
+  | "volleyball-players-dont-understand-rotations"
+  | "volleyball-liberos-most-underrated-athletes"
+  | "volleyball-power-hitters-get-too-much-credit"
   | "pickleball-10-players-everyone-overrates"
   | "lacrosse-why-defense-wins-championships"
   | "volleyball-most-underrated-skill"
@@ -31,6 +45,132 @@ export type ArticleRecord = {
 };
 
 export const ARTICLES: ArticleRecord[] = [
+  {
+    slug: "pickleball-anna-leigh-waters-bad-for-pickleball",
+    headline: "Is Anna Leigh Waters Bad for Pickleball?",
+    description:
+      "Does one dominant star hurt parity or grow the sport through dynasties and storylines? A sharp debate for fantasy, rankings, and fan culture.",
+    keywords: ["Anna Leigh Waters", "pickleball parity", "pickleball dynasty debate", "pickleball rankings", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "pickleball-dupr-ratings-inflated",
+    headline: "Most DUPR Ratings Are Inflated",
+    description:
+      "A hard look at rating inflation, regional gaps, and why scoreboard outcomes often disagree with rating labels in competitive pickleball.",
+    keywords: ["DUPR ratings", "pickleball rating inflation", "pickleball debate", "pickleball analytics", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "pickleball-pro-too-predictable",
+    headline: "Pro Pickleball Is Becoming Too Predictable",
+    description:
+      "When top-heavy dominance, repeated finals, and conservative strategy make outcomes feel scripted, what keeps fans engaged?",
+    keywords: ["pro pickleball", "pickleball parity", "pickleball viewership", "pickleball strategy", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "pickleball-mixed-doubles-carrying-viewership",
+    headline: "Mixed Doubles Is Carrying Pickleball Viewership",
+    description:
+      "Is mixed doubles now the real product driver for pro pickleball audiences? We break down pacing, chemistry, and fan response.",
+    keywords: ["mixed doubles pickleball", "pickleball viewership", "pickleball format debate", "pickleball fans", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "poker-wsop-main-event-endurance-more-than-skill",
+    headline: "The WSOP Main Event Rewards Endurance More Than Skill",
+    description:
+      "Long structures and huge fields test stamina and emotional control as much as pure technical edge. Is endurance the hidden skill?",
+    keywords: ["WSOP Main Event", "poker endurance", "poker skill debate", "tournament poker", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "poker-bracelets-overrated",
+    headline: "Bracelets Are Overrated",
+    description:
+      "Do bracelets overstate greatness compared with long-term consistency, field strength, and ROI? A classic poker argument with real stakes.",
+    keywords: ["WSOP bracelets", "poker legacy debate", "poker consistency", "tournament poker", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "poker-pros-better-at-branding-than-poker",
+    headline: "Most Poker Pros Are Better at Branding Than Poker",
+    description:
+      "Social reach and sponsorship visibility now shape poker fame. But does brand power outpace on-felt edge for too many pros?",
+    keywords: ["poker pros", "poker branding", "poker media", "poker performance", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "poker-gto-made-poker-less-interesting",
+    headline: "GTO Has Made Poker Less Interesting to Watch",
+    description:
+      "Solver-era optimization improved decision quality but may have reduced chaos and personality in broadcasts. Better play, worse show?",
+    keywords: ["GTO poker", "solver poker", "poker entertainment", "poker strategy debate", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "poker-phil-hellmuth-best-tournament-player-alive",
+    headline: "Phil Hellmuth Is Still One of the Best Tournament Players Alive",
+    description:
+      "Love him or hate him, results, reads, and longevity still support a strong case for Hellmuth in modern tournament discussions.",
+    keywords: ["Phil Hellmuth", "tournament poker", "poker GOAT debate", "WSOP", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "lacrosse-high-school-rankings-are-politics",
+    headline: "Most High School Lacrosse Rankings Are Politics",
+    description:
+      "Bias, brand programs, and regional visibility often shape rankings more than film-backed performance. Is the system broken?",
+    keywords: ["high school lacrosse rankings", "lacrosse recruiting", "lacrosse politics", "lacrosse debate", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "lacrosse-travel-ball-hurting-development",
+    headline: "Travel Ball Is Hurting Lacrosse Development",
+    description:
+      "Does year-round travel grind stunt fundamentals and decision-making? A tough conversation for parents, coaches, and players.",
+    keywords: ["lacrosse travel ball", "lacrosse development", "youth lacrosse", "lacrosse coaching", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "volleyball-players-dont-understand-rotations",
+    headline: "Most Volleyball Players Don’t Actually Understand Rotations",
+    description:
+      "Rotational logic is still misunderstood at many levels, creating predictable breakdowns in serve receive, coverage, and transition offense.",
+    keywords: ["volleyball rotations", "volleyball tactics", "serve receive", "volleyball development", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "volleyball-liberos-most-underrated-athletes",
+    headline: "Liberos Are the Most Underrated Athletes in Volleyball",
+    description:
+      "Liberos drive floor balance, defensive stability, and emotional tempo. Why they still get under-credited in mainstream volleyball conversations.",
+    keywords: ["volleyball libero", "volleyball defense", "volleyball roles", "underrated athletes", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
+  {
+    slug: "volleyball-power-hitters-get-too-much-credit",
+    headline: "Power Hitters Get Too Much Credit",
+    description:
+      "Kills are visible, but passing, setting, and defensive reads often decide matches. Are we rewarding the wrong stars?",
+    keywords: ["volleyball power hitters", "volleyball analytics", "volleyball offense vs defense", "volleyball debate", "WakiBet"],
+    datePublished: "2026-05-09",
+    dateModified: "2026-05-09",
+  },
   {
     slug: "pickleball-10-players-everyone-overrates",
     headline: "10 Pickleball Players Everyone Overrates (And What to Look at Instead)",

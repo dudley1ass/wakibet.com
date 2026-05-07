@@ -593,3 +593,259 @@ export function LacrosseHighlightsVsFundamentalsBody() {
     </>
   );
 }
+
+export function PickleballAnnaLeighWatersBadBody() {
+  return (
+    <>
+      <p>
+        Dominance creates tension in every sport. One side says dynasties make the game bigger; the other says predictable
+        winners make regular-season results feel pre-written. In pickleball, no player triggers that argument faster than
+        Anna Leigh Waters.
+      </p>
+      <p>
+        If you care about fantasy and rankings, this is the key question: does one superstar reduce meaningful uncertainty,
+        or does she create the measuring stick everyone else must chase?
+      </p>
+      <p>
+        <strong>Is dominance hurting parity, or is it exactly what grows the sport?</strong>
+      </p>
+      <ArticleRedditCta slug="pickleball-anna-leigh-waters-bad-for-pickleball" />
+    </>
+  );
+}
+
+export function PickleballDuprInflatedBody() {
+  return (
+    <>
+      <p>
+        DUPR gives structure to open-play bragging rights, but ratings can lag reality and vary by region, partner pools,
+        and sample quality. That makes "my number says I’m better" one of pickleball’s hottest arguments.
+      </p>
+      <p>
+        Rating systems are useful, but they are not immune to inflation pockets. Fantasy players should anchor to results
+        under pressure, not just profile badges.
+      </p>
+      <p>
+        <strong>How inflated are ratings in your area right now?</strong>
+      </p>
+      <ArticleRedditCta slug="pickleball-dupr-ratings-inflated" />
+    </>
+  );
+}
+
+export function PickleballProPredictableBody() {
+  return (
+    <>
+      <p>
+        Repeated finals and top-heavy outcomes can make a league feel stable or stale depending on what you value.
+        Consistency helps storytelling, but too little volatility can flatten week-to-week urgency.
+      </p>
+      <p>
+        The best fan products balance star power with enough uncertainty that every bracket still feels worth watching.
+      </p>
+      <p>
+        <strong>Is pro pickleball becoming too predictable for fans?</strong>
+      </p>
+      <ArticleRedditCta slug="pickleball-pro-too-predictable" />
+    </>
+  );
+}
+
+export function PickleballMixedDoublesViewershipBody() {
+  return (
+    <>
+      <p>
+        Mixed doubles often delivers cleaner narratives, clearer matchups, and personality-driven chemistry that casual
+        fans instantly understand. That makes it a strong candidate for pickleball’s top viewership driver.
+      </p>
+      <p>
+        If mixed is carrying engagement, formats, schedules, and fantasy products should adapt around what audiences
+        actually choose to watch.
+      </p>
+      <p>
+        <strong>Is mixed doubles now the engine of pickleball viewership?</strong>
+      </p>
+      <ArticleRedditCta slug="pickleball-mixed-doubles-carrying-viewership" />
+    </>
+  );
+}
+
+export function PokerMainEventEnduranceBody() {
+  return (
+    <>
+      <p>
+        The Main Event is a technical exam, but it is also a stamina marathon. Long days, emotional swings, and pressure
+        management can be as decisive as preflop precision.
+      </p>
+      <p>
+        That does not erase skill; it reframes which skills are tested hardest over a full series run.
+      </p>
+      <p>
+        <strong>Is endurance the hidden edge in WSOP’s biggest tournament?</strong>
+      </p>
+      <ArticleRedditCta slug="poker-wsop-main-event-endurance-more-than-skill" />
+    </>
+  );
+}
+
+export function PokerBraceletsOverratedBody() {
+  return (
+    <>
+      <p>
+        Bracelets are iconic, but one trophy can mask years of middling volume. Consistency, field strength, and repeated
+        deep runs often say more about complete tournament skill.
+      </p>
+      <p>
+        This is one of poker’s most evergreen arguments because both sides can cite real evidence.
+      </p>
+      <p>
+        <strong>Would you rank bracelets above long-term consistency?</strong>
+      </p>
+      <ArticleRedditCta slug="poker-bracelets-overrated" />
+    </>
+  );
+}
+
+export function PokerBrandingVsSkillBody() {
+  return (
+    <>
+      <p>
+        Social reach and sponsorship visibility can create the illusion of edge. Some pros dominate feeds more than they
+        dominate final tables, and audiences often blend those two metrics into one.
+      </p>
+      <p>
+        Branding is a skill too, but it is not the same as outplaying elite fields over time.
+      </p>
+      <p>
+        <strong>Are top poker names over-indexing on brand versus results?</strong>
+      </p>
+      <ArticleRedditCta slug="poker-pros-better-at-branding-than-poker" />
+    </>
+  );
+}
+
+export function PokerGtoLessInterestingBody() {
+  return (
+    <>
+      <p>
+        GTO raised strategic standards and reduced obvious leaks, but many fans miss the stylistic chaos that made older
+        poker broadcasts easier to emotionally follow.
+      </p>
+      <p>
+        Better decision quality can coexist with lower entertainment variance. That tradeoff is worth debating honestly.
+      </p>
+      <p>
+        <strong>Did solver-era poker improve the game but hurt the show?</strong>
+      </p>
+      <ArticleRedditCta slug="poker-gto-made-poker-less-interesting" />
+    </>
+  );
+}
+
+export function PokerHellmuthBestAliveBody() {
+  return (
+    <>
+      <p>
+        Phil Hellmuth polarizes every room: elite reads and unbelievable longevity versus style critiques and modern-game
+        skepticism. Either way, his tournament track record still forces serious discussion.
+      </p>
+      <p>
+        Legacy arguments are messy because peak skill and all-era durability are not the same award.
+      </p>
+      <p>
+        <strong>Is Hellmuth still one of the best tournament players alive?</strong>
+      </p>
+      <ArticleRedditCta slug="poker-phil-hellmuth-best-tournament-player-alive" />
+    </>
+  );
+}
+
+export function LacrosseHighSchoolRankingsPoliticsBody() {
+  return (
+    <>
+      <p>
+        High school lacrosse rankings often mix performance, reputation, geography, and network effects. That can make the
+        list feel like status politics instead of pure evaluation.
+      </p>
+      <p>
+        Rankings still matter, but transparency about criteria is the difference between trust and constant backlash.
+      </p>
+      <p>
+        <strong>How much of youth lacrosse ranking culture is politics?</strong>
+      </p>
+      <ArticleRedditCta slug="lacrosse-high-school-rankings-are-politics" />
+    </>
+  );
+}
+
+export function LacrosseTravelBallDevelopmentBody() {
+  return (
+    <>
+      <p>
+        More games and more travel do not automatically mean better development. Without deliberate reps, recovery, and
+        coaching continuity, athletes can plateau while costs rise.
+      </p>
+      <p>
+        Parents and coaches feel this tension every season, which is why this debate gets emotional fast.
+      </p>
+      <p>
+        <strong>Is travel ball helping lacrosse growth or hurting fundamentals?</strong>
+      </p>
+      <ArticleRedditCta slug="lacrosse-travel-ball-hurting-development" />
+    </>
+  );
+}
+
+export function VolleyballRotationsBody() {
+  return (
+    <>
+      <p>
+        Rotations look simple on paper but break down in real-time chaos. Many players execute patterns without truly
+        understanding spacing logic, handoff timing, and coverage responsibility.
+      </p>
+      <p>
+        That gap becomes obvious under serve pressure, especially against disciplined teams.
+      </p>
+      <p>
+        <strong>Do most players actually understand rotations or just memorize spots?</strong>
+      </p>
+      <ArticleRedditCta slug="volleyball-players-dont-understand-rotations" />
+    </>
+  );
+}
+
+export function VolleyballLiberosUnderratedBody() {
+  return (
+    <>
+      <p>
+        Liberos absorb pressure, stabilize tempo, and keep points alive that attackers later convert into highlight stats.
+        Their impact is structural, even when it is not flashy.
+      </p>
+      <p>
+        If your ranking model ignores libero influence, you are probably over-crediting finishing roles.
+      </p>
+      <p>
+        <strong>Are liberos the most underrated athletes in volleyball?</strong>
+      </p>
+      <ArticleRedditCta slug="volleyball-liberos-most-underrated-athletes" />
+    </>
+  );
+}
+
+export function VolleyballPowerHittersCreditBody() {
+  return (
+    <>
+      <p>
+        Power hitters are visible and marketable, but passing, setting, and defensive reads often decide who controls the
+        match rhythm. Big swings end points; structure wins sets.
+      </p>
+      <p>
+        Great teams spread credit across the whole possession chain, not just the final contact.
+      </p>
+      <p>
+        <strong>Do power hitters get too much credit compared to the rest of the system?</strong>
+      </p>
+      <ArticleRedditCta slug="volleyball-power-hitters-get-too-much-credit" />
+    </>
+  );
+}
