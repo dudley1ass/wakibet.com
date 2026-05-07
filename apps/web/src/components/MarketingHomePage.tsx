@@ -427,6 +427,20 @@ export default function MarketingHomePage() {
                   Poker info
                 </Link>
               </div>
+              <div className="landing-hero__cta-row" style={{ marginTop: 10 }} aria-label="Join our Reddit communities">
+                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Pickleball/" target="_blank" rel="noopener noreferrer">
+                  r/Fantasy_Pickleball
+                </a>
+                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Volleyball/" target="_blank" rel="noopener noreferrer">
+                  r/Fantasy_Volleyball
+                </a>
+                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Lacrosse/" target="_blank" rel="noopener noreferrer">
+                  r/Fantasy_Lacrosse
+                </a>
+                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Poker/" target="_blank" rel="noopener noreferrer">
+                  r/Fantasy_Poker
+                </a>
+              </div>
             </div>
           </div>
         </section>

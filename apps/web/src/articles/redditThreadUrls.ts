@@ -2,6 +2,14 @@
  * Reddit discussion URLs per article slug. Update here when new threads go live.
  */
 export const ARTICLE_REDDIT_DISCUSSION_URLS: Record<string, string> = {
+  "pickleball-anna-leigh-waters-bad-for-pickleball":
+    "https://www.reddit.com/r/Fantasy_Pickleball/comments/1t69i6m/is_anna_leigh_waters_bad_for_pickleball/",
+  "pickleball-dupr-ratings-inflated":
+    "https://www.reddit.com/r/Fantasy_Pickleball/comments/1t69jn4/most_dupr_ratings_are_inflated/",
+  "poker-bracelets-overrated":
+    "https://www.reddit.com/r/Fantasy_Poker/comments/1t69kth/bracelets_are_overrated/",
+  "poker-pros-better-at-branding-than-poker":
+    "https://www.reddit.com/r/Fantasy_Poker/comments/1t69lmc/most_poker_pros_are_better_at_branding_than_poker/",
   "poker-wsop-fantasy-draft-names-not-results": "https://www.reddit.com/r/Fantasy_Poker/",
   "poker-bracelets-vs-consistency-not-best-player":
     "https://www.reddit.com/r/Fantasy_Poker/comments/1t5ledl/bracelets_dont_mean_youre_the_best_tournament/",
