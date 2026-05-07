@@ -413,6 +413,9 @@ export default function MarketingHomePage() {
             </div>
 
             <div className="landing-hero__actions-row">
+              <div className="landing-hero__season-prizes">
+                <DashboardSeasonPrizesStrip twoLineCaption />
+              </div>
               <div className="landing-hero__cta-stack">
                 <div
                   className="landing-hero__cta-row landing-hero__cta-row--four-across"
@@ -468,9 +471,6 @@ export default function MarketingHomePage() {
                     r/Fantasy_Poker
                   </a>
                 </div>
-              </div>
-              <div className="landing-hero__season-prizes">
-                <DashboardSeasonPrizesStrip />
               </div>
             </div>
           </div>

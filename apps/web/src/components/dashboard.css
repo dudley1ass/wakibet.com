@@ -214,6 +214,24 @@
   line-height: 1.25;
   max-width: 100%;
 }
+
+/* Landing / compact: two caption lines (sport + headline, then prize) */
+.dash-season-prizes-strip--two-line-caption .dash-season-prizes-slide-caption {
+  gap: 3px;
+  padding: 3px 8px 5px;
+}
+.dash-season-prizes-strip--two-line-caption .dash-season-prizes-slide-meta {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: #fde68a;
+  line-height: 1.2;
+}
+.dash-season-prizes-strip--two-line-caption .dash-season-prizes-slide-prize {
+  font-size: 11px;
+  line-height: 1.25;
+}
 .dash-season-prizes-dots {
   display: flex;
   justify-content: center;

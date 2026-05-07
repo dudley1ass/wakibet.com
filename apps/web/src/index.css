@@ -470,9 +470,9 @@ body {
 
 .landing-hero__actions-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, min(420px, 100%));
-  gap: 14px 18px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(196px, 272px);
+  gap: 16px 20px;
+  align-items: start;
   min-width: 0;
 }
 
@@ -481,11 +481,16 @@ body {
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   .landing-hero__actions-row {
     grid-template-columns: 1fr;
+  }
+
+  .landing-hero__cta-stack {
+    max-width: 100%;
   }
 }
 
@@ -564,12 +569,73 @@ body {
   line-height: 1.25;
 }
 
-/* Tournament prize strip in landing hero — width from grid column */
+/* Sidebar column: 2×2 so info + Reddit links fit beside the large prize strip */
+@media (min-width: 761px) {
+  .landing-hero__cta-stack .landing-hero__cta-row--four-across {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-hero__cta-stack .landing-hero__cta-row--four-across .dash-ghost-btn {
+    font-size: 11px !important;
+    padding: 7px 8px !important;
+    min-height: 34px;
+  }
+}
+
+/* Landing-only: prize strip fills width; image uses most of the stage (two-line captions) */
 .landing-hero__season-prizes {
   margin-top: 0;
   width: 100%;
   max-width: none;
   min-width: 0;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-strip {
+  min-height: 17.5rem;
+  padding: 6px 10px 6px;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-strip-kicker {
+  font-size: 10px;
+  margin: 0 0 4px;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-hero-stage {
+  min-height: 16.75rem;
+  max-height: 16.75rem;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-slide-img {
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: 0 2px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-slide-caption {
+  flex: 0 0 auto;
+  padding: 4px 8px 5px;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-slide-meta {
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.landing-hero__season-prizes .dash-season-prizes-slide-prize {
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .poker-wakicash-hero {

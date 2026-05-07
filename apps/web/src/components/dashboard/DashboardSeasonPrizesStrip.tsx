@@ -43,6 +43,11 @@ function formatPrizeStripHeading(phrase: string): string {
 
 const PRIZE_STRIP_HEADING = formatPrizeStripHeading("Tournament prizes");
 
+type Props = {
+  /** Sport + headline on line 1, prize on line 2 — less vertical text, larger image area */
+  twoLineCaption?: boolean;
+};
+
 const PRIZE_SLIDES = [
   {
     id: "pickleball-paddle",
@@ -94,7 +99,7 @@ const PRIZE_SLIDES = [
 /**
  * Season prize hero — rotating images with sport captions (fade in / fade out).
  */
-export default function DashboardSeasonPrizesStrip() {
+export default function DashboardSeasonPrizesStrip({ twoLineCaption = false }: Props) {
   const [index, setIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -119,7 +124,10 @@ export default function DashboardSeasonPrizesStrip() {
   }, []);
 
   return (
-    <section className="dash-season-prizes-strip" aria-labelledby="dash-season-prizes-strip-title">
+    <section
+      className={`dash-season-prizes-strip${twoLineCaption ? " dash-season-prizes-strip--two-line-caption" : ""}`}
+      aria-labelledby="dash-season-prizes-strip-title"
+    >
       <p id="dash-season-prizes-strip-title" className="dash-season-prizes-strip-kicker">
         {PRIZE_STRIP_HEADING}
       </p>
@@ -140,9 +148,20 @@ export default function DashboardSeasonPrizesStrip() {
                 loading={i === 0 ? "eager" : "lazy"}
               />
               <div className="dash-season-prizes-slide-caption">
-                <span className="dash-season-prizes-slide-sport">{slide.sport}</span>
-                <span className="dash-season-prizes-slide-headline">{slide.headline}</span>
-                <span className="dash-season-prizes-slide-prize">{slide.prize}</span>
+                {twoLineCaption ? (
+                  <>
+                    <span className="dash-season-prizes-slide-meta">
+                      {slide.sport} — {slide.headline}
+                    </span>
+                    <span className="dash-season-prizes-slide-prize">{slide.prize}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="dash-season-prizes-slide-sport">{slide.sport}</span>
+                    <span className="dash-season-prizes-slide-headline">{slide.headline}</span>
+                    <span className="dash-season-prizes-slide-prize">{slide.prize}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
