@@ -1,7 +1,47 @@
 import { useCallback, useEffect, useState } from "react";
 import "../dashboard.css";
 
-const ROTATE_MS = 6000;
+const ROTATE_MS = 5000;
+
+/** Title-style caps: first/last word capitalized; short words like or, and, if, but stay lowercase in the middle. */
+const HEADING_WORDS_STAY_LOWER = new Set([
+  "a",
+  "an",
+  "and",
+  "as",
+  "at",
+  "but",
+  "by",
+  "etc",
+  "for",
+  "if",
+  "in",
+  "nor",
+  "of",
+  "off",
+  "on",
+  "or",
+  "so",
+  "the",
+  "to",
+  "vs",
+  "via",
+]);
+
+function formatPrizeStripHeading(phrase: string): string {
+  const words = phrase.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return phrase;
+  return words
+    .map((raw, i) => {
+      const lower = raw.toLowerCase();
+      const isFirstOrLast = i === 0 || i === words.length - 1;
+      if (!isFirstOrLast && HEADING_WORDS_STAY_LOWER.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
+
+const PRIZE_STRIP_HEADING = formatPrizeStripHeading("Tournament prizes");
 
 const PRIZE_SLIDES = [
   {
@@ -32,7 +72,7 @@ const PRIZE_SLIDES = [
     id: "volleyball",
     sport: "Volleyball",
     headline: "Tournament winner",
-    prize: "Win a new Volleyball!!!",
+    prize: "Win a new volleyball",
     src: "/landing/prizes/volleyball-wakibet-champion.png",
   },
   {
@@ -81,7 +121,7 @@ export default function DashboardSeasonPrizesStrip() {
   return (
     <section className="dash-season-prizes-strip" aria-labelledby="dash-season-prizes-strip-title">
       <p id="dash-season-prizes-strip-title" className="dash-season-prizes-strip-kicker">
-        Tournament prizes
+        {PRIZE_STRIP_HEADING}
       </p>
 
       <div className="dash-season-prizes-hero-stage" aria-live="polite" aria-atomic="true">

@@ -410,37 +410,64 @@ export default function MarketingHomePage() {
                 Rankings, debates, hot takes, and fantasy — built for fans who live in the comments section as much as the
                 scoreboard.
               </p>
+            </div>
 
-              <div
-                className="landing-hero__cta-row landing-hero__cta-row--four-across"
-                aria-label="How each sport works on WakiBet"
-              >
-                <Link className="dash-ghost-btn" to="/info/pickleball">
-                  Pickleball info
-                </Link>
-                <Link className="dash-ghost-btn" to="/info/volleyball">
-                  Volleyball info
-                </Link>
-                <Link className="dash-ghost-btn" to="/info/lacrosse">
-                  Lacrosse info
-                </Link>
-                <Link className="dash-ghost-btn" to="/info/poker">
-                  Poker info
-                </Link>
-              </div>
-              <div className="landing-hero__cta-row" style={{ marginTop: 10 }} aria-label="Join our Reddit communities">
-                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Pickleball/" target="_blank" rel="noopener noreferrer">
-                  r/Fantasy_Pickleball
-                </a>
-                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Volleyball/" target="_blank" rel="noopener noreferrer">
-                  r/Fantasy_Volleyball
-                </a>
-                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Lacrosse/" target="_blank" rel="noopener noreferrer">
-                  r/Fantasy_Lacrosse
-                </a>
-                <a className="dash-ghost-btn" href="https://www.reddit.com/r/Fantasy_Poker/" target="_blank" rel="noopener noreferrer">
-                  r/Fantasy_Poker
-                </a>
+            <div className="landing-hero__actions-row">
+              <div className="landing-hero__cta-stack">
+                <div
+                  className="landing-hero__cta-row landing-hero__cta-row--four-across"
+                  aria-label="How each sport works on WakiBet"
+                >
+                  <Link className="dash-ghost-btn" to="/info/pickleball">
+                    Pickleball info
+                  </Link>
+                  <Link className="dash-ghost-btn" to="/info/volleyball">
+                    Volleyball info
+                  </Link>
+                  <Link className="dash-ghost-btn" to="/info/lacrosse">
+                    Lacrosse info
+                  </Link>
+                  <Link className="dash-ghost-btn" to="/info/poker">
+                    Poker info
+                  </Link>
+                </div>
+                <div
+                  className="landing-hero__cta-row landing-hero__cta-row--four-across"
+                  aria-label="Join our Reddit communities"
+                >
+                  <a
+                    className="dash-ghost-btn"
+                    href="https://www.reddit.com/r/Fantasy_Pickleball/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    r/Fantasy_Pickleball
+                  </a>
+                  <a
+                    className="dash-ghost-btn"
+                    href="https://www.reddit.com/r/Fantasy_Volleyball/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    r/Fantasy_Volleyball
+                  </a>
+                  <a
+                    className="dash-ghost-btn"
+                    href="https://www.reddit.com/r/Fantasy_Lacrosse/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    r/Fantasy_Lacrosse
+                  </a>
+                  <a
+                    className="dash-ghost-btn"
+                    href="https://www.reddit.com/r/Fantasy_Poker/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    r/Fantasy_Poker
+                  </a>
+                </div>
               </div>
               <div className="landing-hero__season-prizes">
                 <DashboardSeasonPrizesStrip />

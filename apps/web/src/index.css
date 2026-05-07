@@ -457,11 +457,36 @@ body {
 
 .landing-hero__grid {
   position: relative;
-  display: grid;
-  gap: 0;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   padding: 18px 22px 20px;
   z-index: 1;
+}
+
+.landing-hero__copy {
+  min-width: 0;
+}
+
+.landing-hero__actions-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, min(420px, 100%));
+  gap: 14px 18px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.landing-hero__cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .landing-hero__actions-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .landing-hero__title {
@@ -521,7 +546,7 @@ body {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
-  max-width: 720px;
+  max-width: none;
 }
 
 @media (max-width: 560px) {
@@ -539,11 +564,12 @@ body {
   line-height: 1.25;
 }
 
-/* Same tournament prize strip as dashboard — width ~ half-row on desktop */
+/* Tournament prize strip in landing hero — width from grid column */
 .landing-hero__season-prizes {
-  margin-top: 12px;
+  margin-top: 0;
   width: 100%;
-  max-width: min(420px, 100%);
+  max-width: none;
+  min-width: 0;
 }
 
 .poker-wakicash-hero {
