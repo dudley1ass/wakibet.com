@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import "../dashboard.css";
 
 const ROTATE_MS = 6000;
 

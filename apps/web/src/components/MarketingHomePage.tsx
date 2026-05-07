@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { apiGet } from "../api";
-import LandingHeroPrizesRotator from "./LandingHeroPrizesRotator";
+import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
 import {
   getMarketingHotTakes,
   isThursdayHotTakeDay,
@@ -442,7 +442,9 @@ export default function MarketingHomePage() {
                   r/Fantasy_Poker
                 </a>
               </div>
-              <LandingHeroPrizesRotator />
+              <div className="landing-hero__season-prizes">
+                <DashboardSeasonPrizesStrip />
+              </div>
             </div>
           </div>
         </section>

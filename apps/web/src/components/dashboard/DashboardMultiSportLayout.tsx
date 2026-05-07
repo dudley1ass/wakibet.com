@@ -48,7 +48,11 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     message: string;
   };
 
-  const [lacrosseQ, volleyballQ] = useQueries({
+  type PokerSchedulePayload = {
+    season_year: number;
+  };
+
+  const [lacrosseQ, volleyballQ, pokerQ] = useQueries({
     queries: [
       {
         queryKey: ["lacrosse", "current"] as const,
@@ -57,6 +61,10 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
       {
         queryKey: ["volleyball", "status"] as const,
         queryFn: () => apiGet<VolleyballStatusPayload>("/api/v1/volleyball/status"),
+      },
+      {
+        queryKey: ["poker", "schedule"] as const,
+        queryFn: () => apiGet<PokerSchedulePayload>("/api/v1/poker/schedule"),
       },
     ],
   });
@@ -134,7 +142,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             ctaTo="/poker/pick"
           />
         </div>
-        {(lacrosseQ.isError || volleyballQ.isError) && (
+        {(lacrosseQ.isError || volleyballQ.isError || pokerQ.isError) && (
           <p className="dash-ms-error" role="status">
             Some season data could not load. Open each sport for full details.
           </p>
@@ -150,6 +158,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             lacrosseLoading={lacrosseQ.isLoading}
             volleyballSeasonYear={volleyballQ.data?.season_year ?? null}
             volleyballLoading={volleyballQ.isLoading}
+            pokerSeasonYear={pokerQ.data?.season_year ?? null}
+            pokerLoading={pokerQ.isLoading}
           />
         </div>
         <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">
