@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export type SportCardVariant = "pickleball" | "lacrosse" | "volleyball";
+export type SportCardVariant = "pickleball" | "lacrosse" | "volleyball" | "poker";
 
 type Props = {
   variant: SportCardVariant;

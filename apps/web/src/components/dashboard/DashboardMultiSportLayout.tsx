@@ -90,7 +90,7 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             Pickleball top 100
           </Link>
         </p>
-        <div className="dash-sport-hero-row">
+        <div className="dash-sport-hero-row dash-sport-hero-row--four">
           <SportCard
             variant="pickleball"
             icon="🏓"
@@ -122,6 +122,16 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             statusLabel="AVP"
             ctaLabel="Open volleyball"
             ctaTo="/volleyball"
+          />
+          <SportCard
+            variant="poker"
+            icon="🃏"
+            sportLabel="Poker"
+            eventName="WSOP fantasy · Las Vegas 2026"
+            subline="5 main events — 6 players each · 100 WakiCash per event"
+            statusLabel="WSOP"
+            ctaLabel="Pick lineup"
+            ctaTo="/poker/pick"
           />
         </div>
         {(lacrosseQ.isError || volleyballQ.isError) && (
@@ -235,6 +245,34 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
                 </div>
               </div>
               <Link className="dash-contest-card__link" to="/volleyball">
+                Open
+              </Link>
+            </li>
+            <li className="dash-contest-card dash-contest-card--poker dash-contest-card--compact">
+              <div className="dash-contest-card__icon" aria-hidden>
+                🃏
+              </div>
+              <div className="dash-contest-card__body">
+                <div className="dash-contest-card__sport">Poker</div>
+                <div className="dash-contest-card__event">WSOP fantasy · 5 main events</div>
+                <div className="dash-contest-card__detail">
+                  6 picks per event · 100 WakiCash each
+                  <Link className="dash-contest-card__sub-link" to="/poker/scoring">
+                    Scoring rules
+                  </Link>
+                </div>
+              </div>
+              <div className="dash-contest-card__stats">
+                <div>
+                  <span className="dash-contest-card__stat-label">Format</span>
+                  <span className="dash-contest-card__stat-val">5×6</span>
+                </div>
+                <div>
+                  <span className="dash-contest-card__stat-label">Cap</span>
+                  <span className="dash-contest-card__stat-val">100</span>
+                </div>
+              </div>
+              <Link className="dash-contest-card__link" to="/poker/pick">
                 Open
               </Link>
             </li>

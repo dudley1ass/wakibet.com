@@ -539,6 +539,66 @@ body {
   line-height: 1.25;
 }
 
+.landing-hero__prizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 980px;
+}
+
+.landing-hero__prize-card {
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.58);
+  padding: 10px;
+}
+
+.landing-hero__prize-kicker {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fcd34d;
+}
+
+.landing-hero__prize-image {
+  width: 100%;
+  min-height: 180px;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.65);
+}
+
+.landing-hero__prize-image--poker {
+  min-height: 210px;
+}
+
+.landing-hero__pickleball-prizes {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-hero__prize-or {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(120, 53, 15, 0.45);
+  color: #fde68a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
 .poker-wakicash-hero {
   display: flex;
   flex-wrap: wrap;

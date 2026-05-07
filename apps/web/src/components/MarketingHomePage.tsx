@@ -441,6 +441,35 @@ export default function MarketingHomePage() {
                   r/Fantasy_Poker
                 </a>
               </div>
+              <div className="landing-hero__prizes" aria-label="Featured prizes">
+                <article className="landing-hero__prize-card">
+                  <p className="landing-hero__prize-kicker">Poker winner prize</p>
+                  <img
+                    className="landing-hero__prize-image landing-hero__prize-image--poker"
+                    src="/landing/prizes/poker-wsop-chip-prize.png"
+                    alt="WakiBet WSOP champion poker chip prize set"
+                    loading="lazy"
+                  />
+                </article>
+                <article className="landing-hero__prize-card">
+                  <p className="landing-hero__prize-kicker">Pickleball winner prize</p>
+                  <div className="landing-hero__pickleball-prizes">
+                    <img
+                      className="landing-hero__prize-image"
+                      src="/dashboard/season-prizes/pickleball.png"
+                      alt="Pickleball paddle prize option"
+                      loading="lazy"
+                    />
+                    <span className="landing-hero__prize-or">OR</span>
+                    <img
+                      className="landing-hero__prize-image"
+                      src="/landing/prizes/pickleball-ben-johns-signed-ball.png"
+                      alt="Ben Johns signed pickleball prize option"
+                      loading="lazy"
+                    />
+                  </div>
+                </article>
+              </div>
             </div>
           </div>
         </section>

@@ -1523,6 +1523,14 @@ a.rost-dash-link {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
+/** Four sports across — smaller tiles on wide screens */
+.dash-sport-hero-row--four {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  overflow-x: visible;
+  scroll-snap-type: none;
+}
 .dash-sport-card {
   flex: 1 1 280px;
   min-width: min(280px, 88vw);
@@ -1535,6 +1543,29 @@ a.rost-dash-link {
   flex-direction: column;
   gap: 10px;
 }
+.dash-sport-hero-row--four .dash-sport-card {
+  flex: unset;
+  min-width: 0;
+  scroll-snap-align: unset;
+  padding: 11px 12px 10px;
+  gap: 8px;
+  border-radius: 12px;
+}
+.dash-sport-hero-row--four .dash-sport-card__icon {
+  font-size: 22px;
+}
+.dash-sport-hero-row--four .dash-sport-card__event {
+  font-size: 14px;
+}
+.dash-sport-hero-row--four .dash-sport-card__sub {
+  font-size: 10px;
+  margin-top: 4px;
+}
+.dash-sport-hero-row--four .dash-sport-card__cta {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 11px;
+}
 .dash-sport-card--pickleball {
   background: linear-gradient(155deg, rgba(20, 60, 40, 0.95), rgba(10, 28, 18, 0.98));
   border-color: rgba(74, 222, 128, 0.35);
@@ -1546,6 +1577,10 @@ a.rost-dash-link {
 .dash-sport-card--volleyball {
   background: linear-gradient(155deg, rgba(52, 28, 72, 0.96), rgba(24, 12, 40, 0.98));
   border-color: rgba(196, 181, 253, 0.42);
+}
+.dash-sport-card--poker {
+  background: linear-gradient(155deg, rgba(72, 32, 12, 0.96), rgba(28, 15, 8, 0.98));
+  border-color: rgba(251, 191, 36, 0.42);
 }
 .dash-sport-card__top {
   display: flex;
@@ -1595,6 +1630,9 @@ a.rost-dash-link {
 .dash-sport-card--volleyball .dash-sport-card__sub {
   color: #e9d5ff;
 }
+.dash-sport-card--poker .dash-sport-card__sub {
+  color: #fde68a;
+}
 .dash-sport-card__meta {
   display: flex;
   align-items: center;
@@ -1625,6 +1663,11 @@ a.rost-dash-link {
   color: #f3e8ff;
   border: 1px solid rgba(196, 181, 253, 0.45);
 }
+.dash-sport-card__pill--poker {
+  background: rgba(120, 53, 15, 0.55);
+  color: #fef3c7;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+}
 .dash-sport-card__cta {
   margin-top: auto;
   display: inline-flex;
@@ -1648,12 +1691,20 @@ a.rost-dash-link {
   transform: translateY(-1px);
 }
 
+@media (max-width: 1024px) {
+  .dash-sport-hero-row--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 720px) {
   .dash-sport-hero-row {
     flex-wrap: wrap;
     overflow-x: visible;
     scroll-snap-type: none;
     gap: 10px;
+  }
+  .dash-sport-hero-row--four {
+    grid-template-columns: 1fr;
   }
   .dash-sport-card {
     flex: 1 1 calc(50% - 5px);
@@ -1743,6 +1794,9 @@ a.rost-dash-link {
 }
 .dash-contest-card--volleyball {
   border-color: rgba(196, 181, 253, 0.35);
+}
+.dash-contest-card--poker {
+  border-color: rgba(251, 191, 36, 0.35);
 }
 .dash-contest-card__icon {
   font-size: 22px;

@@ -144,7 +144,8 @@ export default function PokerPickPage({ user }: Props) {
         <div>
           <h1 className="pick-teams-title">WSOP fantasy — pick your lineup</h1>
           <p className="pick-teams-sub">
-            Signed in as <strong>{user.display_name || user.email}</strong>
+            The <strong>5 main WSOP events</strong>, <strong>6 players per event</strong>,{" "}
+            <strong>100 WakiCash each</strong> — signed in as <strong>{user.display_name || user.email}</strong>
           </p>
         </div>
         <div className="dash-head-actions">
@@ -169,10 +170,11 @@ export default function PokerPickPage({ user }: Props) {
       ) : (
         <div className="dash-card wf-section wf-section--page">
           <div className="wf-page-hero">
-            <div className="wf-page-hero-kicker">WSOP Las Vegas · demo lineup builder</div>
+            <div className="wf-page-hero-kicker">WSOP Las Vegas 2026 — 5 flagship events</div>
             <p className="wf-page-lead">
-              Choose six players under the salary cap. Prices scale from the global rankings pool (featured slice). Your
-              lineup is saved in this browser until server save ships.
+              Pick <strong>one six-player lineup per event</strong> (five events total). Each lineup uses exactly{" "}
+              <strong>100 WakiCash</strong>; player salaries are set from the featured rankings pool below. Draft is saved in
+              this browser until server-backed lineups ship.
             </p>
           </div>
 
@@ -201,7 +203,7 @@ export default function PokerPickPage({ user }: Props) {
 
           <div className="wf-row">
             <label className="wf-label" htmlFor="poker-slate">
-              Slate (V1 — flagship events)
+              Main event — pick which of the 5 to build next
             </label>
             <select
               id="poker-slate"
@@ -252,8 +254,9 @@ export default function PokerPickPage({ user }: Props) {
           </div>
 
           <p className="dash-footnote">
-            Pool size here: <strong>{pool.length}</strong> players (top slice of global rankings). Server-backed saves and
-            locks will wire up next.
+            Structure: <strong>5</strong> main-event slates × <strong>6</strong> picks × <strong>100</strong> WakiCash per
+            slate. Pool size here: <strong>{pool.length}</strong> players (featured slice of rankings). Server-backed saves
+            and locks will wire up next.
           </p>
         </div>
       )}
