@@ -15,6 +15,7 @@ import {
   scoreWinterPlayerFromMatches,
   type WinterJsonMatch,
   WAKICASH_BUDGET_PER_LINEUP,
+  WAKICASH_COST_TIERS,
   WINTER_FANTASY_ROSTER_SIZE,
   WSOP_SITE_TOP_50_PLAYERS,
 } from "@wakibet/shared";
@@ -166,6 +167,13 @@ function demoCostByRank(rank: number): number {
   return 8;
 }
 
+/** Pickleball uses the real production WAKICASH_COST_TIERS [40,32,24,16,10],
+ *  bucketed by rank in the top-18 demo pool so the world No. 1 lands on $40. */
+function pickleballDemoCostByRank(rank: number): number {
+  const tierIdx = Math.min(WAKICASH_COST_TIERS.length - 1, Math.floor(rank / 4));
+  return WAKICASH_COST_TIERS[tierIdx]!;
+}
+
 async function buildPickleballDemoContest(): Promise<DemoContest | null> {
   const tournamentKey: TournamentKey = "atlanta_weekend";
   const data = await getTournamentData(tournamentKey);
@@ -186,22 +194,19 @@ async function buildPickleballDemoContest(): Promise<DemoContest | null> {
     else divisions.set(key, [match]);
   }
 
-  const pointsByPlayer = new Map<string, { points: number; eventLabel: string; skill: string }>();
-  for (const [divisionKey, matches] of divisions) {
+  const pointsByPlayer = new Map<string, { points: number; eventLabel: string }>();
+  for (const matches of divisions.values()) {
     const names = uniquePlayersInMatches(matches).filter((name) => !isCompositePlayerName(name));
-    const skill = parseDivisionKey(divisionKey)?.skill_level ?? "";
     for (const playerName of names) {
       const scored = scoreWinterPlayerFromMatches(playerName, matches).total;
       if (scored <= 0) continue;
       const current = pointsByPlayer.get(playerName) ?? {
         points: 0,
         eventLabel: matches[0]?.event_type ?? "Pro Main Draw",
-        skill,
       };
       pointsByPlayer.set(playerName, {
         points: Math.round((current.points + scored) * 100) / 100,
         eventLabel: current.eventLabel,
-        skill: current.skill || skill,
       });
     }
   }
@@ -211,11 +216,14 @@ async function buildPickleballDemoContest(): Promise<DemoContest | null> {
       player_name,
       display_name: demoDisplayName(player_name),
       projected_points: row.points,
-      waki_cash: playerWakiCashCost(row.skill, player_name),
       last_event_label: row.eventLabel,
     }))
     .sort((a, b) => b.projected_points - a.projected_points || a.display_name.localeCompare(b.display_name))
-    .slice(0, 18);
+    .slice(0, 18)
+    .map((p, index) => ({
+      ...p,
+      waki_cash: pickleballDemoCostByRank(index),
+    }));
 
   return {
     tournament_key: tournamentKey,
