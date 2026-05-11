@@ -14,8 +14,11 @@ import {
   WSOP_FEATURED_PLAYER_POOL_MAX,
   WSOP_FEATURED_PLAYER_POOL_MIN,
   WSOP_FEATURED_POOL_INCLUSION_NOTES,
+  WSOP_FANTASY_CAPTAIN_MULTIPLIER,
   WSOP_FANTASY_ROSTER_SLOTS,
   WSOP_FANTASY_SALARY_CAP,
+  WSOP_FANTASY_SOFT_LOCK_DAYS,
+  WSOP_FANTASY_SOFT_LOCK_MAX_SWAPS,
   WSOP_POST_LAUNCH_BONUS_IDEAS,
   wsopLeaderboardPlayersNotInWorldTop200,
 } from "@wakibet/shared";
@@ -54,6 +57,9 @@ const wsopSlateSchema = z.object({
   tier: z.union([z.literal(1), z.literal(2)]),
   always_featured: z.boolean(),
   rationale: z.string(),
+  start_date: z.string().nullable(),
+  end_date: z.string().nullable(),
+  start_time_pt: z.string().nullable(),
 });
 
 const wsopScoringSchema = z.object({
@@ -129,6 +135,9 @@ export const pokerRoutes: FastifyPluginAsync = async (app) => {
             salary_cap_wakicash: z.number(),
             featured_player_pool_min: z.number(),
             featured_player_pool_max: z.number(),
+            soft_lock_days: z.number(),
+            soft_lock_max_swaps: z.number(),
+            captain_multiplier: z.number(),
             tier1_slates: z.array(wsopSlateSchema),
             tier2_slates: z.array(wsopSlateSchema),
             scoring: z.array(wsopScoringSchema),
@@ -149,6 +158,9 @@ export const pokerRoutes: FastifyPluginAsync = async (app) => {
       salary_cap_wakicash: WSOP_FANTASY_SALARY_CAP,
       featured_player_pool_min: WSOP_FEATURED_PLAYER_POOL_MIN,
       featured_player_pool_max: WSOP_FEATURED_PLAYER_POOL_MAX,
+      soft_lock_days: WSOP_FANTASY_SOFT_LOCK_DAYS,
+      soft_lock_max_swaps: WSOP_FANTASY_SOFT_LOCK_MAX_SWAPS,
+      captain_multiplier: WSOP_FANTASY_CAPTAIN_MULTIPLIER,
       tier1_slates: WSOP_2026_TIER1_SLATES,
       tier2_slates: WSOP_2026_TIER2_SLATES,
       scoring: WSOP_2026_SIMPLE_SCORING,

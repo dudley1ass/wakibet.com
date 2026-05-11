@@ -2124,3 +2124,160 @@ a.rost-dash-link {
 @media (max-width: 520px) {
   .dash-kpi-strip { grid-template-columns: 1fr; }
 }
+
+/* ---------- Poker WSOP Lineup Freeze (tiered locking) ---------- */
+.freeze-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(0, 0, 0, 0.28);
+  color: #fde68a;
+}
+.freeze-banner__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.freeze-banner__badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+.freeze-banner__when {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fcd34d;
+}
+.freeze-banner__body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #f5f5f4;
+}
+.freeze-banner--open {
+  border-color: rgba(74, 222, 128, 0.55);
+  background: rgba(20, 83, 45, 0.22);
+  color: #bbf7d0;
+}
+.freeze-banner--open .freeze-banner__when { color: #86efac; }
+.freeze-banner--soft {
+  border-color: rgba(251, 191, 36, 0.65);
+  background: rgba(120, 53, 15, 0.22);
+  color: #fcd34d;
+}
+.freeze-banner--soft .freeze-banner__when { color: #fde68a; }
+.freeze-banner--hard {
+  border-color: rgba(248, 113, 113, 0.65);
+  background: rgba(127, 29, 29, 0.25);
+  color: #fecaca;
+}
+.freeze-banner--hard .freeze-banner__when { color: #fca5a5; }
+
+.wf-pick-row--captain {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+.wf-captain-star {
+  margin-left: 4px;
+  color: #fbbf24;
+  font-size: 14px;
+}
+.wf-captain-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.wf-captain-btn--active {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.7);
+  color: #fde68a;
+  font-weight: 800;
+}
+
+.freeze-activity {
+  margin-top: 14px;
+  padding: 12px 14px;
+}
+.freeze-activity__title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 8px;
+}
+.freeze-activity__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.freeze-activity__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+}
+.freeze-activity__ts {
+  font-size: 11px;
+  color: #a8a29e;
+  white-space: nowrap;
+  min-width: 110px;
+}
+.freeze-activity__msg {
+  font-size: 13px;
+  color: #f5f5f4;
+  flex: 1;
+  min-width: 0;
+}
+.freeze-activity__item--phase_open_to_soft {
+  border-color: rgba(251, 191, 36, 0.55);
+}
+.freeze-activity__item--phase_soft_to_hard {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+.freeze-activity__item--captain_change {
+  border-color: rgba(96, 165, 250, 0.45);
+}
+.freeze-activity__item--save {
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+.rost-phase {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+.rost-phase--open { color: #86efac; border-color: rgba(74, 222, 128, 0.55); background: rgba(20, 83, 45, 0.18); }
+.rost-phase--soft { color: #fcd34d; border-color: rgba(251, 191, 36, 0.6); background: rgba(120, 53, 15, 0.18); }
+.rost-phase--hard { color: #fca5a5; border-color: rgba(248, 113, 113, 0.55); background: rgba(127, 29, 29, 0.22); }
+.rost-badge--captain { border-color: rgba(251, 191, 36, 0.6); color: #fde68a; }
+.rost-pick-row--captain {
+  background: rgba(251, 191, 36, 0.08);
+  border-left: 3px solid rgba(251, 191, 36, 0.7);
+  padding-left: 6px;
+  border-radius: 6px;
+}
