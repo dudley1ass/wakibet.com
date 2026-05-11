@@ -48,7 +48,7 @@ export default function DashboardSeasonStandingsHero({
         </li>
         <li className="dash-standings-hero-row dash-standings-hero-row--lacrosse">
           <Link
-            to="/lacrosse#standings"
+            to="/lacrosse/leaderboard"
             className="dash-standings-hero-link"
             aria-label="Open the lacrosse standings"
           >
@@ -61,7 +61,7 @@ export default function DashboardSeasonStandingsHero({
         </li>
         <li className="dash-standings-hero-row dash-standings-hero-row--volleyball">
           <Link
-            to="/volleyball#standings"
+            to="/volleyball/leaderboard"
             className="dash-standings-hero-link"
             aria-label="Open the volleyball standings"
           >
@@ -74,7 +74,7 @@ export default function DashboardSeasonStandingsHero({
         </li>
         <li className="dash-standings-hero-row dash-standings-hero-row--poker">
           <Link
-            to="/poker#standings"
+            to="/poker/leaderboard"
             className="dash-standings-hero-link"
             aria-label="Open the poker standings"
           >
@@ -91,15 +91,15 @@ export default function DashboardSeasonStandingsHero({
           PB board
         </Link>
         {" · "}
-        <Link className="dash-ms-inline-link" to="/lacrosse#standings">
+        <Link className="dash-ms-inline-link" to="/lacrosse/leaderboard">
           Lacrosse
         </Link>
         {" · "}
-        <Link className="dash-ms-inline-link" to="/volleyball#standings">
+        <Link className="dash-ms-inline-link" to="/volleyball/leaderboard">
           Volleyball
         </Link>
         {" · "}
-        <Link className="dash-ms-inline-link" to="/poker#standings">
+        <Link className="dash-ms-inline-link" to="/poker/leaderboard">
           Poker
         </Link>
       </p>

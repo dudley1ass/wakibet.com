@@ -1,31 +1,43 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { apiGet, apiPut } from "../../../api";
 import type { SessionUser } from "../../../App";
 import { parsePllCsv } from "../lib/lacrossePower";
-import SportStandingsSection from "../../../components/sportStandings/SportStandingsSection";
 
 function fmtOdds(v: number): string {
   return v > 0 ? `+${v}` : String(v);
 }
 
-type CurrentSlatePayload = {
+type SlateLine = {
+  line_id: string;
+  line_key: string;
+  team_a: string;
+  team_b: string;
+  spread_a: number;
+  odds_a: number;
+  odds_b: number;
+  confidence: number;
+};
+
+type SlateSummary = {
   slate_key: string;
   name: string;
   season_year: number;
   lock_at: string;
-  lines: Array<{
-    line_id: string;
-    line_key: string;
-    team_a: string;
-    team_b: string;
-    spread_a: number;
-    odds_a: number;
-    odds_b: number;
-    confidence: number;
-  }>;
+  is_current: boolean;
+  lines: SlateLine[];
 };
+
+type SlatesPayload = {
+  slates: SlateSummary[];
+};
+
+function formatLockAtShort(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 type SavedLineupPayload = {
   slate_key: string;
@@ -71,19 +83,35 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
     total: "",
     wild: "",
   });
+  const [selectedSlateKey, setSelectedSlateKey] = useState<string>("");
 
-  const slateQ = useQuery({
-    queryKey: ["lacrosse", "current"] as const,
-    queryFn: () => apiGet<CurrentSlatePayload>("/api/v1/lacrosse/current"),
+  const slatesQ = useQuery({
+    queryKey: ["lacrosse", "slates"] as const,
+    queryFn: () => apiGet<SlatesPayload>("/api/v1/lacrosse/slates"),
     retry: 3,
     retryDelay: (attempt) => Math.min(1200 * 2 ** attempt, 10_000),
   });
 
+  const availableSlates = slatesQ.data?.slates ?? [];
+
+  useEffect(() => {
+    if (!availableSlates.length) return;
+    if (selectedSlateKey && availableSlates.some((s) => s.slate_key === selectedSlateKey)) return;
+    const preferred =
+      availableSlates.find((s) => s.is_current) ?? availableSlates[0];
+    if (preferred) setSelectedSlateKey(preferred.slate_key);
+  }, [availableSlates, selectedSlateKey]);
+
+  const currentSlate =
+    availableSlates.find((s) => s.slate_key === selectedSlateKey) ?? null;
+
   const lineupQ = useQuery({
-    queryKey: ["lacrosse", "lineup", slateQ.data?.slate_key ?? ""] as const,
+    queryKey: ["lacrosse", "lineup", selectedSlateKey] as const,
     queryFn: () =>
-      apiGet<SavedLineupPayload>(`/api/v1/lacrosse/lineup?slate_key=${encodeURIComponent(slateQ.data!.slate_key)}`),
-    enabled: Boolean(user && slateQ.data?.slate_key),
+      apiGet<SavedLineupPayload>(
+        `/api/v1/lacrosse/lineup?slate_key=${encodeURIComponent(selectedSlateKey)}`,
+      ),
+    enabled: Boolean(user && selectedSlateKey),
   });
 
   const csvQ = useQuery({
@@ -97,33 +125,7 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
   });
   const csvRows = useMemo(() => (csvQ.data ? parsePllCsv(csvQ.data) : []), [csvQ.data]);
 
-  const location = useLocation();
-  useEffect(() => {
-    if (location.hash !== "#standings") return;
-    const id = window.setTimeout(() => {
-      document.getElementById("standings")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-    return () => window.clearTimeout(id);
-  }, [location.hash]);
-
-  const topPllScorers = useMemo(() => {
-    if (csvRows.length === 0) return [];
-    return [...csvRows]
-      .filter((r) => r.gamesPlayed > 0 || r.points > 0)
-      .sort((a, b) => b.points - a.points)
-      .slice(0, 25)
-      .map((r) => ({
-        name: `${r.firstName} ${r.lastName}`.trim(),
-        team: r.team,
-        position: r.position,
-        gamesPlayed: r.gamesPlayed,
-        points: r.points,
-        goals: r.totalGoals,
-        assists: r.assists,
-      }));
-  }, [csvRows]);
-
-  const lines = slateQ.data?.lines ?? [];
+  const lines = currentSlate?.lines ?? [];
   useEffect(() => {
     if (lines.length < 4) return;
     const defaults = lines.slice(0, 4).map((x) => x.line_id);
@@ -230,7 +232,7 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
   const totalStake = Object.values(stakes).reduce((s, n) => s + n, 0);
 
   async function saveLineup(): Promise<void> {
-    if (!slateQ.data || slots.length === 0) return;
+    if (!currentSlate || slots.length === 0) return;
     setSaving(true);
     setSaveMsg(null);
     setSaveErr(null);
@@ -240,7 +242,7 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
         return;
       }
       await apiPut("/api/v1/lacrosse/lineup", {
-        slate_key: slateQ.data.slate_key,
+        slate_key: currentSlate.slate_key,
         picks: slots.map((slot) => ({
           slot: slot.key,
           line_id: slot.lineId,
@@ -269,11 +271,48 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
           <h1>
             Lacrosse <span className="brand-jp">WakiBet</span>
           </h1>
-          {slateQ.data ? (
-            <p className="dash-section-lead" style={{ marginTop: 6, marginBottom: 8 }}>
-              Featured slate: <strong>{slateQ.data.name}</strong>
-              <span style={{ opacity: 0.85 }}> · PLL {slateQ.data.season_year}</span>
-            </p>
+          {availableSlates.length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginTop: 8, marginBottom: 10 }}>
+              <label className="dash-section-lead" style={{ display: "inline-grid", gap: 4 }}>
+                <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#fcd34d", fontWeight: 800 }}>
+                  Tournament
+                </span>
+                <select
+                  value={selectedSlateKey}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (next === selectedSlateKey) return;
+                    setSelectedSlateKey(next);
+                    setStackPlayers([]);
+                    setSlotLineIds({ winner: "", spread: "", total: "", wild: "" });
+                    setSaveMsg(null);
+                    setSaveErr(null);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    border: "1px solid #334155",
+                    background: "#0b1220",
+                    color: "#e2e8f0",
+                    minWidth: 320,
+                    fontWeight: 700,
+                  }}
+                >
+                  {availableSlates.map((s) => (
+                    <option key={s.slate_key} value={s.slate_key}>
+                      {s.name} · PLL {s.season_year} · locks {formatLockAtShort(s.lock_at)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {currentSlate ? (
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                  {availableSlates.length === 1
+                    ? "Only one upcoming tournament — past slates are hidden."
+                    : `${availableSlates.length} upcoming tournaments · past slates are hidden.`}
+                </span>
+              ) : null}
+            </div>
           ) : null}
           <p>
             Lacrosse on Wakibet is built around picking 4 teams- Winner, Spread, Total, and a Wild Card- using your
@@ -288,7 +327,7 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
               My lacrosse rosters
             </Link>
           ) : null}
-          <Link className="dash-ghost-btn" to="/lacrosse#standings">
+          <Link className="dash-ghost-btn" to="/lacrosse/leaderboard">
             Standings
           </Link>
           <Link className="dash-ghost-btn" to="/lacrosse/scoring">
@@ -305,10 +344,12 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
         <p className="dash-section-lead">
           Formula: R = 0.30O + 0.25D + 0.15G + 0.10F + 0.10P + 0.05S + 0.05H
         </p>
-        {slateQ.isPending ? (
-          <p className="dash-empty">Loading lacrosse slate…</p>
-        ) : slateQ.isError ? (
-          <p className="dash-error">{slateQ.error instanceof Error ? slateQ.error.message : "Could not load data."}</p>
+        {slatesQ.isPending ? (
+          <p className="dash-empty">Loading lacrosse slates…</p>
+        ) : slatesQ.isError ? (
+          <p className="dash-error">{slatesQ.error instanceof Error ? slatesQ.error.message : "Could not load data."}</p>
+        ) : availableSlates.length === 0 ? (
+          <p className="dash-empty">No upcoming tournaments scheduled yet.</p>
         ) : (
           <div className="dash-ratings-table-wrap">
             <table className="dash-ratings-table">
@@ -572,56 +613,6 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
           <p className="scoring-foot">Sign in to save your lacrosse lineup.</p>
         )}
       </section>
-
-      <SportStandingsSection
-        user={user}
-        sportLabel="Lacrosse"
-        fantasyEndpoint="/api/v1/lacrosse/season-leaderboard"
-        fantasyQueryKey={["lacrosse", "season-leaderboard"] as const}
-        fantasyKicker="Wakibet · PLL fantasy"
-        fantasySignInPrompt="Sign in to see the Wakibet lacrosse user leaderboard."
-        realWorldTitle="Top PLL scorers (real-world)"
-        realWorldKicker="Premier Lacrosse League · season points"
-        realWorldNote={
-          csvQ.isPending
-            ? "Loading PLL player stats…"
-            : csvQ.isError
-              ? "Could not load PLL player stats."
-              : `Top ${topPllScorers.length} by Points · live from the PLL player stats feed.`
-        }
-        realWorldContent={
-          csvQ.isPending || csvQ.isError ? null : topPllScorers.length === 0 ? (
-            <p className="dash-empty">No PLL stat rows available yet.</p>
-          ) : (
-            <div className="season-lb-table-wrap">
-              <table className="season-lb-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Rank</th>
-                    <th scope="col">Player</th>
-                    <th scope="col">Team</th>
-                    <th scope="col">Pos</th>
-                    <th scope="col" className="season-lb-th-score">G/A</th>
-                    <th scope="col" className="season-lb-th-score">Points</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topPllScorers.map((p, i) => (
-                    <tr key={`${i}-${p.name}`}>
-                      <td className="season-lb-rank">{i + 1}</td>
-                      <td className="season-lb-name">{p.name}</td>
-                      <td>{p.team}</td>
-                      <td>{p.position}</td>
-                      <td className="season-lb-score">{p.goals} / {p.assists}</td>
-                      <td className="season-lb-score">{p.points}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
-      />
     </div>
   );
 }

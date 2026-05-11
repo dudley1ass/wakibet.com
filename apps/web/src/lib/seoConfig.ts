@@ -30,6 +30,21 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "See how your WakiPoints rank against other players for the pickleball fantasy season on WakiBet.",
   },
+  "/lacrosse/leaderboard": {
+    title: `Lacrosse standings — PLL & fantasy leaderboard | ${SITE}`,
+    description:
+      "Wakibet lacrosse standings: user fantasy leaderboard for PLL fantasy plus the top PLL scorers by season points.",
+  },
+  "/volleyball/leaderboard": {
+    title: `Volleyball standings — AVP & fantasy leaderboard | ${SITE}`,
+    description:
+      "Wakibet volleyball standings: user fantasy leaderboard for AVP 2026 plus the top priced AVP players by event.",
+  },
+  "/poker/leaderboard": {
+    title: `Poker standings — WSOP & fantasy leaderboard | ${SITE}`,
+    description:
+      "Wakibet poker standings: user fantasy leaderboard for WSOP 2026 plus the WSOP.com-style top 50 earnings board.",
+  },
   "/lacrosse": {
     title: `Utah Open — PLL lacrosse hub, ratings & WakiCash | ${SITE}`,
     description:

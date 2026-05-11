@@ -338,6 +338,88 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
+  typed.get(
+    "/slates",
+    {
+      schema: {
+        tags: ["lacrosse"],
+        summary:
+          "Upcoming, unlocked PLL slates (next tournaments only — closed/past slates are excluded).",
+        response: {
+          200: z.object({
+            slates: z.array(
+              z.object({
+                slate_key: z.string(),
+                name: z.string(),
+                season_year: z.number().int(),
+                lock_at: z.string(),
+                is_current: z.boolean(),
+                lines: z.array(
+                  z.object({
+                    line_id: z.string(),
+                    line_key: z.string(),
+                    team_a: z.string(),
+                    team_b: z.string(),
+                    spread_a: z.number(),
+                    odds_a: z.number().int(),
+                    odds_b: z.number().int(),
+                    confidence: z.number().int(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    async () => {
+      const now = new Date();
+      await ensureCurrentSlate();
+      const slates = await prisma.lacrosseSlate.findMany({
+        where: {
+          isClosed: false,
+          lockAt: { gt: now },
+          seasonYear: LACROSSE_SEASON_YEAR,
+        },
+        orderBy: [{ lockAt: "asc" }, { createdAt: "asc" }],
+        include: { lines: { orderBy: { lineKey: "asc" } } },
+      });
+      for (const s of slates) {
+        if (s.lines.length < 4) {
+          await rebuildSlateLines(s.id);
+        }
+      }
+      const slatesWithLines = await prisma.lacrosseSlate.findMany({
+        where: {
+          isClosed: false,
+          lockAt: { gt: now },
+          seasonYear: LACROSSE_SEASON_YEAR,
+        },
+        orderBy: [{ lockAt: "asc" }, { createdAt: "asc" }],
+        include: { lines: { orderBy: { lineKey: "asc" } } },
+      });
+      return {
+        slates: slatesWithLines.map((s) => ({
+          slate_key: s.slateKey,
+          name: s.name,
+          season_year: s.seasonYear,
+          lock_at: s.lockAt.toISOString(),
+          is_current: s.isCurrent,
+          lines: s.lines.map((l) => ({
+            line_id: l.id,
+            line_key: l.lineKey,
+            team_a: l.teamA,
+            team_b: l.teamB,
+            spread_a: Number(l.spreadA),
+            odds_a: l.oddsA,
+            odds_b: l.oddsB,
+            confidence: l.confidence,
+          })),
+        })),
+      };
+    },
+  );
+
   const StackBody = z.object({
     winner_line_id: z.string().min(1),
     side: z.enum(["A", "B"]),

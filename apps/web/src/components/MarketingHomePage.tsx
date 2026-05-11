@@ -68,14 +68,6 @@ const FEATURED_ARTICLES: {
     thumbMod: "article-thumb--pb",
   },
   {
-    slug: "pickleball-mixed-doubles-carrying-viewership",
-    title: "Mixed Doubles Is Carrying Pickleball Viewership",
-    category: "Pickleball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pb",
-  },
-  {
     slug: "poker-wsop-main-event-endurance-more-than-skill",
     title: "The WSOP Main Event Rewards Endurance More Than Skill",
     category: "Poker",
@@ -108,14 +100,6 @@ const FEATURED_ARTICLES: {
     thumbMod: "article-thumb--pk",
   },
   {
-    slug: "poker-phil-hellmuth-best-tournament-player-alive",
-    title: "Phil Hellmuth Is Still One of the Best Tournament Players Alive",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
     slug: "lacrosse-highlights-vs-fundamentals",
     title: "Lacrosse Culture Cares More About Highlights Than Fundamentals",
     category: "Lacrosse",
@@ -140,24 +124,8 @@ const FEATURED_ARTICLES: {
     thumbMod: "article-thumb--lx",
   },
   {
-    slug: "lacrosse-travel-ball-hurting-development",
-    title: "Travel Ball Is Hurting Lacrosse Development",
-    category: "Lacrosse",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--lx",
-  },
-  {
     slug: "volleyball-players-dont-understand-rotations",
     title: "Most Volleyball Players Don’t Actually Understand Rotations",
-    category: "Volleyball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--vb",
-  },
-  {
-    slug: "volleyball-club-hype-vs-player-development",
-    title: "Club Volleyball Has Become More About Branding Than Development",
     category: "Volleyball",
     comments: 0,
     trending: true,
@@ -178,86 +146,6 @@ const FEATURED_ARTICLES: {
     comments: 0,
     trending: true,
     thumbMod: "article-thumb--vb",
-  },
-  {
-    slug: "poker-wsop-fantasy-draft-names-not-results",
-    title: "Most WSOP Fantasy Players Draft Names Instead of Results",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "poker-bracelets-vs-consistency-not-best-player",
-    title: "Bracelets Don’t Mean You’re the Best Tournament Player",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "poker-main-event-survival-vs-skill",
-    title: "The WSOP Main Event Rewards Survival More Than Skill",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "pickleball-50-ratings-vs-pro-qualifiers",
-    title: "Most 5.0 Players Would Get Destroyed in Pro Qualifiers",
-    category: "Pickleball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "pickleball-bangers-vs-soft-game-rec",
-    title: "Bangers Win More Recreational Games Than Dinkers",
-    category: "Pickleball",
-    comments: 0,
-    trending: false,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "pickleball-45-to-pro-gap-ego-check",
-    title: "The Gap Between 4.5 and Pro Is Bigger Than Most Players Realize",
-    category: "Pickleball",
-    comments: 0,
-    trending: false,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "volleyball-serve-receive-still-underrated",
-    title: "Most Players Underrate Serve Receive Because It Isn’t Flashy",
-    category: "Volleyball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--vb",
-  },
-  {
-    slug: "volleyball-club-hype-vs-player-development",
-    title: "Club Volleyball Culture Is Becoming More About Hype Than Development",
-    category: "Volleyball",
-    comments: 0,
-    trending: false,
-    thumbMod: "article-thumb--vb",
-  },
-  {
-    slug: "lacrosse-attack-gets-too-much-credit",
-    title: "Attack Players Get Too Much Credit for Team Success",
-    category: "Lacrosse",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--lx",
-  },
-  {
-    slug: "lacrosse-highlights-vs-fundamentals",
-    title: "Highlight Culture Is Hurting Lacrosse Fundamentals",
-    category: "Lacrosse",
-    comments: 0,
-    trending: false,
-    thumbMod: "article-thumb--lx",
   },
 ];
 
@@ -311,18 +199,33 @@ type DemoContestPlayer = {
   last_event_label: string;
 };
 
+type DemoSport = "pickleball" | "lacrosse" | "volleyball" | "poker";
+
 type DemoContestResponse = {
+  sport: DemoSport;
   tournament_key: string;
   tournament_name: string;
   roster_size: number;
   players: DemoContestPlayer[];
 };
 
+const DEMO_SPORT_OPTIONS: { value: DemoSport; label: string }[] = [
+  { value: "pickleball", label: "Pickleball" },
+  { value: "lacrosse", label: "Lacrosse" },
+  { value: "volleyball", label: "Volleyball" },
+  { value: "poker", label: "Poker" },
+];
+
 function DemoContestBuilder() {
+  const [selectedSport, setSelectedSport] = useState<DemoSport>("pickleball");
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const demoQuery = useQuery({
-    queryKey: ["landing", "fantasy-demo-contest"] as const,
-    queryFn: () => apiGet<DemoContestResponse>("/api/v1/fantasy-tournament/demo", { timeoutMs: 20_000 }),
+    queryKey: ["landing", "fantasy-demo-contest", selectedSport] as const,
+    queryFn: () =>
+      apiGet<DemoContestResponse>(
+        `/api/v1/fantasy-tournament/demo?sport=${encodeURIComponent(selectedSport)}`,
+        { timeoutMs: 20_000 },
+      ),
     staleTime: 5 * 60_000,
     retry: 1,
   });
@@ -342,12 +245,35 @@ function DemoContestBuilder() {
     });
   }
 
+  function handleSportChange(next: DemoSport) {
+    if (next === selectedSport) return;
+    setSelectedSport(next);
+    setSelectedNames([]);
+  }
+
   return (
     <section id="demo-contest" className="landing-demo-contest">
       <div className="landing-demo-contest__head">
         <div>
           <div className="landing-demo-contest__kicker">Demo contest</div>
-          <h2 className="landing-demo-contest__title">Pick 5 players. See your projected score.</h2>
+          <h2 className="landing-demo-contest__title">
+            Pick 5 players. See your projected score{" "}
+            <span className="landing-demo-contest__sport-pick">
+              <select
+                aria-label="Choose a sport to demo"
+                className="landing-demo-contest__sport-select"
+                value={selectedSport}
+                onChange={(e) => handleSportChange(e.target.value as DemoSport)}
+              >
+                {DEMO_SPORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </span>
+            .
+          </h2>
           <p className="landing-demo-contest__lede">
             No login required. Points use each player’s last tournament result, then you can create an account after
             the lineup is built.

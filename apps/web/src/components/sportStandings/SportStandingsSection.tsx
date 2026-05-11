@@ -98,6 +98,8 @@ type Props = {
   realWorldKicker: string;
   realWorldNote?: string;
   realWorldContent: ReactNode;
+  /** When true, render only the two inner boards (no outer section title/lead). */
+  headless?: boolean;
 };
 
 export default function SportStandingsSection({
@@ -111,7 +113,38 @@ export default function SportStandingsSection({
   realWorldKicker,
   realWorldNote,
   realWorldContent,
+  headless,
 }: Props) {
+  const boards = (
+    <div style={{ display: "grid", gap: 20, marginTop: headless ? 0 : 14 }}>
+      <div>
+        <p className="season-lb-kicker">{fantasyKicker}</p>
+        <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
+          Wakibet user fantasy leaderboard
+        </h3>
+        <FantasyBoard
+          endpoint={fantasyEndpoint}
+          queryKey={fantasyQueryKey}
+          signInPrompt={fantasySignInPrompt}
+          user={user}
+        />
+      </div>
+
+      <div>
+        <p className="season-lb-kicker">{realWorldKicker}</p>
+        <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
+          {realWorldTitle}
+        </h3>
+        {realWorldNote ? (
+          <p className="season-lb-meta">{realWorldNote}</p>
+        ) : null}
+        {realWorldContent}
+      </div>
+    </div>
+  );
+
+  if (headless) return boards;
+
   return (
     <section
       id="standings"
@@ -125,32 +158,7 @@ export default function SportStandingsSection({
       <p className="dash-section-lead">
         Two boards: your fellow Wakibet players (fantasy points / lineup activity) and the real-world player board.
       </p>
-
-      <div style={{ display: "grid", gap: 20, marginTop: 14 }}>
-        <div>
-          <p className="season-lb-kicker">{fantasyKicker}</p>
-          <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
-            Wakibet user fantasy leaderboard
-          </h3>
-          <FantasyBoard
-            endpoint={fantasyEndpoint}
-            queryKey={fantasyQueryKey}
-            signInPrompt={fantasySignInPrompt}
-            user={user}
-          />
-        </div>
-
-        <div>
-          <p className="season-lb-kicker">{realWorldKicker}</p>
-          <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
-            {realWorldTitle}
-          </h3>
-          {realWorldNote ? (
-            <p className="season-lb-meta">{realWorldNote}</p>
-          ) : null}
-          {realWorldContent}
-        </div>
-      </div>
+      {boards}
     </section>
   );
 }

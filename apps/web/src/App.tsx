@@ -25,6 +25,13 @@ const VolleyballPicksPage = lazy(() => import("./components/picks/VolleyballPick
 const PickleballSeasonLeaderboardPage = lazy(() =>
   import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.PickleballSeasonLeaderboardPage })),
 );
+const LacrosseStandingsPage = lazy(
+  () => import("./sports/lacrosse/components/LacrosseStandingsPage"),
+);
+const VolleyballStandingsPage = lazy(
+  () => import("./sports/volleyball/components/VolleyballStandingsPage"),
+);
+const PokerStandingsPage = lazy(() => import("./sports/poker/components/PokerStandingsPage"));
 const TermsPage = lazy(() =>
   import("./components/StaticPages").then((m) => ({ default: m.TermsPage })),
 );
@@ -311,6 +318,57 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
             </>
           ) : (
             <PickleballSeasonLeaderboardPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/lacrosse/leaderboard"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the lacrosse standings.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <LacrosseStandingsPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/volleyball/leaderboard"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the volleyball standings.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <VolleyballStandingsPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/poker/leaderboard"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the poker standings.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <PokerStandingsPage user={session} />
           )
         }
       />

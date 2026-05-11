@@ -1,7 +1,13 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
+  AVP_2026_EVENTS,
+  AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY,
+  avpRegisteredTeamPoolForEvent,
   MLP_FANTASY_REQUIRED_MEN,
   MLP_FANTASY_REQUIRED_WOMEN,
   MLP_FANTASY_ROSTER_SIZE,
@@ -9,6 +15,7 @@ import {
   scoreWinterPlayerFromMatches,
   type WinterJsonMatch,
   WINTER_FANTASY_ROSTER_SIZE,
+  WSOP_SITE_TOP_50_PLAYERS,
 } from "@wakibet/shared";
 import { Prisma, prisma } from "../lib/prisma.js";
 import { createKeyedMutex } from "../lib/asyncMutex.js";
@@ -132,7 +139,21 @@ function demoDisplayName(name: string): string {
   return name;
 }
 
-async function buildPublicDemoContest() {
+type DemoSport = "pickleball" | "lacrosse" | "volleyball" | "poker";
+
+type DemoContest = {
+  tournament_key: string;
+  tournament_name: string;
+  roster_size: number;
+  players: Array<{
+    player_name: string;
+    display_name: string;
+    projected_points: number;
+    last_event_label: string;
+  }>;
+};
+
+async function buildPickleballDemoContest(): Promise<DemoContest | null> {
   const tournamentKey: TournamentKey = "atlanta_weekend";
   const data = await getTournamentData(tournamentKey);
   if (!data) return null;
@@ -182,6 +203,153 @@ async function buildPublicDemoContest() {
     roster_size: 5,
     players,
   };
+}
+
+async function readPllStatsCsvForDemo(): Promise<string | null> {
+  const envRaw = process.env.PLL_PLAYER_STATS_CSV?.trim();
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    envRaw ? (path.isAbsolute(envRaw) ? envRaw : path.resolve(process.cwd(), envRaw)) : null,
+    path.resolve(moduleDir, "../../data/pll-player-stats.csv"),
+    path.resolve(process.cwd(), "data/pll-player-stats.csv"),
+    path.resolve(process.cwd(), "apps/api/data/pll-player-stats.csv"),
+  ].filter((p): p is string => Boolean(p));
+  for (const csvPath of candidates) {
+    try {
+      return await fs.readFile(csvPath, "utf8");
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+async function buildLacrosseDemoContest(): Promise<DemoContest | null> {
+  const raw = await readPllStatsCsvForDemo();
+  if (!raw) return null;
+  const lines = raw.trim().split(/\r?\n/);
+  if (lines.length < 2) return null;
+  const head = lines[0]!.split(",");
+  const idx = new Map(head.map((h, i) => [h.trim(), i]));
+  const gi = (row: string[], k: string): string => row[idx.get(k) ?? -1] ?? "";
+  const num = (row: string[], k: string): number => {
+    const n = Number(gi(row, k));
+    return Number.isFinite(n) ? n : 0;
+  };
+  type Row = { firstName: string; lastName: string; team: string; points: number };
+  const rows: Row[] = [];
+  for (const line of lines.slice(1)) {
+    const cols = line.split(",");
+    const first = gi(cols, "First Name").trim();
+    const last = gi(cols, "Last Name").trim();
+    if (!first && !last) continue;
+    rows.push({
+      firstName: first,
+      lastName: last,
+      team: gi(cols, "Team"),
+      points: num(cols, "Points"),
+    });
+  }
+  const players = rows
+    .filter((r) => r.points > 0)
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 18)
+    .map((r) => {
+      const name = `${r.firstName} ${r.lastName}`.trim();
+      return {
+        player_name: name,
+        display_name: name,
+        projected_points: r.points,
+        last_event_label: r.team ? `PLL · ${r.team}` : "PLL · 2026 season",
+      };
+    });
+  if (players.length === 0) return null;
+  return {
+    tournament_key: "pll_2026_season",
+    tournament_name: "PLL 2026 — Season points",
+    roster_size: 5,
+    players,
+  };
+}
+
+function stableHashForDemo(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i += 1) h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function demoWakiCashForVolleyballPlayer(name: string, eventKey: string): number {
+  const roll = stableHashForDemo(`${eventKey}:${name}`) % 100;
+  if (roll >= 92) return 47 + (roll % 4);
+  if (roll >= 70) return 30 + (roll % 8);
+  if (roll >= 35) return 18 + (roll % 10);
+  return 8 + (roll % 9);
+}
+
+function buildVolleyballDemoContest(): DemoContest | null {
+  const eventKey = AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY;
+  const pool = avpRegisteredTeamPoolForEvent(eventKey);
+  if (!pool) return null;
+  const eventMeta = AVP_2026_EVENTS.find((e) => e.event_key === eventKey);
+  const names = new Set<string>();
+  for (const t of pool.teams) {
+    if (t.player_one.trim()) names.add(t.player_one.trim());
+    if (t.player_two.trim()) names.add(t.player_two.trim());
+  }
+  const players = [...names]
+    .map((n) => ({ name: n, wc: demoWakiCashForVolleyballPlayer(n, eventKey) }))
+    .sort((a, b) => b.wc - a.wc || a.name.localeCompare(b.name))
+    .slice(0, 18)
+    .map((p) => ({
+      player_name: p.name,
+      display_name: p.name,
+      projected_points: p.wc,
+      last_event_label: eventMeta?.name ?? "AVP 2026",
+    }));
+  if (players.length === 0) return null;
+  return {
+    tournament_key: eventKey,
+    tournament_name: eventMeta?.name ?? "AVP 2026 — Pompano Beach Open",
+    roster_size: 5,
+    players,
+  };
+}
+
+function buildPokerDemoContest(): DemoContest | null {
+  const players = [...WSOP_SITE_TOP_50_PLAYERS]
+    .map((p) => ({
+      name: p.player_name,
+      country: p.country,
+      points: Math.round(p.earnings_usd / 1000),
+    }))
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
+    .slice(0, 18)
+    .map((p) => ({
+      player_name: p.name,
+      display_name: p.name,
+      projected_points: p.points,
+      last_event_label: p.country ? `WSOP · ${p.country}` : "WSOP earnings board",
+    }));
+  if (players.length === 0) return null;
+  return {
+    tournament_key: "wsop_2026_top_earners",
+    tournament_name: "WSOP 2026 — Top earners",
+    roster_size: 5,
+    players,
+  };
+}
+
+async function buildPublicDemoContest(sport: DemoSport): Promise<DemoContest | null> {
+  switch (sport) {
+    case "pickleball":
+      return buildPickleballDemoContest();
+    case "lacrosse":
+      return buildLacrosseDemoContest();
+    case "volleyball":
+      return buildVolleyballDemoContest();
+    case "poker":
+      return buildPokerDemoContest();
+  }
 }
 
 function sameEventPayload(
@@ -255,9 +423,13 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
     {
       schema: {
         tags: ["fantasy-tournament"],
+        querystring: z.object({
+          sport: z.enum(["pickleball", "lacrosse", "volleyball", "poker"]).optional(),
+        }),
         response: {
           200: z.object({
-            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
+            sport: z.enum(["pickleball", "lacrosse", "volleyball", "poker"]),
+            tournament_key: z.string(),
             tournament_name: z.string(),
             roster_size: z.number().int(),
             players: z.array(
@@ -273,12 +445,13 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
         },
       },
     },
-    async (_req, reply) => {
-      const demo = await buildPublicDemoContest();
+    async (req, reply) => {
+      const sport = (req.query.sport ?? "pickleball") as DemoSport;
+      const demo = await buildPublicDemoContest(sport);
       if (!demo) {
         return reply.code(503).send({ message: "Demo contest data is not available." } as const);
       }
-      return demo;
+      return { sport, ...demo };
     },
   );
 
