@@ -196,6 +196,7 @@ type DemoContestPlayer = {
   player_name: string;
   display_name: string;
   projected_points: number;
+  waki_cash: number;
   last_event_label: string;
 };
 
@@ -206,6 +207,7 @@ type DemoContestResponse = {
   tournament_key: string;
   tournament_name: string;
   roster_size: number;
+  salary_cap: number;
   players: DemoContestPlayer[];
 };
 
@@ -231,17 +233,22 @@ function DemoContestBuilder() {
   });
   const players = demoQuery.data?.players ?? [];
   const rosterSize = demoQuery.data?.roster_size ?? 5;
+  const salaryCap = demoQuery.data?.salary_cap ?? 100;
   const selectedPlayers = selectedNames
     .map((name) => players.find((p) => p.player_name === name))
     .filter((p): p is DemoContestPlayer => Boolean(p));
   const projectedScore = Math.round(selectedPlayers.reduce((sum, p) => sum + p.projected_points, 0) * 100) / 100;
-  const isBuilt = selectedPlayers.length === rosterSize;
+  const wakiCashSpent = selectedPlayers.reduce((sum, p) => sum + p.waki_cash, 0);
+  const wakiCashRemaining = salaryCap - wakiCashSpent;
+  const isFull = selectedPlayers.length === rosterSize;
+  const isBuilt = isFull && wakiCashRemaining >= 0;
 
-  function togglePlayer(playerName: string) {
+  function togglePlayer(player: DemoContestPlayer) {
     setSelectedNames((prev) => {
-      if (prev.includes(playerName)) return prev.filter((name) => name !== playerName);
+      if (prev.includes(player.player_name)) return prev.filter((name) => name !== player.player_name);
       if (prev.length >= rosterSize) return prev;
-      return [...prev, playerName];
+      if (wakiCashRemaining - player.waki_cash < 0) return prev;
+      return [...prev, player.player_name];
     });
   }
 
@@ -275,16 +282,25 @@ function DemoContestBuilder() {
             .
           </h2>
           <p className="landing-demo-contest__lede">
-            No login required. Points use each player’s last tournament result, then you can create an account after
-            the lineup is built.
+            No login required. You get {salaryCap} WakiCash — every player has a price, and your projected score uses
+            each player’s last tournament result. Create an account after the lineup is built.
           </p>
         </div>
         <div className="landing-demo-contest__score-card">
-          <span>Projected score</span>
-          <strong>{projectedScore}</strong>
-          <small>
-            {selectedPlayers.length}/{rosterSize} players picked
-          </small>
+          <div className="landing-demo-contest__score-row">
+            <span>WakiCash left</span>
+            <strong className={wakiCashRemaining < 0 ? "landing-demo-contest__over" : undefined}>
+              {wakiCashRemaining}
+            </strong>
+            <small>of {salaryCap}</small>
+          </div>
+          <div className="landing-demo-contest__score-row landing-demo-contest__score-row--alt">
+            <span>Projected score</span>
+            <strong>{projectedScore}</strong>
+            <small>
+              {selectedPlayers.length}/{rosterSize} players picked
+            </small>
+          </div>
         </div>
       </div>
 
@@ -298,16 +314,24 @@ function DemoContestBuilder() {
           <div className="landing-demo-contest__players" aria-label="Demo contest player pool">
             {players.map((player) => {
               const selected = selectedNames.includes(player.player_name);
-              const disabled = !selected && selectedNames.length >= rosterSize;
+              const wouldOverspend = !selected && wakiCashRemaining - player.waki_cash < 0;
+              const rosterFull = !selected && selectedNames.length >= rosterSize;
+              const disabled = rosterFull || wouldOverspend;
               return (
                 <button
                   key={player.player_name}
                   type="button"
-                  className={`landing-demo-player${selected ? " landing-demo-player--selected" : ""}`}
+                  className={`landing-demo-player${selected ? " landing-demo-player--selected" : ""}${
+                    wouldOverspend ? " landing-demo-player--over" : ""
+                  }`}
                   disabled={disabled}
-                  onClick={() => togglePlayer(player.player_name)}
+                  onClick={() => togglePlayer(player)}
+                  aria-label={`${player.display_name}, costs ${player.waki_cash} WakiCash, projects ${player.projected_points} points`}
                 >
-                  <span className="landing-demo-player__name">{player.display_name}</span>
+                  <span className="landing-demo-player__row">
+                    <span className="landing-demo-player__name">{player.display_name}</span>
+                    <span className="landing-demo-player__price">{player.waki_cash} WC</span>
+                  </span>
                   <span className="landing-demo-player__meta">
                     {player.projected_points} pts · {player.last_event_label}
                   </span>
@@ -319,14 +343,23 @@ function DemoContestBuilder() {
             {isBuilt ? (
               <>
                 <p>
-                  Lineup built. Create a free account to save real lineups, join contests, and track results.
+                  Lineup built — spent {wakiCashSpent}/{salaryCap} WakiCash for {projectedScore} projected points.
+                  Create a free account to save real lineups, join contests, and track results.
                 </p>
                 <Link className="dash-main-btn landing-demo-contest__signup" to="/auth?mode=register">
                   Create free account
                 </Link>
               </>
+            ) : isFull && wakiCashRemaining < 0 ? (
+              <p>
+                Over budget by {Math.abs(wakiCashRemaining)} WakiCash. Swap an expensive player for a cheaper one to
+                finish the demo lineup.
+              </p>
             ) : (
-              <p>Choose {rosterSize - selectedPlayers.length} more player{rosterSize - selectedPlayers.length === 1 ? "" : "s"} to finish the demo lineup.</p>
+              <p>
+                Choose {rosterSize - selectedPlayers.length} more player
+                {rosterSize - selectedPlayers.length === 1 ? "" : "s"} — {wakiCashRemaining} WakiCash left.
+              </p>
             )}
           </div>
         </>

@@ -14,6 +14,7 @@ import {
   playerWakiCashCost,
   scoreWinterPlayerFromMatches,
   type WinterJsonMatch,
+  WAKICASH_BUDGET_PER_LINEUP,
   WINTER_FANTASY_ROSTER_SIZE,
   WSOP_SITE_TOP_50_PLAYERS,
 } from "@wakibet/shared";
@@ -145,13 +146,25 @@ type DemoContest = {
   tournament_key: string;
   tournament_name: string;
   roster_size: number;
+  salary_cap: number;
   players: Array<{
     player_name: string;
     display_name: string;
     projected_points: number;
+    waki_cash: number;
     last_event_label: string;
   }>;
 };
+
+/** Bucketed WakiCash price by rank within the top-18 demo pool. Designed so
+ *  five picks must trade off elite vs. value to fit under the 100 cap. */
+function demoCostByRank(rank: number): number {
+  if (rank < 4) return 32;
+  if (rank < 8) return 24;
+  if (rank < 12) return 18;
+  if (rank < 16) return 12;
+  return 8;
+}
 
 async function buildPickleballDemoContest(): Promise<DemoContest | null> {
   const tournamentKey: TournamentKey = "atlanta_weekend";
@@ -173,16 +186,22 @@ async function buildPickleballDemoContest(): Promise<DemoContest | null> {
     else divisions.set(key, [match]);
   }
 
-  const pointsByPlayer = new Map<string, { points: number; eventLabel: string }>();
-  for (const matches of divisions.values()) {
+  const pointsByPlayer = new Map<string, { points: number; eventLabel: string; skill: string }>();
+  for (const [divisionKey, matches] of divisions) {
     const names = uniquePlayersInMatches(matches).filter((name) => !isCompositePlayerName(name));
+    const skill = parseDivisionKey(divisionKey)?.skill_level ?? "";
     for (const playerName of names) {
       const scored = scoreWinterPlayerFromMatches(playerName, matches).total;
       if (scored <= 0) continue;
-      const current = pointsByPlayer.get(playerName) ?? { points: 0, eventLabel: matches[0]?.event_type ?? "Pro Main Draw" };
+      const current = pointsByPlayer.get(playerName) ?? {
+        points: 0,
+        eventLabel: matches[0]?.event_type ?? "Pro Main Draw",
+        skill,
+      };
       pointsByPlayer.set(playerName, {
         points: Math.round((current.points + scored) * 100) / 100,
         eventLabel: current.eventLabel,
+        skill: current.skill || skill,
       });
     }
   }
@@ -192,6 +211,7 @@ async function buildPickleballDemoContest(): Promise<DemoContest | null> {
       player_name,
       display_name: demoDisplayName(player_name),
       projected_points: row.points,
+      waki_cash: playerWakiCashCost(row.skill, player_name),
       last_event_label: row.eventLabel,
     }))
     .sort((a, b) => b.projected_points - a.projected_points || a.display_name.localeCompare(b.display_name))
@@ -201,6 +221,7 @@ async function buildPickleballDemoContest(): Promise<DemoContest | null> {
     tournament_key: tournamentKey,
     tournament_name: data.summary.tournament_name,
     roster_size: 5,
+    salary_cap: WAKICASH_BUDGET_PER_LINEUP,
     players,
   };
 }
@@ -254,12 +275,13 @@ async function buildLacrosseDemoContest(): Promise<DemoContest | null> {
     .filter((r) => r.points > 0)
     .sort((a, b) => b.points - a.points)
     .slice(0, 18)
-    .map((r) => {
+    .map((r, index) => {
       const name = `${r.firstName} ${r.lastName}`.trim();
       return {
         player_name: name,
         display_name: name,
         projected_points: r.points,
+        waki_cash: demoCostByRank(index),
         last_event_label: r.team ? `PLL · ${r.team}` : "PLL · 2026 season",
       };
     });
@@ -268,6 +290,7 @@ async function buildLacrosseDemoContest(): Promise<DemoContest | null> {
     tournament_key: "pll_2026_season",
     tournament_name: "PLL 2026 — Season points",
     roster_size: 5,
+    salary_cap: WAKICASH_BUDGET_PER_LINEUP,
     players,
   };
 }
@@ -300,10 +323,11 @@ function buildVolleyballDemoContest(): DemoContest | null {
     .map((n) => ({ name: n, wc: demoWakiCashForVolleyballPlayer(n, eventKey) }))
     .sort((a, b) => b.wc - a.wc || a.name.localeCompare(b.name))
     .slice(0, 18)
-    .map((p) => ({
+    .map((p, index) => ({
       player_name: p.name,
       display_name: p.name,
       projected_points: p.wc,
+      waki_cash: demoCostByRank(index),
       last_event_label: eventMeta?.name ?? "AVP 2026",
     }));
   if (players.length === 0) return null;
@@ -311,6 +335,7 @@ function buildVolleyballDemoContest(): DemoContest | null {
     tournament_key: eventKey,
     tournament_name: eventMeta?.name ?? "AVP 2026 — Pompano Beach Open",
     roster_size: 5,
+    salary_cap: WAKICASH_BUDGET_PER_LINEUP,
     players,
   };
 }
@@ -324,10 +349,11 @@ function buildPokerDemoContest(): DemoContest | null {
     }))
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
     .slice(0, 18)
-    .map((p) => ({
+    .map((p, index) => ({
       player_name: p.name,
       display_name: p.name,
       projected_points: p.points,
+      waki_cash: demoCostByRank(index),
       last_event_label: p.country ? `WSOP · ${p.country}` : "WSOP earnings board",
     }));
   if (players.length === 0) return null;
@@ -335,6 +361,7 @@ function buildPokerDemoContest(): DemoContest | null {
     tournament_key: "wsop_2026_top_earners",
     tournament_name: "WSOP 2026 — Top earners",
     roster_size: 5,
+    salary_cap: WAKICASH_BUDGET_PER_LINEUP,
     players,
   };
 }
@@ -432,11 +459,13 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
             tournament_key: z.string(),
             tournament_name: z.string(),
             roster_size: z.number().int(),
+            salary_cap: z.number().int(),
             players: z.array(
               z.object({
                 player_name: z.string(),
                 display_name: z.string(),
                 projected_points: z.number(),
+                waki_cash: z.number().int(),
                 last_event_label: z.string(),
               }),
             ),
