@@ -17,16 +17,6 @@ const sectionCard: React.CSSProperties = {
   boxShadow: "0 20px 40px rgba(0,0,0,0.28)",
 };
 
-const badgeStyle: React.CSSProperties = {
-  display: "inline-block",
-  padding: "4px 10px",
-  borderRadius: 999,
-  border: "1px solid rgba(251, 191, 36, 0.45)",
-  color: "#fcd34d",
-  fontSize: 12,
-  marginBottom: 6,
-};
-
 const FEATURED_ARTICLES: {
   slug: string;
   title: string;
@@ -465,12 +455,7 @@ export default function MarketingHomePage() {
           <div className="landing-hero__mesh" aria-hidden />
           <div className="landing-hero__grid">
             <div className="landing-hero__copy">
-              <div style={badgeStyle}>Sports media + fantasy ecosystem</div>
-              <p style={{ margin: "0 0 6px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
-                100% free to play — no entry fees, no deposits required.
-              </p>
-              <h1 className="landing-hero__title">Where Sports Fans Compete Beyond the Scoreboard</h1>
-              <div className="landing-hero__sport-banner landing-hero__sport-banner--inline">
+              <div className="landing-hero__sport-banner landing-hero__sport-banner--inline landing-hero__sport-banner--hero-top">
                 <span className="landing-hero__sport-banner-kicker">Fantasy sports for</span>
                 <span className="landing-hero__sport-banner-list">
                   <span>Pickleball</span>
@@ -488,6 +473,10 @@ export default function MarketingHomePage() {
                   <span>Poker</span>
                 </span>
               </div>
+              <p style={{ margin: "0 0 6px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
+                100% free to play — no entry fees, no deposits required.
+              </p>
+              <h1 className="landing-hero__title">Where Sports Fans Compete Beyond the Scoreboard</h1>
               <p className="landing-hero__lede">
                 Rankings, debates, hot takes, and fantasy — built for fans who live in the comments section as much as the
                 scoreboard.

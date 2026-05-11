@@ -472,7 +472,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(196px, 272px);
   gap: 16px 20px;
-  align-items: start;
+  align-items: center;
   min-width: 0;
 }
 
@@ -510,6 +510,10 @@ body {
 
 .landing-hero__sport-banner--inline .landing-hero__sport-banner-list {
   justify-content: flex-start;
+}
+
+.landing-hero__sport-banner--hero-top {
+  margin: 0 0 8px;
 }
 
 .landing-hero__sport-banner-kicker {
