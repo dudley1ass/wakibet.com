@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import type { SessionUser } from "../../../App";
 import WeekPicksHelpCue from "../../../components/WeekPicksHelpCue";
 import WeekPicksPromoBanner from "../../../components/WeekPicksPromoBanner";
-import { WakiOddsPanel } from "../../../components/picks/picksUi";
 import { useDashboardDataRequired } from "../context/DashboardDataContext";
 import FantasyTournamentSection from "../../../components/FantasyTournamentSection";
 import "../../../components/dashboard.css";
@@ -41,13 +40,6 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
       </header>
       <WeekPicksPromoBanner sport="pickleball" />
       <WeekPicksHelpCue sport="pickleball" />
-      <WakiOddsPanel
-        labelA="Your lineup edge"
-        labelB="Field average"
-        ratingA={1590}
-        ratingB={1510}
-        market="pickleball"
-      />
       <FantasyTournamentSection
         pageLayout
         onRosterSaved={async () => {

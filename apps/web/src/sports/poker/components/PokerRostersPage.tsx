@@ -64,9 +64,6 @@ export default function PokerRostersPage({ user }: Props) {
           </p>
         </div>
         <div className="rost-actions">
-          <Link className="dash-ghost-btn" to="/poker/pick">
-            Save lineup
-          </Link>
           <Link className="dash-ghost-btn" to="/poker/leaderboard">
             Standings
           </Link>

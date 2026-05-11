@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { SessionUser } from "../../App";
 import { apiGet } from "../../api";
@@ -94,11 +93,7 @@ type Props = {
   fantasyQueryKey: readonly unknown[];
   fantasyKicker: string;
   fantasySignInPrompt: string;
-  realWorldTitle: string;
-  realWorldKicker: string;
-  realWorldNote?: string;
-  realWorldContent: ReactNode;
-  /** When true, render only the two inner boards (no outer section title/lead). */
+  /** When true, render only the inner board (no outer section title/lead). */
   headless?: boolean;
 };
 
@@ -109,41 +104,24 @@ export default function SportStandingsSection({
   fantasyQueryKey,
   fantasyKicker,
   fantasySignInPrompt,
-  realWorldTitle,
-  realWorldKicker,
-  realWorldNote,
-  realWorldContent,
   headless,
 }: Props) {
-  const boards = (
-    <div style={{ display: "grid", gap: 20, marginTop: headless ? 0 : 14 }}>
-      <div>
-        <p className="season-lb-kicker">{fantasyKicker}</p>
-        <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
-          Wakibet user fantasy leaderboard
-        </h3>
-        <FantasyBoard
-          endpoint={fantasyEndpoint}
-          queryKey={fantasyQueryKey}
-          signInPrompt={fantasySignInPrompt}
-          user={user}
-        />
-      </div>
-
-      <div>
-        <p className="season-lb-kicker">{realWorldKicker}</p>
-        <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
-          {realWorldTitle}
-        </h3>
-        {realWorldNote ? (
-          <p className="season-lb-meta">{realWorldNote}</p>
-        ) : null}
-        {realWorldContent}
-      </div>
+  const board = (
+    <div style={{ marginTop: headless ? 0 : 14 }}>
+      <p className="season-lb-kicker">{fantasyKicker}</p>
+      <h3 className="dash-section-title" style={{ fontSize: "1.1rem", margin: "4px 0 8px" }}>
+        Wakibet user fantasy leaderboard
+      </h3>
+      <FantasyBoard
+        endpoint={fantasyEndpoint}
+        queryKey={fantasyQueryKey}
+        signInPrompt={fantasySignInPrompt}
+        user={user}
+      />
     </div>
   );
 
-  if (headless) return boards;
+  if (headless) return board;
 
   return (
     <section
@@ -155,10 +133,8 @@ export default function SportStandingsSection({
       <h2 id="sport-standings-title" className="dash-section-title">
         {sportLabel} standings
       </h2>
-      <p className="dash-section-lead">
-        Two boards: your fellow Wakibet players (fantasy points / lineup activity) and the real-world player board.
-      </p>
-      {boards}
+      <p className="dash-section-lead">Where Wakibet players rank by fantasy points and lineup activity.</p>
+      {board}
     </section>
   );
 }

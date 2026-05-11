@@ -15,10 +15,6 @@ type Props = {
   fantasyQueryKey: readonly unknown[];
   fantasyKicker: string;
   fantasySignInPrompt: string;
-  realWorldTitle: string;
-  realWorldKicker: string;
-  realWorldNote?: string;
-  realWorldContent: ReactNode;
 };
 
 export default function SportStandingsPage({
@@ -33,10 +29,6 @@ export default function SportStandingsPage({
   fantasyQueryKey,
   fantasyKicker,
   fantasySignInPrompt,
-  realWorldTitle,
-  realWorldKicker,
-  realWorldNote,
-  realWorldContent,
 }: Props) {
   return (
     <div className="pick-teams-shell">
@@ -67,10 +59,6 @@ export default function SportStandingsPage({
         fantasyQueryKey={fantasyQueryKey}
         fantasyKicker={fantasyKicker}
         fantasySignInPrompt={fantasySignInPrompt}
-        realWorldTitle={realWorldTitle}
-        realWorldKicker={realWorldKicker}
-        realWorldNote={realWorldNote}
-        realWorldContent={realWorldContent}
       />
     </div>
   );
