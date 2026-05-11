@@ -45,6 +45,11 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "Wakibet poker standings: user fantasy leaderboard for WSOP 2026 plus the WSOP.com-style top 50 earnings board.",
   },
+  "/poker/rosters": {
+    title: `My WSOP rosters | ${SITE}`,
+    description:
+      "Your saved Wakibet WSOP 2026 lineups across the five main events — six players per event, 100 WakiCash cap.",
+  },
   "/lacrosse": {
     title: `Utah Open — PLL lacrosse hub, ratings & WakiCash | ${SITE}`,
     description:

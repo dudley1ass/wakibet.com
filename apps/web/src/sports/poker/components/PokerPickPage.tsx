@@ -6,7 +6,8 @@ import { apiGet } from "../../../api";
 import type { SessionUser } from "../../../App";
 import "../../../components/dashboard.css";
 
-const DRAFT_KEY = "wakibet_poker_lineup_draft_v1";
+const DRAFTS_KEY = "wakibet_poker_lineup_drafts_v2";
+const LAST_SLATE_KEY = "wakibet_poker_lineup_last_slate_v2";
 
 type WsopCfg = {
   roster_slots: number;
@@ -19,32 +20,55 @@ type RankingsPayload = {
   players: PokerWorldRankingRow[];
 };
 
-type DraftShape = {
-  slate_key: string;
-  picks: string[];
-};
+type DraftsMap = Record<string, string[]>;
 
-function wakicashForRank(rank: number, poolSize: number): number {
+export function wakicashForRank(rank: number, poolSize: number): number {
   if (poolSize <= 1) return 18;
   const x = (rank - 1) / (poolSize - 1);
   return Math.min(30, Math.max(5, Math.round(30 - x * 25)));
 }
 
-function loadDraft(): DraftShape | null {
+export function loadAllPokerDrafts(): DraftsMap {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) return null;
-    const o = JSON.parse(raw) as DraftShape;
-    if (!o || typeof o.slate_key !== "string" || !Array.isArray(o.picks)) return null;
-    return o;
+    const raw = localStorage.getItem(DRAFTS_KEY);
+    if (!raw) return {};
+    const o = JSON.parse(raw) as unknown;
+    if (!o || typeof o !== "object") return {};
+    const out: DraftsMap = {};
+    for (const [k, v] of Object.entries(o as Record<string, unknown>)) {
+      if (Array.isArray(v) && v.every((x) => typeof x === "string")) out[k] = v as string[];
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function saveAllPokerDrafts(d: DraftsMap) {
+  try {
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(d));
+  } catch {
+    /* ignore */
+  }
+}
+
+function setSlatePicks(slateKey: string, picks: string[]) {
+  const all = loadAllPokerDrafts();
+  all[slateKey] = picks;
+  saveAllPokerDrafts(all);
+}
+
+function loadLastSlate(): string | null {
+  try {
+    return localStorage.getItem(LAST_SLATE_KEY);
   } catch {
     return null;
   }
 }
 
-function saveDraft(d: DraftShape) {
+function saveLastSlate(slateKey: string) {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+    localStorage.setItem(LAST_SLATE_KEY, slateKey);
   } catch {
     /* ignore */
   }
@@ -91,18 +115,21 @@ export default function PokerPickPage({ user }: Props) {
   const [picks, setPicks] = useState<string[]>(() =>
     Array.from({ length: WSOP_FANTASY_ROSTER_SLOTS }, () => ""),
   );
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (!cfg?.tier1_slates.length || hydratedRef.current) return;
     hydratedRef.current = true;
-    const d = loadDraft();
+    const all = loadAllPokerDrafts();
+    const last = loadLastSlate();
     const sk =
-      d?.slate_key && cfg.tier1_slates.some((s) => s.slate_key === d.slate_key)
-        ? d.slate_key
+      last && cfg.tier1_slates.some((s) => s.slate_key === last)
+        ? last
         : cfg.tier1_slates[0]!.slate_key;
     setSlateKey(sk);
-    if (d?.picks?.length === rosterSlots) {
-      setPicks(d.picks.map((x) => (typeof x === "string" ? x : "")));
+    const existing = all[sk] ?? [];
+    if (existing.length === rosterSlots) {
+      setPicks(existing.map((x) => (typeof x === "string" ? x : "")));
     } else {
       setPicks(Array.from({ length: rosterSlots }, () => ""));
     }
@@ -110,7 +137,31 @@ export default function PokerPickPage({ user }: Props) {
 
   useEffect(() => {
     if (!hydratedRef.current || !slateKey) return;
-    saveDraft({ slate_key: slateKey, picks });
+    setSlatePicks(slateKey, picks);
+    saveLastSlate(slateKey);
+  }, [slateKey, picks]);
+
+  const handleSlateChange = useCallback(
+    (nextSlate: string) => {
+      if (nextSlate === slateKey) return;
+      const all = loadAllPokerDrafts();
+      const existing = all[nextSlate] ?? [];
+      setSlateKey(nextSlate);
+      setPicks(
+        existing.length === rosterSlots
+          ? existing.map((x) => (typeof x === "string" ? x : ""))
+          : Array.from({ length: rosterSlots }, () => ""),
+      );
+      setSavedAt(null);
+    },
+    [rosterSlots, slateKey],
+  );
+
+  const saveLineup = useCallback(() => {
+    if (!slateKey) return;
+    setSlatePicks(slateKey, picks);
+    saveLastSlate(slateKey);
+    setSavedAt(Date.now());
   }, [slateKey, picks]);
 
   const spent = useMemo(() => {
@@ -209,7 +260,7 @@ export default function PokerPickPage({ user }: Props) {
               id="poker-slate"
               className="wf-select"
               value={slateKey}
-              onChange={(e) => setSlateKey(e.target.value)}
+              onChange={(e) => handleSlateChange(e.target.value)}
             >
               {cfg.tier1_slates.map((s) => (
                 <option key={s.slate_key} value={s.slate_key}>
@@ -248,9 +299,21 @@ export default function PokerPickPage({ user }: Props) {
           </div>
 
           <div className="wf-actions">
+            <button
+              type="button"
+              className="dash-main-btn"
+              onClick={saveLineup}
+              disabled={overCap || dup || filledCount === 0}
+            >
+              Save lineup
+            </button>
             <button type="button" className="dash-ghost-btn" onClick={clearLineup}>
               Clear lineup
             </button>
+            <Link className="dash-ghost-btn" to="/poker/rosters">
+              My rosters
+            </Link>
+            {savedAt ? <span className="dash-footnote">Saved.</span> : null}
           </div>
 
           <p className="dash-footnote">

@@ -17,6 +17,7 @@ const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/Lacr
 const VolleyballHubPage = lazy(() => import("./sports/volleyball/components/VolleyballHubPage"));
 const PokerHubPage = lazy(() => import("./sports/poker/components/PokerHubPage"));
 const PokerPickPage = lazy(() => import("./sports/poker/components/PokerPickPage"));
+const PokerRostersPage = lazy(() => import("./sports/poker/components/PokerRostersPage"));
 const VolleyballRostersPage = lazy(() => import("./sports/volleyball/components/VolleyballRostersPage"));
 const VolleyballScoringTablePage = lazy(() => import("./sports/volleyball/components/VolleyballScoringTablePage"));
 const AdminLineupsPage = lazy(() => import("./components/AdminLineupsPage"));
@@ -295,6 +296,23 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
             </>
           ) : (
             <LacrosseRostersPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/poker/rosters"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your WSOP rosters.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <PokerRostersPage user={session} />
           )
         }
       />

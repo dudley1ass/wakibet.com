@@ -105,7 +105,10 @@ export default function PokerHubPage({ user: _user }: Props) {
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 12 }}>
         <Link className="dash-main-btn" to="/poker/pick">
-          Pick your lineup
+          Save lineup
+        </Link>
+        <Link className="dash-ghost-btn" to="/poker/rosters">
+          My rosters
         </Link>
         <Link className="dash-ghost-btn" to="/poker/leaderboard">
           Standings
