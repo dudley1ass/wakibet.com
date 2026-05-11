@@ -491,9 +491,27 @@ export default function MarketingHomePage() {
                 <DashboardSeasonPrizesStrip twoLineCaption />
               </div>
               <div className="landing-hero__cta-stack">
+                <div className="landing-hero__sport-banner" aria-hidden>
+                  <span className="landing-hero__sport-banner-kicker">Fantasy sports for</span>
+                  <span className="landing-hero__sport-banner-list">
+                    <span>Pickleball</span>
+                    <span className="landing-hero__sport-banner-dot" aria-hidden>
+                      •
+                    </span>
+                    <span>Volleyball</span>
+                    <span className="landing-hero__sport-banner-dot" aria-hidden>
+                      •
+                    </span>
+                    <span>Lacrosse</span>
+                    <span className="landing-hero__sport-banner-dot" aria-hidden>
+                      •
+                    </span>
+                    <span>Poker</span>
+                  </span>
+                </div>
                 <div
                   className="landing-hero__cta-row landing-hero__cta-row--four-across"
-                  aria-label="How each sport works on WakiBet"
+                  aria-label="Fantasy sports for Pickleball, Volleyball, Lacrosse, and Poker"
                 >
                   <Link className="dash-ghost-btn" to="/info/pickleball">
                     Pickleball info
