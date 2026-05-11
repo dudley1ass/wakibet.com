@@ -540,6 +540,9 @@ body {
 }
 
 .landing-cta-lineup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   max-width: 38rem;
   min-height: 54px;
   padding: 14px 24px !important;
@@ -550,6 +553,18 @@ body {
   box-shadow:
     0 0 0 1px rgba(251, 191, 36, 0.55),
     0 16px 40px rgba(220, 179, 21, 0.32);
+}
+
+.landing-cta-lineup__title {
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.landing-cta-lineup__sub {
+  font-size: 0.78em;
+  font-weight: 600;
+  opacity: 0.9;
+  line-height: 1.25;
 }
 
 .landing-demo-contest {

@@ -476,7 +476,12 @@ export default function MarketingHomePage() {
               </p>
               <div className="landing-hero__cta-primary">
                 <a className="dash-main-btn landing-cta-lineup" href="#demo-contest">
-                  Create a free lineup — no money, no deposit, just fantasy sports testing.
+                  <span className="landing-cta-lineup__title">
+                    Build Lineups. Predict Winners. Climb the Leaderboard.
+                  </span>
+                  <span className="landing-cta-lineup__sub">
+                    Free fantasy sports contests powered by strategy.
+                  </span>
                 </a>
               </div>
             </div>

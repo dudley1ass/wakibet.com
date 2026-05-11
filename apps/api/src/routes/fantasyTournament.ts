@@ -15,13 +15,13 @@ import {
   scoreWinterPlayerFromMatches,
   type WinterJsonMatch,
   WAKICASH_BUDGET_PER_LINEUP,
-  WAKICASH_COST_TIERS,
   WINTER_FANTASY_ROSTER_SIZE,
   WSOP_SITE_TOP_50_PLAYERS,
 } from "@wakibet/shared";
 import { Prisma, prisma } from "../lib/prisma.js";
 import { createKeyedMutex } from "../lib/asyncMutex.js";
 import { HttpReplyError } from "../lib/httpReplyError.js";
+import { pickleballDemoWakiCashFromRating } from "../lib/pickleballSkillRatings.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 
 const fantasyLineupSaveMutex = createKeyedMutex();
@@ -167,12 +167,6 @@ function demoCostByRank(rank: number): number {
   return 8;
 }
 
-/** Pickleball uses the real production WAKICASH_COST_TIERS [40,32,24,16,10],
- *  bucketed by rank in the top-18 demo pool so the world No. 1 lands on $40. */
-function pickleballDemoCostByRank(rank: number): number {
-  const tierIdx = Math.min(WAKICASH_COST_TIERS.length - 1, Math.floor(rank / 4));
-  return WAKICASH_COST_TIERS[tierIdx]!;
-}
 
 async function buildPickleballDemoContest(): Promise<DemoContest | null> {
   const tournamentKey: TournamentKey = "atlanta_weekend";
@@ -217,13 +211,10 @@ async function buildPickleballDemoContest(): Promise<DemoContest | null> {
       display_name: demoDisplayName(player_name),
       projected_points: row.points,
       last_event_label: row.eventLabel,
+      waki_cash: pickleballDemoWakiCashFromRating(player_name),
     }))
     .sort((a, b) => b.projected_points - a.projected_points || a.display_name.localeCompare(b.display_name))
-    .slice(0, 18)
-    .map((p, index) => ({
-      ...p,
-      waki_cash: pickleballDemoCostByRank(index),
-    }));
+    .slice(0, 18);
 
   return {
     tournament_key: tournamentKey,
