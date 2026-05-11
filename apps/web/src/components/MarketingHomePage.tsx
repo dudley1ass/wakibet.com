@@ -470,6 +470,24 @@ export default function MarketingHomePage() {
                 100% free to play — no entry fees, no deposits required.
               </p>
               <h1 className="landing-hero__title">Where Sports Fans Compete Beyond the Scoreboard</h1>
+              <div className="landing-hero__sport-banner landing-hero__sport-banner--inline">
+                <span className="landing-hero__sport-banner-kicker">Fantasy sports for</span>
+                <span className="landing-hero__sport-banner-list">
+                  <span>Pickleball</span>
+                  <span className="landing-hero__sport-banner-dot" aria-hidden>
+                    •
+                  </span>
+                  <span>Volleyball</span>
+                  <span className="landing-hero__sport-banner-dot" aria-hidden>
+                    •
+                  </span>
+                  <span>Lacrosse</span>
+                  <span className="landing-hero__sport-banner-dot" aria-hidden>
+                    •
+                  </span>
+                  <span>Poker</span>
+                </span>
+              </div>
               <p className="landing-hero__lede">
                 Rankings, debates, hot takes, and fantasy — built for fans who live in the comments section as much as the
                 scoreboard.
@@ -491,27 +509,9 @@ export default function MarketingHomePage() {
                 <DashboardSeasonPrizesStrip twoLineCaption />
               </div>
               <div className="landing-hero__cta-stack">
-                <div className="landing-hero__sport-banner" aria-hidden>
-                  <span className="landing-hero__sport-banner-kicker">Fantasy sports for</span>
-                  <span className="landing-hero__sport-banner-list">
-                    <span>Pickleball</span>
-                    <span className="landing-hero__sport-banner-dot" aria-hidden>
-                      •
-                    </span>
-                    <span>Volleyball</span>
-                    <span className="landing-hero__sport-banner-dot" aria-hidden>
-                      •
-                    </span>
-                    <span>Lacrosse</span>
-                    <span className="landing-hero__sport-banner-dot" aria-hidden>
-                      •
-                    </span>
-                    <span>Poker</span>
-                  </span>
-                </div>
                 <div
                   className="landing-hero__cta-row landing-hero__cta-row--four-across"
-                  aria-label="Fantasy sports for Pickleball, Volleyball, Lacrosse, and Poker"
+                  aria-label="Sport info pages"
                 >
                   <Link className="dash-ghost-btn" to="/info/pickleball">
                     Pickleball info

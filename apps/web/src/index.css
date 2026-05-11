@@ -499,6 +499,19 @@ body {
   text-align: center;
 }
 
+.landing-hero__sport-banner--inline {
+  align-self: flex-start;
+  align-items: flex-start;
+  max-width: 40rem;
+  margin: 8px 0 12px;
+  padding: 8px 14px;
+  text-align: left;
+}
+
+.landing-hero__sport-banner--inline .landing-hero__sport-banner-list {
+  justify-content: flex-start;
+}
+
 .landing-hero__sport-banner-kicker {
   display: block;
   font-size: 11px;
