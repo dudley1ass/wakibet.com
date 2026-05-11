@@ -377,8 +377,8 @@ export function PokerFantasyScoringPage() {
           <Link className="dash-main-btn" to="/">
             Dashboard
           </Link>
-          <Link className="dash-ghost-btn" to="/poker">
-            Poker hub
+          <Link className="dash-ghost-btn" to="/poker/pick">
+            WSOP fantasy
           </Link>
         </div>
       }

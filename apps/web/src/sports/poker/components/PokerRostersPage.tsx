@@ -64,11 +64,14 @@ export default function PokerRostersPage({ user }: Props) {
           </p>
         </div>
         <div className="rost-actions">
-          <Link className="dash-ghost-btn" to="/poker">
-            Back to WSOP hub
-          </Link>
           <Link className="dash-ghost-btn" to="/poker/pick">
             Save lineup
+          </Link>
+          <Link className="dash-ghost-btn" to="/poker/leaderboard">
+            Standings
+          </Link>
+          <Link className="dash-ghost-btn" to="/poker/scoring">
+            Scoring table
           </Link>
           <Link className="dash-main-btn rost-dash-link" to="/">
             Dashboard

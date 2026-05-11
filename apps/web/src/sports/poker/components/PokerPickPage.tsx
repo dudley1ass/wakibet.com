@@ -200,11 +200,14 @@ export default function PokerPickPage({ user }: Props) {
           </p>
         </div>
         <div className="dash-head-actions">
+          <Link className="dash-ghost-btn" to="/poker/rosters">
+            My rosters
+          </Link>
+          <Link className="dash-ghost-btn" to="/poker/leaderboard">
+            Standings
+          </Link>
           <Link className="dash-ghost-btn" to="/poker/scoring">
             Scoring table
-          </Link>
-          <Link className="dash-ghost-btn" to="/poker">
-            Poker hub
           </Link>
           <Link className="dash-ghost-btn" to="/">
             Back to dashboard

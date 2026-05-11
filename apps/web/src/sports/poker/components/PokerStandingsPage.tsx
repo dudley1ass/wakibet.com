@@ -39,8 +39,8 @@ export default function PokerStandingsPage({ user }: { user: SessionUser }) {
       user={user}
       title="Poker — Standings"
       kicker="WSOP 2026 · scoring leaderboard"
-      backHref="/poker"
-      backLabel="Poker hub"
+      backHref="/poker/pick"
+      backLabel="WSOP fantasy"
       sportLabel="Poker"
       fantasyEndpoint="/api/v1/poker/season-leaderboard"
       fantasyQueryKey={["poker", "season-leaderboard"] as const}

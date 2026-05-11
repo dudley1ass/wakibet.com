@@ -15,7 +15,6 @@ const LacrosseHubPage = lazy(() => import("./sports/lacrosse/components/Lacrosse
 const LacrosseScoringTablePage = lazy(() => import("./sports/lacrosse/components/LacrosseScoringTablePage"));
 const LacrosseRostersPage = lazy(() => import("./sports/lacrosse/components/LacrosseRostersPage"));
 const VolleyballHubPage = lazy(() => import("./sports/volleyball/components/VolleyballHubPage"));
-const PokerHubPage = lazy(() => import("./sports/poker/components/PokerHubPage"));
 const PokerPickPage = lazy(() => import("./sports/poker/components/PokerPickPage"));
 const PokerRostersPage = lazy(() => import("./sports/poker/components/PokerRostersPage"));
 const VolleyballRostersPage = lazy(() => import("./sports/volleyball/components/VolleyballRostersPage"));
@@ -244,7 +243,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/info/:sportKey" element={<SportPlayInfoPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
-      <Route path="/poker" element={<PokerHubPage user={session} />} />
+      <Route path="/poker" element={<Navigate to="/poker/pick" replace />} />
       <Route path="/poker/scoring" element={<PokerFantasyScoringPage />} />
       <Route
         path="/poker/pick"
