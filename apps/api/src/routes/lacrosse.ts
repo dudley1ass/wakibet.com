@@ -617,6 +617,66 @@ export const lacrosseRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
+  typed.get(
+    "/season-leaderboard",
+    {
+      ...authPre,
+      schema: {
+        tags: ["lacrosse"],
+        response: {
+          200: z.object({
+            sport: z.literal("lacrosse"),
+            total_players: z.number().int(),
+            rows: z.array(
+              z.object({
+                rank: z.number().int(),
+                display_name: z.string(),
+                points: z.number(),
+                is_me: z.boolean(),
+              }),
+            ),
+          }),
+          401: ErrorMessage,
+        },
+      },
+    },
+    async (req) => {
+      const userId = req.authUser!.id;
+      const grouped = await prisma.lacrosseLineup.groupBy({
+        by: ["userId"],
+        _sum: { estReturn: true },
+      });
+      const userIds = grouped.map((g) => g.userId);
+      const users = userIds.length
+        ? await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, displayName: true, username: true },
+          })
+        : [];
+      const byId = new Map(users.map((u) => [u.id, u] as const));
+      const ranked = grouped
+        .map((g) => {
+          const u = byId.get(g.userId);
+          return {
+            user_id: g.userId,
+            display_name: u?.displayName || u?.username || "Player",
+            points: Number(g._sum.estReturn ?? 0),
+          };
+        })
+        .filter((r) => r.points > 0)
+        .sort((a, b) => b.points - a.points)
+        .map((r, i) => ({ ...r, rank: i + 1 }));
+      const total_players = ranked.length;
+      const rows = ranked.slice(0, 100).map((r) => ({
+        rank: r.rank,
+        display_name: r.display_name,
+        points: r.points,
+        is_me: r.user_id === userId,
+      }));
+      return { sport: "lacrosse" as const, total_players, rows };
+    },
+  );
+
   typed.post(
     "/admin/refresh-wakipicks",
     {

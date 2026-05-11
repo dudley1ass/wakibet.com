@@ -290,13 +290,30 @@
   flex: 1;
 }
 .dash-standings-hero-row {
+  display: block;
+  font-size: 12px;
+  line-height: 1.2;
+  color: #fffbeb;
+}
+.dash-standings-hero-link {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 6px 8px;
   align-items: center;
-  font-size: 12px;
-  line-height: 1.2;
-  color: #fffbeb;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.dash-standings-hero-link:hover,
+.dash-standings-hero-link:focus-visible {
+  background: rgba(56, 189, 248, 0.12);
+  outline: none;
+}
+.dash-standings-hero-link:focus-visible {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.55);
 }
 .dash-standings-hero-ico {
   font-size: 0.95rem;

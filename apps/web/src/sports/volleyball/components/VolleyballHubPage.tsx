@@ -5,10 +5,11 @@ import {
   AVP_HUNTINGTON_BEACH_OPEN_EVENT_KEY,
   AVP_SOUTH_BEACH_MAY_OPEN_EVENT_KEY,
 } from "@wakibet/shared";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { SessionUser } from "../../../App";
 import { apiGet, apiPut } from "../../../api";
 import "../../../components/dashboard.css";
+import SportStandingsSection from "../../../components/sportStandings/SportStandingsSection";
 
 type PlayerPoolPayload = {
   players: Array<{
@@ -106,6 +107,26 @@ export default function VolleyballHubPage({ user }: Props) {
     setFlex3(flexes[2] ?? "");
     setFlex4(flexes[3] ?? "");
   }, [lineupQ.data]);
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash !== "#standings") return;
+    const id = window.setTimeout(() => {
+      document.getElementById("standings")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [location.hash]);
+
+  const topAvpPlayers = useMemo(() => {
+    const pool = playerPoolQ.data?.players ?? [];
+    return [...pool]
+      .sort((a, b) => b.waki_cash - a.waki_cash)
+      .slice(0, 25);
+  }, [playerPoolQ.data?.players]);
+
+  const selectedEventLabel =
+    AVP_2026_EVENTS.find((e) => e.event_key === selectedEventKey)?.name ?? "AVP";
+
   const teamsErr = playerPoolQ.error instanceof Error ? playerPoolQ.error.message : null;
   async function saveLineup() {
     if (!user) return;
@@ -152,6 +173,9 @@ export default function VolleyballHubPage({ user }: Props) {
               My volleyball rosters
             </Link>
           ) : null}
+          <Link className="dash-ghost-btn" to="/volleyball#standings">
+            Standings
+          </Link>
           <Link className="dash-ghost-btn" to="/volleyball/scoring">
             Scoring table
           </Link>
@@ -285,6 +309,54 @@ export default function VolleyballHubPage({ user }: Props) {
           <p className="scoring-foot">Sign in to save your volleyball lineup.</p>
         )}
       </section>
+
+      <SportStandingsSection
+        user={user}
+        sportLabel="Volleyball"
+        fantasyEndpoint="/api/v1/volleyball/season-leaderboard"
+        fantasyQueryKey={["volleyball", "season-leaderboard"] as const}
+        fantasyKicker="Wakibet · AVP 2026 fantasy"
+        fantasySignInPrompt="Sign in to see the Wakibet volleyball user leaderboard."
+        realWorldTitle={`Top AVP players for ${selectedEventLabel}`}
+        realWorldKicker="AVP · player pool (WakiCash priced)"
+        realWorldNote={
+          playerPoolQ.isLoading
+            ? "Loading AVP player pool…"
+            : playerPoolQ.isError
+              ? "Could not load AVP player pool."
+              : `Top ${topAvpPlayers.length} priced players for the selected event.`
+        }
+        realWorldContent={
+          playerPoolQ.isLoading || playerPoolQ.isError ? null : topAvpPlayers.length === 0 ? (
+            <p className="dash-empty">No AVP players in the pool yet.</p>
+          ) : (
+            <div className="season-lb-table-wrap">
+              <table className="season-lb-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">Player</th>
+                    <th scope="col" className="season-lb-th-score">WakiCash</th>
+                    <th scope="col" className="season-lb-th-score">Odds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topAvpPlayers.map((p, i) => (
+                    <tr key={`${i}-${p.player_name}`}>
+                      <td className="season-lb-rank">{i + 1}</td>
+                      <td className="season-lb-name">{p.player_name}</td>
+                      <td className="season-lb-score">{p.waki_cash}</td>
+                      <td className="season-lb-score">
+                        {p.estimated_odds > 0 ? `+${p.estimated_odds}` : p.estimated_odds}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+      />
     </div>
   );
 }

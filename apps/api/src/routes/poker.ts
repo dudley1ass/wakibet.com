@@ -157,4 +157,29 @@ export const pokerRoutes: FastifyPluginAsync = async (app) => {
       generated_at: new Date().toISOString(),
     }),
   );
+
+  typed.get(
+    "/season-leaderboard",
+    {
+      schema: {
+        tags: ["poker"],
+        summary: "Wakibet user fantasy leaderboard for the WSOP 2026 season (empty until scoring is live)",
+        response: {
+          200: z.object({
+            sport: z.literal("poker"),
+            total_players: z.number().int(),
+            rows: z.array(
+              z.object({
+                rank: z.number().int(),
+                display_name: z.string(),
+                points: z.number(),
+                is_me: z.boolean(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    async () => ({ sport: "poker" as const, total_players: 0, rows: [] }),
+  );
 };

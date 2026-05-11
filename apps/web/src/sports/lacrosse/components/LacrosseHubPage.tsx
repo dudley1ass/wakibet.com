@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { apiGet, apiPut } from "../../../api";
 import type { SessionUser } from "../../../App";
 import { parsePllCsv } from "../lib/lacrossePower";
+import SportStandingsSection from "../../../components/sportStandings/SportStandingsSection";
 
 function fmtOdds(v: number): string {
   return v > 0 ? `+${v}` : String(v);
@@ -95,6 +96,32 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
     staleTime: 60 * 60 * 1000,
   });
   const csvRows = useMemo(() => (csvQ.data ? parsePllCsv(csvQ.data) : []), [csvQ.data]);
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash !== "#standings") return;
+    const id = window.setTimeout(() => {
+      document.getElementById("standings")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [location.hash]);
+
+  const topPllScorers = useMemo(() => {
+    if (csvRows.length === 0) return [];
+    return [...csvRows]
+      .filter((r) => r.gamesPlayed > 0 || r.points > 0)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 25)
+      .map((r) => ({
+        name: `${r.firstName} ${r.lastName}`.trim(),
+        team: r.team,
+        position: r.position,
+        gamesPlayed: r.gamesPlayed,
+        points: r.points,
+        goals: r.totalGoals,
+        assists: r.assists,
+      }));
+  }, [csvRows]);
 
   const lines = slateQ.data?.lines ?? [];
   useEffect(() => {
@@ -261,6 +288,9 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
               My lacrosse rosters
             </Link>
           ) : null}
+          <Link className="dash-ghost-btn" to="/lacrosse#standings">
+            Standings
+          </Link>
           <Link className="dash-ghost-btn" to="/lacrosse/scoring">
             Scoring table
           </Link>
@@ -542,6 +572,56 @@ export default function LacrosseHubPage({ user }: { user: SessionUser | null }) 
           <p className="scoring-foot">Sign in to save your lacrosse lineup.</p>
         )}
       </section>
+
+      <SportStandingsSection
+        user={user}
+        sportLabel="Lacrosse"
+        fantasyEndpoint="/api/v1/lacrosse/season-leaderboard"
+        fantasyQueryKey={["lacrosse", "season-leaderboard"] as const}
+        fantasyKicker="Wakibet · PLL fantasy"
+        fantasySignInPrompt="Sign in to see the Wakibet lacrosse user leaderboard."
+        realWorldTitle="Top PLL scorers (real-world)"
+        realWorldKicker="Premier Lacrosse League · season points"
+        realWorldNote={
+          csvQ.isPending
+            ? "Loading PLL player stats…"
+            : csvQ.isError
+              ? "Could not load PLL player stats."
+              : `Top ${topPllScorers.length} by Points · live from the PLL player stats feed.`
+        }
+        realWorldContent={
+          csvQ.isPending || csvQ.isError ? null : topPllScorers.length === 0 ? (
+            <p className="dash-empty">No PLL stat rows available yet.</p>
+          ) : (
+            <div className="season-lb-table-wrap">
+              <table className="season-lb-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">Player</th>
+                    <th scope="col">Team</th>
+                    <th scope="col">Pos</th>
+                    <th scope="col" className="season-lb-th-score">G/A</th>
+                    <th scope="col" className="season-lb-th-score">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topPllScorers.map((p, i) => (
+                    <tr key={`${i}-${p.name}`}>
+                      <td className="season-lb-rank">{i + 1}</td>
+                      <td className="season-lb-name">{p.name}</td>
+                      <td>{p.team}</td>
+                      <td>{p.position}</td>
+                      <td className="season-lb-score">{p.goals} / {p.assists}</td>
+                      <td className="season-lb-score">{p.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+      />
     </div>
   );
 }

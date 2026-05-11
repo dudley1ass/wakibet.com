@@ -6,6 +6,8 @@ import {
   MLP_FANTASY_REQUIRED_WOMEN,
   MLP_FANTASY_ROSTER_SIZE,
   playerWakiCashCost,
+  scoreWinterPlayerFromMatches,
+  type WinterJsonMatch,
   WINTER_FANTASY_ROSTER_SIZE,
 } from "@wakibet/shared";
 import { Prisma, prisma } from "../lib/prisma.js";
@@ -16,6 +18,7 @@ import { requireAuthUser } from "../lib/requireAuthUser.js";
 const fantasyLineupSaveMutex = createKeyedMutex();
 import {
   displayLabelForCatalogRow,
+  divisionKeyFromMatch,
   filterMatchesForDivision,
   getTournamentData,
   parseDivisionKey,
@@ -119,6 +122,68 @@ function normTeamStr(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+function isCompositePlayerName(name: string): boolean {
+  return name.includes(" / ");
+}
+
+function demoDisplayName(name: string): string {
+  const parts = name.split(",").map((p) => p.trim());
+  if (parts.length === 2 && parts[0] && parts[1]) return `${parts[1]} ${parts[0]}`;
+  return name;
+}
+
+async function buildPublicDemoContest() {
+  const tournamentKey: TournamentKey = "atlanta_weekend";
+  const data = await getTournamentData(tournamentKey);
+  if (!data) return null;
+
+  const completedMatches = (data.matches as WinterJsonMatch[]).filter((m) => {
+    return (
+      m.event_type.toLowerCase().includes("pro main draw") &&
+      Boolean(m.winner)
+    );
+  });
+
+  const divisions = new Map<string, typeof completedMatches>();
+  for (const match of completedMatches) {
+    const key = divisionKeyFromMatch(match);
+    const rows = divisions.get(key);
+    if (rows) rows.push(match);
+    else divisions.set(key, [match]);
+  }
+
+  const pointsByPlayer = new Map<string, { points: number; eventLabel: string }>();
+  for (const matches of divisions.values()) {
+    const names = uniquePlayersInMatches(matches).filter((name) => !isCompositePlayerName(name));
+    for (const playerName of names) {
+      const scored = scoreWinterPlayerFromMatches(playerName, matches).total;
+      if (scored <= 0) continue;
+      const current = pointsByPlayer.get(playerName) ?? { points: 0, eventLabel: matches[0]?.event_type ?? "Pro Main Draw" };
+      pointsByPlayer.set(playerName, {
+        points: Math.round((current.points + scored) * 100) / 100,
+        eventLabel: current.eventLabel,
+      });
+    }
+  }
+
+  const players = [...pointsByPlayer.entries()]
+    .map(([player_name, row]) => ({
+      player_name,
+      display_name: demoDisplayName(player_name),
+      projected_points: row.points,
+      last_event_label: row.eventLabel,
+    }))
+    .sort((a, b) => b.projected_points - a.projected_points || a.display_name.localeCompare(b.display_name))
+    .slice(0, 18);
+
+  return {
+    tournament_key: tournamentKey,
+    tournament_name: data.summary.tournament_name,
+    roster_size: 5,
+    players,
+  };
+}
+
 function sameEventPayload(
   ex: {
     slots: { slotIndex: number; playerName: string; isCaptain: boolean }[];
@@ -184,6 +249,38 @@ const PutLineupBody = z.object({
 
 export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
+
+  typed.get(
+    "/demo",
+    {
+      schema: {
+        tags: ["fantasy-tournament"],
+        response: {
+          200: z.object({
+            tournament_key: z.enum(TOURNAMENT_KEYS_ENUM),
+            tournament_name: z.string(),
+            roster_size: z.number().int(),
+            players: z.array(
+              z.object({
+                player_name: z.string(),
+                display_name: z.string(),
+                projected_points: z.number(),
+                last_event_label: z.string(),
+              }),
+            ),
+          }),
+          503: ErrorMessage,
+        },
+      },
+    },
+    async (_req, reply) => {
+      const demo = await buildPublicDemoContest();
+      if (!demo) {
+        return reply.code(503).send({ message: "Demo contest data is not available." } as const);
+      }
+      return demo;
+    },
+  );
 
   typed.get(
     "/:tournament_key/events",

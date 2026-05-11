@@ -304,6 +304,111 @@ function HotTakeCard({
   );
 }
 
+type DemoContestPlayer = {
+  player_name: string;
+  display_name: string;
+  projected_points: number;
+  last_event_label: string;
+};
+
+type DemoContestResponse = {
+  tournament_key: string;
+  tournament_name: string;
+  roster_size: number;
+  players: DemoContestPlayer[];
+};
+
+function DemoContestBuilder() {
+  const [selectedNames, setSelectedNames] = useState<string[]>([]);
+  const demoQuery = useQuery({
+    queryKey: ["landing", "fantasy-demo-contest"] as const,
+    queryFn: () => apiGet<DemoContestResponse>("/api/v1/fantasy-tournament/demo", { timeoutMs: 20_000 }),
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+  const players = demoQuery.data?.players ?? [];
+  const rosterSize = demoQuery.data?.roster_size ?? 5;
+  const selectedPlayers = selectedNames
+    .map((name) => players.find((p) => p.player_name === name))
+    .filter((p): p is DemoContestPlayer => Boolean(p));
+  const projectedScore = Math.round(selectedPlayers.reduce((sum, p) => sum + p.projected_points, 0) * 100) / 100;
+  const isBuilt = selectedPlayers.length === rosterSize;
+
+  function togglePlayer(playerName: string) {
+    setSelectedNames((prev) => {
+      if (prev.includes(playerName)) return prev.filter((name) => name !== playerName);
+      if (prev.length >= rosterSize) return prev;
+      return [...prev, playerName];
+    });
+  }
+
+  return (
+    <section id="demo-contest" className="landing-demo-contest">
+      <div className="landing-demo-contest__head">
+        <div>
+          <div className="landing-demo-contest__kicker">Demo contest</div>
+          <h2 className="landing-demo-contest__title">Pick 5 players. See your projected score.</h2>
+          <p className="landing-demo-contest__lede">
+            No login required. Points use each player’s last tournament result, then you can create an account after
+            the lineup is built.
+          </p>
+        </div>
+        <div className="landing-demo-contest__score-card">
+          <span>Projected score</span>
+          <strong>{projectedScore}</strong>
+          <small>
+            {selectedPlayers.length}/{rosterSize} players picked
+          </small>
+        </div>
+      </div>
+
+      {demoQuery.isLoading ? <p className="dash-empty">Loading demo players…</p> : null}
+      {demoQuery.isError ? (
+        <p className="dash-error">Demo contest data is not available right now.</p>
+      ) : null}
+
+      {players.length > 0 ? (
+        <>
+          <div className="landing-demo-contest__players" aria-label="Demo contest player pool">
+            {players.map((player) => {
+              const selected = selectedNames.includes(player.player_name);
+              const disabled = !selected && selectedNames.length >= rosterSize;
+              return (
+                <button
+                  key={player.player_name}
+                  type="button"
+                  className={`landing-demo-player${selected ? " landing-demo-player--selected" : ""}`}
+                  disabled={disabled}
+                  onClick={() => togglePlayer(player.player_name)}
+                >
+                  <span className="landing-demo-player__name">{player.display_name}</span>
+                  <span className="landing-demo-player__meta">
+                    {player.projected_points} pts · {player.last_event_label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="landing-demo-contest__footer">
+            {isBuilt ? (
+              <>
+                <p>
+                  Lineup built. Create a free account to save real lineups, join contests, and track results.
+                </p>
+                <Link className="dash-main-btn landing-demo-contest__signup" to="/auth?mode=register">
+                  Create free account
+                </Link>
+              </>
+            ) : (
+              <p>Choose {rosterSize - selectedPlayers.length} more player{rosterSize - selectedPlayers.length === 1 ? "" : "s"} to finish the demo lineup.</p>
+            )}
+          </div>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 export default function MarketingHomePage() {
   const spotlightQuery = useQuery({
     queryKey: ["landing", "picks-spotlight"] as const,
@@ -410,6 +515,11 @@ export default function MarketingHomePage() {
                 Rankings, debates, hot takes, and fantasy — built for fans who live in the comments section as much as the
                 scoreboard.
               </p>
+              <div className="landing-hero__cta-primary">
+                <a className="dash-main-btn landing-cta-lineup" href="#demo-contest">
+                  Create a free lineup — no money, no deposit, just fantasy sports testing.
+                </a>
+              </div>
             </div>
 
             <div className="landing-hero__actions-row">
@@ -475,6 +585,8 @@ export default function MarketingHomePage() {
             </div>
           </div>
         </section>
+
+        <DemoContestBuilder />
 
         <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
           {[

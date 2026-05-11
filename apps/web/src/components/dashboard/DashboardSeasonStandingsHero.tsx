@@ -34,32 +34,56 @@ export default function DashboardSeasonStandingsHero({
       </h2>
       <ul className="dash-standings-hero-list">
         <li className="dash-standings-hero-row dash-standings-hero-row--pickleball">
-          <span className="dash-standings-hero-ico" aria-hidden>
-            🏓
-          </span>
-          <span className="dash-standings-hero-sport">Pickleball</span>
-          <span className="dash-standings-hero-val">{pbVal}</span>
+          <Link
+            to="/pick-teams/leaderboard"
+            className="dash-standings-hero-link"
+            aria-label="Open the pickleball season leaderboard"
+          >
+            <span className="dash-standings-hero-ico" aria-hidden>
+              🏓
+            </span>
+            <span className="dash-standings-hero-sport">Pickleball</span>
+            <span className="dash-standings-hero-val">{pbVal}</span>
+          </Link>
         </li>
         <li className="dash-standings-hero-row dash-standings-hero-row--lacrosse">
-          <span className="dash-standings-hero-ico" aria-hidden>
-            🥍
-          </span>
-          <span className="dash-standings-hero-sport">Lacrosse</span>
-          <span className="dash-standings-hero-val">{laxVal}</span>
+          <Link
+            to="/lacrosse#standings"
+            className="dash-standings-hero-link"
+            aria-label="Open the lacrosse standings"
+          >
+            <span className="dash-standings-hero-ico" aria-hidden>
+              🥍
+            </span>
+            <span className="dash-standings-hero-sport">Lacrosse</span>
+            <span className="dash-standings-hero-val">{laxVal}</span>
+          </Link>
         </li>
         <li className="dash-standings-hero-row dash-standings-hero-row--volleyball">
-          <span className="dash-standings-hero-ico" aria-hidden>
-            🏐
-          </span>
-          <span className="dash-standings-hero-sport">Volleyball</span>
-          <span className="dash-standings-hero-val">{vbVal}</span>
+          <Link
+            to="/volleyball#standings"
+            className="dash-standings-hero-link"
+            aria-label="Open the volleyball standings"
+          >
+            <span className="dash-standings-hero-ico" aria-hidden>
+              🏐
+            </span>
+            <span className="dash-standings-hero-sport">Volleyball</span>
+            <span className="dash-standings-hero-val">{vbVal}</span>
+          </Link>
         </li>
         <li className="dash-standings-hero-row dash-standings-hero-row--poker">
-          <span className="dash-standings-hero-ico" aria-hidden>
-            🃏
-          </span>
-          <span className="dash-standings-hero-sport">Poker</span>
-          <span className="dash-standings-hero-val">{pokerVal}</span>
+          <Link
+            to="/poker#standings"
+            className="dash-standings-hero-link"
+            aria-label="Open the poker standings"
+          >
+            <span className="dash-standings-hero-ico" aria-hidden>
+              🃏
+            </span>
+            <span className="dash-standings-hero-sport">Poker</span>
+            <span className="dash-standings-hero-val">{pokerVal}</span>
+          </Link>
         </li>
       </ul>
       <p className="dash-standings-hero-links">
@@ -67,16 +91,16 @@ export default function DashboardSeasonStandingsHero({
           PB board
         </Link>
         {" · "}
-        <Link className="dash-ms-inline-link" to="/lacrosse">
-          Lacrosse hub
+        <Link className="dash-ms-inline-link" to="/lacrosse#standings">
+          Lacrosse
         </Link>
         {" · "}
-        <Link className="dash-ms-inline-link" to="/volleyball">
-          Volleyball hub
+        <Link className="dash-ms-inline-link" to="/volleyball#standings">
+          Volleyball
         </Link>
         {" · "}
-        <Link className="dash-ms-inline-link" to="/poker">
-          Poker hub
+        <Link className="dash-ms-inline-link" to="/poker#standings">
+          Poker
         </Link>
       </p>
     </section>

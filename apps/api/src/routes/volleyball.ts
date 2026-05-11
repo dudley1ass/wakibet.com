@@ -494,6 +494,64 @@ export const volleyballRoutes: FastifyPluginAsync = async (app) => {
   );
 
   typed.get(
+    "/season-leaderboard",
+    {
+      ...authPre,
+      schema: {
+        tags: ["volleyball"],
+        response: {
+          200: z.object({
+            sport: z.literal("volleyball"),
+            total_players: z.number().int(),
+            rows: z.array(
+              z.object({
+                rank: z.number().int(),
+                display_name: z.string(),
+                points: z.number(),
+                is_me: z.boolean(),
+              }),
+            ),
+          }),
+          401: z.object({ message: z.string() }),
+        },
+      },
+    },
+    async (req) => {
+      const userId = req.authUser!.id;
+      const lineups = await prisma.fantasyTournamentLineup.findMany({
+        where: {
+          tournamentKey: VOLLEYBALL_TOURNAMENT_KEY,
+          seasonKey: VOLLEYBALL_SEASON_KEY,
+        },
+        include: {
+          user: { select: { id: true, displayName: true, username: true } },
+          eventPicks: { include: { slots: { select: { id: true } } } },
+        },
+      });
+      const ranked = lineups
+        .map((l) => {
+          const slotCount = l.eventPicks.reduce((s, ev) => s + ev.slots.length, 0);
+          return {
+            user_id: l.userId,
+            display_name: l.user.displayName || l.user.username || "Player",
+            points: slotCount,
+          };
+        })
+        .filter((r) => r.points > 0)
+        .sort((a, b) => b.points - a.points)
+        .map((r, i) => ({ ...r, rank: i + 1 }));
+      const total_players = ranked.length;
+      const rows = ranked.slice(0, 100).map((r) => ({
+        rank: r.rank,
+        display_name: r.display_name,
+        points: r.points,
+        is_me: r.user_id === userId,
+      }));
+      return { sport: "volleyball" as const, total_players, rows };
+    },
+  );
+
+  typed.get(
     "/lineups",
     {
       ...authPre,

@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { PokerWorldRankingRow } from "@wakibet/shared";
 import { apiGet } from "../../../api";
 import type { SessionUser } from "../../../App";
 import "../../../components/dashboard.css";
+import SportStandingsSection from "../../../components/sportStandings/SportStandingsSection";
 
 type WsopLeaderboardPlayerPayload = {
   wsop_rank: number;
@@ -76,7 +78,7 @@ function fmtUsd(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
-export default function PokerHubPage({ user: _user }: Props) {
+export default function PokerHubPage({ user }: Props) {
   const wsopQ = useQuery({
     queryKey: ["poker", "wsop-2026"] as const,
     queryFn: () => apiGet<WsopPayload>("/api/v1/poker/wsop-2026"),
@@ -94,6 +96,15 @@ export default function PokerHubPage({ user: _user }: Props) {
   const wsopOnlyBoard = rankingsQ.data?.wsop_players_not_in_world_top_200 ?? [];
   const cfg = wsopQ.data;
 
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash !== "#standings") return;
+    const id = window.setTimeout(() => {
+      document.getElementById("standings")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [location.hash]);
+
   return (
     <div className="dash-wrap" style={{ maxWidth: 1040 }}>
       <p className="dash-kicker">WakiBet · Poker fantasy</p>
@@ -106,6 +117,9 @@ export default function PokerHubPage({ user: _user }: Props) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 12 }}>
         <Link className="dash-main-btn" to="/poker/pick">
           Pick your lineup
+        </Link>
+        <Link className="dash-ghost-btn" to="/poker#standings">
+          Standings
         </Link>
         <Link className="dash-ghost-btn" to="/poker/scoring">
           WakiCash &amp; scoring table →
@@ -236,46 +250,58 @@ export default function PokerHubPage({ user: _user }: Props) {
         </>
       )}
 
-      <h2 className="dash-title" style={{ fontSize: "1.35rem", marginTop: 8, marginBottom: 8 }}>
-        WSOP.com-style leaderboard (top 50)
-      </h2>
-      <p className="dash-sub" style={{ marginBottom: 12 }}>
-        Snapshot from the WSOP site’s earnings-driven board — not the same methodology as the global composite index
-        below.{" "}
-        <Link to="/articles/poker-which-poker-ranking-is-real">Why lists disagree →</Link>
-      </p>
-      {rankingsQ.isLoading ? (
-        <p className="dash-loading">Loading leaderboard…</p>
-      ) : rankingsQ.isError ? (
-        <p style={{ color: "#fca5a5", marginBottom: 24 }}>Could not load WSOP leaderboard data.</p>
-      ) : (
-        <div style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto", marginBottom: 24 }}>
-          <table className="dash-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Player</th>
-                <th>Country</th>
-                <th>Earnings</th>
-                <th>B / R / Cashes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {wsopBoard.map((p) => (
-                <tr key={`wsop-${p.wsop_rank}-${p.player_name}`}>
-                  <td>{p.wsop_rank}</td>
-                  <td>{p.player_name}</td>
-                  <td>{p.country}</td>
-                  <td>{fmtUsd(p.earnings_usd)}</td>
-                  <td>
-                    {p.bracelets} / {p.rings} / {p.cashes}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <SportStandingsSection
+        user={user}
+        sportLabel="Poker"
+        fantasyEndpoint="/api/v1/poker/season-leaderboard"
+        fantasyQueryKey={["poker", "season-leaderboard"] as const}
+        fantasyKicker="Wakibet · WSOP 2026 fantasy"
+        fantasySignInPrompt="Sign in to see the Wakibet poker user leaderboard."
+        realWorldTitle="WSOP.com-style leaderboard (top 50)"
+        realWorldKicker="World Series of Poker · earnings board"
+        realWorldNote={
+          rankingsQ.isLoading
+            ? "Loading WSOP leaderboard…"
+            : rankingsQ.isError
+              ? "Could not load WSOP leaderboard data."
+              : "Snapshot from the WSOP site’s earnings-driven board — not the same methodology as the global composite index below."
+        }
+        realWorldContent={
+          rankingsQ.isLoading || rankingsQ.isError ? null : (
+            <>
+              <p className="dash-sub" style={{ marginBottom: 8 }}>
+                <Link to="/articles/poker-which-poker-ranking-is-real">Why lists disagree →</Link>
+              </p>
+              <div style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto" }}>
+                <table className="dash-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Player</th>
+                      <th>Country</th>
+                      <th>Earnings</th>
+                      <th>B / R / Cashes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wsopBoard.map((p) => (
+                      <tr key={`wsop-${p.wsop_rank}-${p.player_name}`}>
+                        <td>{p.wsop_rank}</td>
+                        <td>{p.player_name}</td>
+                        <td>{p.country}</td>
+                        <td>{fmtUsd(p.earnings_usd)}</td>
+                        <td>
+                          {p.bracelets} / {p.rings} / {p.cashes}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )
+        }
+      />
 
       <h2 className="dash-title" style={{ fontSize: "1.35rem", marginTop: 8, marginBottom: 8 }}>
         On the WSOP board but not on our global top 200
