@@ -7,3 +7,4 @@ export * from "./sports/pickleball/mlp2026Calendar.js";
 export * from "./sports/volleyball/index.js";
 export * from "./sports/lacrosse/index.js";
 export * from "./sports/poker/index.js";
+export * from "./sports/invest/index.js";
