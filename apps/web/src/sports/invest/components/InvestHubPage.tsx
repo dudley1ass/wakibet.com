@@ -12,7 +12,7 @@ import { apiGet } from "../../../api";
 import type { SessionUser } from "../../../App";
 import "../../../components/dashboard.css";
 
-type Props = { user: SessionUser };
+type Props = { user: SessionUser | null };
 
 type CurrentContestPayload = {
   sport: "invest";
@@ -101,7 +101,16 @@ export default function InvestHubPage({ user }: Props) {
           <p className="pick-teams-sub">
             Build a virtual portfolio with <strong>${INVEST_WEEKLY_PICKEM_STARTING_CASH_USD.toLocaleString()}</strong> in fake
             cash. Pick <strong>{INVEST_WEEKLY_PICKEM_PICKS} stocks</strong>, lock at market open Monday, settle at the closing
-            bell Friday. Signed in as <strong>{user.display_name || user.email}</strong>.
+            bell Friday.{" "}
+            {user ? (
+              <>
+                Signed in as <strong>{user.display_name || user.email}</strong>.
+              </>
+            ) : (
+              <>
+                <Link to="/auth">Sign in</Link> to save a portfolio.
+              </>
+            )}
           </p>
         </div>
         <div className="dash-head-actions">

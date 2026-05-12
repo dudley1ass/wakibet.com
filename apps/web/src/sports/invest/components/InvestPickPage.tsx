@@ -9,7 +9,7 @@ import {
   type InvestWeeklyContestWindow,
   type WeeklyPickemRulesView,
 } from "@wakibet/shared";
-import { apiGet } from "../../../api";
+import { apiGet, apiPut } from "../../../api";
 import type { SessionUser } from "../../../App";
 import "../../../components/dashboard.css";
 import {
@@ -92,6 +92,8 @@ export default function InvestPickPage({ user }: Props) {
   const [contestKey, setContestKey] = useState("");
   const [picks, setPicks] = useState<InvestPick[]>(() => emptyInvestPicks());
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!contest || hydratedRef.current) return;
@@ -134,11 +136,32 @@ export default function InvestPickPage({ user }: Props) {
     setSavedAt(null);
   }, [rosterSize]);
 
-  const saveLineup = useCallback(() => {
+  const saveLineup = useCallback(async () => {
     if (!contestKey) return;
     setContestDraft(contestKey, { picks });
     saveLastInvestContest(contestKey);
-    setSavedAt(Date.now());
+    setSaveError(null);
+    setSaving(true);
+    try {
+      const filled = picks.filter((p) => p.symbol && p.allocation_pct > 0);
+      if (filled.length === 0) {
+        setSavedAt(Date.now());
+        return;
+      }
+      await apiPut("/api/v1/invest/portfolio", {
+        contest_key: contestKey,
+        positions: filled.map((p) => ({
+          symbol: p.symbol,
+          allocation_pct: p.allocation_pct,
+        })),
+      });
+      setSavedAt(Date.now());
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not save to server — draft is kept locally.";
+      setSaveError(msg);
+    } finally {
+      setSaving(false);
+    }
   }, [contestKey, picks]);
 
   const totalPct = totalAllocationPct(picks);
@@ -315,10 +338,10 @@ export default function InvestPickPage({ user }: Props) {
             <button
               type="button"
               className="dash-main-btn"
-              onClick={saveLineup}
-              disabled={!canSave}
+              onClick={() => void saveLineup()}
+              disabled={!canSave || saving}
             >
-              Save portfolio
+              {saving ? "Saving…" : "Save portfolio"}
             </button>
             <button type="button" className="dash-ghost-btn" onClick={clearLineup}>
               Clear portfolio
@@ -326,7 +349,8 @@ export default function InvestPickPage({ user }: Props) {
             <Link className="dash-ghost-btn" to="/invest/portfolios">
               My portfolios
             </Link>
-            {savedAt ? <span className="dash-footnote">Saved.</span> : null}
+            {savedAt && !saveError ? <span className="dash-footnote">Saved.</span> : null}
+            {saveError ? <span className="dash-error">{saveError}</span> : null}
           </div>
 
           <p className="dash-footnote">

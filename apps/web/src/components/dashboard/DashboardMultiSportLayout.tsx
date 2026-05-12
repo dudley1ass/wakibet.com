@@ -52,7 +52,14 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
     season_year: number;
   };
 
-  const [lacrosseQ, volleyballQ, pokerQ] = useQueries({
+  type InvestCurrentContestPayload = {
+    sport: "invest";
+    contest_type: "weekly_pickem";
+    window: { contest_key: string; label: string; lock_at_iso: string; end_at_iso: string };
+    phase: "open" | "locked" | "settled";
+  };
+
+  const [lacrosseQ, volleyballQ, pokerQ, investQ] = useQueries({
     queries: [
       {
         queryKey: ["lacrosse", "current"] as const,
@@ -65,6 +72,10 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
       {
         queryKey: ["poker", "schedule"] as const,
         queryFn: () => apiGet<PokerSchedulePayload>("/api/v1/poker/schedule"),
+      },
+      {
+        queryKey: ["invest", "current-contest"] as const,
+        queryFn: () => apiGet<InvestCurrentContestPayload>("/api/v1/invest/current-contest"),
       },
     ],
   });
@@ -141,8 +152,24 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             ctaLabel="Pick lineup"
             ctaTo="/poker/pick"
           />
+          <SportCard
+            variant="invest"
+            icon="📈"
+            sportLabel="Invest"
+            eventName={investQ.data?.window.label ?? "Weekly Stock Pick'em"}
+            subline="$100,000 virtual cash · 5 picks · locks Monday open · settles Friday close"
+            statusLabel={
+              investQ.data?.phase === "settled"
+                ? "Final"
+                : investQ.data?.phase === "locked"
+                  ? "Locked"
+                  : "Open"
+            }
+            ctaLabel="Build portfolio"
+            ctaTo="/invest/pick"
+          />
         </div>
-        {(lacrosseQ.isError || volleyballQ.isError || pokerQ.isError) && (
+        {(lacrosseQ.isError || volleyballQ.isError || pokerQ.isError || investQ.isError) && (
           <p className="dash-ms-error" role="status">
             Some season data could not load. Open each sport for full details.
           </p>
@@ -160,6 +187,8 @@ export default function DashboardMultiSportLayout({ preview, pulse }: Props) {
             volleyballLoading={volleyballQ.isLoading}
             pokerSeasonYear={pokerQ.data?.season_year ?? null}
             pokerLoading={pokerQ.isLoading}
+            investContestKey={investQ.data?.window.contest_key ?? null}
+            investLoading={investQ.isLoading}
           />
         </div>
         <section className="dash-ms-section dash-ms-section--contests-compact" aria-labelledby="dash-ms-contests-title">

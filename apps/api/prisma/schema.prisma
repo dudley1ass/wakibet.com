@@ -12,33 +12,34 @@ datasource db {
 // ============ USERS & AUTH ============
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  username        String    @unique
+  id              String   @id @default(cuid())
+  email           String   @unique
+  username        String   @unique
   passwordHash    String?
   displayName     String
   avatarUrl       String?
   dateOfBirth     DateTime
   country         String
   region          String?
-  isEmailVerified Boolean   @default(false)
-  isBanned        Boolean   @default(false)
+  isEmailVerified Boolean  @default(false)
+  isBanned        Boolean  @default(false)
   referredById    String?
-  referredBy      User?     @relation("Referrals", fields: [referredById], references: [id])
-  referrals       User[]    @relation("Referrals")
+  referredBy      User?    @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]   @relation("Referrals")
 
-  wallet                 Wallet?
-  lineups                Lineup[]
-  contestEntries         ContestEntry[]
-  sessions               Session[]
-  notifications          Notification[]
-  winterFantasyRosters       WinterFantasyRoster[]
+  wallet                   Wallet?
+  lineups                  Lineup[]
+  contestEntries           ContestEntry[]
+  sessions                 Session[]
+  notifications            Notification[]
+  winterFantasyRosters     WinterFantasyRoster[]
   fantasyTournamentLineups FantasyTournamentLineup[]
   lacrosseLineups          LacrosseLineup[]
   wfRosters                WfRoster[]
   wfSeasonScores           WfSeasonScore[]
   articleReactions         ArticleReaction[]
   articlePollVotes         ArticlePollVote[]
+  investPortfolios         InvestPortfolio[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,13 +47,15 @@ model User {
   @@index([referredById])
 }
 
-/** Division-scoped player picks for Winter Springs test schedule (string player names). */
+/**
+ * Division-scoped player picks for Winter Springs test schedule (string player names).
+ */
 model WinterFantasyRoster {
-  id          String               @id @default(cuid())
-  userId      String
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  divisionKey String
-  picks       WinterFantasyPick[]
+  id                    String              @id @default(cuid())
+  userId                String
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  divisionKey           String
+  picks                 WinterFantasyPick[]
   /// Tiebreaker (pickleball): user guess for total matches in this division/event schedule.
   predictedTotalMatches Int?
 
@@ -77,7 +80,9 @@ model WinterFantasyPick {
   @@index([rosterId])
 }
 
-/** Canonical pickleball fantasy for the live product (`FantasyTournament*`); not salary-cap `Contest`/`Lineup` (see `docs/contest-vs-pickleball-fantasy-lineups.md`). Season / multi-event: one submission per user per tournament (see docs/fantasy-tournament-lineups-spec.md). */
+/**
+ * Canonical pickleball fantasy for the live product (`FantasyTournament*`); not salary-cap `Contest`/`Lineup` (see `docs/contest-vs-pickleball-fantasy-lineups.md`). Season / multi-event: one submission per user per tournament (see docs/fantasy-tournament-lineups-spec.md).
+ */
 model FantasyTournamentLineup {
   id             String                       @id @default(cuid())
   userId         String
@@ -97,23 +102,23 @@ model FantasyTournamentLineup {
 }
 
 model FantasyTournamentEventPick {
-  id                   String                           @id @default(cuid())
-  lineupId             String
-  lineup               FantasyTournamentLineup          @relation(fields: [lineupId], references: [id], onDelete: Cascade)
-  slotIndex            Int
-  eventKey             String
-  eventLabelRaw        String
-  eventLabelDisplay    String?
-  format               String                           @default("unknown")
-  scheduleDivisionKey  String
-  tierCodeAtSave       String?
-  firstMatchStartsAt   DateTime?
-  lockedAt             DateTime?
+  id                    String                           @id @default(cuid())
+  lineupId              String
+  lineup                FantasyTournamentLineup          @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  slotIndex             Int
+  eventKey              String
+  eventLabelRaw         String
+  eventLabelDisplay     String?
+  format                String                           @default("unknown")
+  scheduleDivisionKey   String
+  tierCodeAtSave        String?
+  firstMatchStartsAt    DateTime?
+  lockedAt              DateTime?
   /// MLP-only: single franchise bonus pick for this event (player roster stays primary).
-  mlpTeamName          String?
+  mlpTeamName           String?
   /// Tiebreaker (pickleball): user guess for total matches in this event.
   predictedTotalMatches Int?
-  slots                FantasyTournamentEventPickSlot[]
+  slots                 FantasyTournamentEventPickSlot[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -124,12 +129,12 @@ model FantasyTournamentEventPick {
 }
 
 model FantasyTournamentEventPickSlot {
-  id          String                   @id @default(cuid())
+  id          String                     @id @default(cuid())
   eventPickId String
   eventPick   FantasyTournamentEventPick @relation(fields: [eventPickId], references: [id], onDelete: Cascade)
   slotIndex   Int
   playerName  String
-  isCaptain   Boolean                  @default(false)
+  isCaptain   Boolean                    @default(false)
 
   createdAt DateTime @default(now())
 
@@ -137,7 +142,9 @@ model FantasyTournamentEventPickSlot {
   @@index([eventPickId])
 }
 
-/** Cached schedule bucket metadata for fantasy tournament picker + locks + tiers. */
+/**
+ * Cached schedule bucket metadata for fantasy tournament picker + locks + tiers.
+ */
 model TournamentEventCatalog {
   id                   String    @id @default(cuid())
   tournamentKey        String
@@ -167,15 +174,15 @@ model TournamentEventCatalog {
 // ============ LACROSSE FANTASY (confidence allocation slates) ============
 
 model LacrosseSlate {
-  id        String @id @default(cuid())
-  slateKey  String @unique
-  name      String
+  id         String   @id @default(cuid())
+  slateKey   String   @unique
+  name       String
   seasonYear Int
-  sport     String @default("lacrosse")
-  status    String @default("open")
-  isCurrent Boolean @default(false)
-  lockAt    DateTime
-  isClosed  Boolean @default(false)
+  sport      String   @default("lacrosse")
+  status     String   @default("open")
+  isCurrent  Boolean  @default(false)
+  lockAt     DateTime
+  isClosed   Boolean  @default(false)
 
   lines   LacrosseSlateLine[]
   lineups LacrosseLineup[]
@@ -187,19 +194,19 @@ model LacrosseSlate {
 }
 
 model LacrosseSlateLine {
-  id          String @id @default(cuid())
-  slateId     String
-  slate       LacrosseSlate @relation(fields: [slateId], references: [id], onDelete: Cascade)
-  lineKey     String
-  pickType    String @default("team_pick")
-  isActive    Boolean @default(true)
-  generation  Int @default(1)
-  teamA       String
-  teamB       String
-  spreadA     Decimal @db.Decimal(6, 2)
-  oddsA       Int
-  oddsB       Int
-  confidence  Int
+  id         String        @id @default(cuid())
+  slateId    String
+  slate      LacrosseSlate @relation(fields: [slateId], references: [id], onDelete: Cascade)
+  lineKey    String
+  pickType   String        @default("team_pick")
+  isActive   Boolean       @default(true)
+  generation Int           @default(1)
+  teamA      String
+  teamB      String
+  spreadA    Decimal       @db.Decimal(6, 2)
+  oddsA      Int
+  oddsB      Int
+  confidence Int
 
   picks LacrossePick[]
 
@@ -211,16 +218,18 @@ model LacrosseSlateLine {
 }
 
 model LacrosseLineup {
-  id       String @id @default(cuid())
-  userId   String
-  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  slateId  String
-  slate    LacrosseSlate @relation(fields: [slateId], references: [id], onDelete: Cascade)
-  status   String @default("active")
-  spentWakiCash Int @default(0)
-  estReturn     Decimal @default(0) @db.Decimal(10, 2)
-  /** JSON: winner_line_id, side, players[] — 3-player stack tied to winner pick */
-  stackJson String? @db.Text
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slateId       String
+  slate         LacrosseSlate @relation(fields: [slateId], references: [id], onDelete: Cascade)
+  status        String        @default("active")
+  spentWakiCash Int           @default(0)
+  estReturn     Decimal       @default(0) @db.Decimal(10, 2)
+  /**
+   * JSON: winner_line_id, side, players[] — 3-player stack tied to winner pick
+   */
+  stackJson     String?       @db.Text
 
   picks LacrossePick[]
 
@@ -233,15 +242,15 @@ model LacrosseLineup {
 }
 
 model LacrossePick {
-  id        String @id @default(cuid())
-  lineupId  String
-  lineup    LacrosseLineup @relation(fields: [lineupId], references: [id], onDelete: Cascade)
-  lineId    String
-  line      LacrosseSlateLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  side      String
-  stake     Int
+  id         String            @id @default(cuid())
+  lineupId   String
+  lineup     LacrosseLineup    @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  lineId     String
+  line       LacrosseSlateLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  side       String
+  stake      Int
   oddsAtSave Int
-  estReturn Decimal @default(0) @db.Decimal(10, 2)
+  estReturn  Decimal           @default(0) @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -253,7 +262,7 @@ model LacrossePick {
 // ============ PICKS SPOTLIGHT (home + promos; time-windowed tournament labels per sport) ============
 
 model PicksSpotlightWindow {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   sportKey   String
   windowKey  String
   labelShort String
@@ -295,7 +304,7 @@ model WfTournament {
 }
 
 model WfTournamentEvent {
-  id                 String    @id @default(cuid())
+  id                 String       @id @default(cuid())
   tournamentId       String
   tournament         WfTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   rawLabel           String
@@ -303,18 +312,18 @@ model WfTournamentEvent {
   eventType          String
   skillLabel         String?
   ageBracket         String?
-  tier               String    @default("B")
-  featured           Boolean   @default(false)
+  tier               String       @default("B")
+  featured           Boolean      @default(false)
   lockAt             DateTime?
   matchCountEstimate Int?
   teamCount          Int?
-  status             String    @default("upcoming")
+  status             String       @default("upcoming")
 
-  entries            WfPersonEventEntry[]
-  teams              WfDoublesTeam[]
-  fantasyPrices      WfFantasyPrice[]
-  rosterSelections   WfRosterSelection[]
-  bracketMatches     WfBracketMatch[]
+  entries          WfPersonEventEntry[]
+  teams            WfDoublesTeam[]
+  fantasyPrices    WfFantasyPrice[]
+  rosterSelections WfRosterSelection[]
+  bracketMatches   WfBracketMatch[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -345,15 +354,15 @@ model WfPerson {
 }
 
 model WfPersonEventEntry {
-  id                String           @id @default(cuid())
+  id                String            @id @default(cuid())
   tournamentEventId String
   tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
   personId          String
-  person            WfPerson         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person            WfPerson          @relation(fields: [personId], references: [id], onDelete: Cascade)
   partnerNameRaw    String?
   teamId            String?
-  team              WfDoublesTeam?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  sourceStatus      String           @default("registered")
+  team              WfDoublesTeam?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  sourceStatus      String            @default("registered")
   seed              Int?
 
   bracketAsEntry1       WfBracketMatch[] @relation("WfBracketMatchEntry1")
@@ -368,22 +377,22 @@ model WfPersonEventEntry {
 }
 
 model WfDoublesTeam {
-  id                String           @id @default(cuid())
+  id                String            @id @default(cuid())
   tournamentEventId String
   tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
   teamKey           String
   player1Id         String
-  player1           WfPerson         @relation("WfDoublesTeamPlayer1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player1           WfPerson          @relation("WfDoublesTeamPlayer1", fields: [player1Id], references: [id], onDelete: Cascade)
   player2Id         String?
-  player2           WfPerson?        @relation("WfDoublesTeamPlayer2", fields: [player2Id], references: [id], onDelete: SetNull)
+  player2           WfPerson?         @relation("WfDoublesTeamPlayer2", fields: [player2Id], references: [id], onDelete: SetNull)
   displayName       String
 
   entries            WfPersonEventEntry[]
   fantasyPrices      WfFantasyPrice[]
   rosterSelections   WfRosterSelection[]
-  bracketAsTeam1     WfBracketMatch[]    @relation("WfBracketMatchTeam1")
-  bracketAsTeam2     WfBracketMatch[]    @relation("WfBracketMatchTeam2")
-  bracketWinnerTeams WfBracketMatch[]    @relation("WfBracketMatchWinnerTeam")
+  bracketAsTeam1     WfBracketMatch[]     @relation("WfBracketMatchTeam1")
+  bracketAsTeam2     WfBracketMatch[]     @relation("WfBracketMatchTeam2")
+  bracketWinnerTeams WfBracketMatch[]     @relation("WfBracketMatchWinnerTeam")
 
   createdAt DateTime @default(now())
 
@@ -394,15 +403,15 @@ model WfDoublesTeam {
 
 /// Singles: `teamId` null. Doubles: `personId` null. Enforce in app / DB CHECK in migration.
 model WfFantasyPrice {
-  id                String           @id @default(cuid())
+  id                String            @id @default(cuid())
   tournamentEventId String
   tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
   personId          String?
-  person            WfPerson?        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person            WfPerson?         @relation(fields: [personId], references: [id], onDelete: Cascade)
   teamId            String?
-  team              WfDoublesTeam?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team              WfDoublesTeam?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   baseCost          Int
-  adjustmentCost    Int              @default(0)
+  adjustmentCost    Int               @default(0)
   finalCost         Int
 
   createdAt DateTime @default(now())
@@ -414,15 +423,15 @@ model WfFantasyPrice {
 
 /// One roster shell per user per `WfTournament` (parallel to string-key `FantasyTournamentLineup` until merged).
 model WfRoster {
-  id                  String   @id @default(cuid())
-  userId              String
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tournamentId      String
-  tournament          WfTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  budgetTotal         Int      @default(100)
-  budgetUsed          Int      @default(0)
-  maxEventSelections  Int      @default(5)
-  submittedAt         DateTime?
+  id                 String       @id @default(cuid())
+  userId             String
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournamentId       String
+  tournament         WfTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  budgetTotal        Int          @default(100)
+  budgetUsed         Int          @default(0)
+  maxEventSelections Int          @default(5)
+  submittedAt        DateTime?
 
   selections  WfRosterSelection[]
   cachedScore WfRosterScore?
@@ -436,17 +445,17 @@ model WfRoster {
 }
 
 model WfRosterSelection {
-  id                String           @id @default(cuid())
+  id                String            @id @default(cuid())
   rosterId          String
-  roster            WfRoster         @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  roster            WfRoster          @relation(fields: [rosterId], references: [id], onDelete: Cascade)
   tournamentEventId String
   tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
   personId          String?
-  person            WfPerson?        @relation(fields: [personId], references: [id], onDelete: SetNull)
+  person            WfPerson?         @relation(fields: [personId], references: [id], onDelete: SetNull)
   teamId            String?
-  team              WfDoublesTeam?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  team              WfDoublesTeam?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
   costPaid          Int
-  isCaptain         Boolean          @default(false)
+  isCaptain         Boolean           @default(false)
   lockedAt          DateTime?
 
   scoringEvents WfScoringEvent[]
@@ -459,7 +468,7 @@ model WfRosterSelection {
 }
 
 model WfBracketMatch {
-  id                String           @id @default(cuid())
+  id                String            @id @default(cuid())
   tournamentEventId String
   tournamentEvent   WfTournamentEvent @relation(fields: [tournamentEventId], references: [id], onDelete: Cascade)
   roundLabel        String
@@ -478,7 +487,7 @@ model WfBracketMatch {
   winnerTeam   WfDoublesTeam? @relation("WfBracketMatchWinnerTeam", fields: [winnerTeamId], references: [id], onDelete: SetNull)
 
   winnerPlayerEntryId String?
-  winnerPlayerEntry     WfPersonEventEntry? @relation("WfBracketMatchWinnerEntry", fields: [winnerPlayerEntryId], references: [id], onDelete: SetNull)
+  winnerPlayerEntry   WfPersonEventEntry? @relation("WfBracketMatchWinnerEntry", fields: [winnerPlayerEntryId], references: [id], onDelete: SetNull)
 
   scoreText   String?
   status      String    @default("scheduled")
@@ -495,14 +504,14 @@ model WfBracketMatch {
 }
 
 model WfScoringEvent {
-  id                 String            @id @default(cuid())
-  rosterSelectionId  String
-  rosterSelection    WfRosterSelection @relation(fields: [rosterSelectionId], references: [id], onDelete: Cascade)
-  bracketMatchId     String?
-  bracketMatch       WfBracketMatch?   @relation(fields: [bracketMatchId], references: [id], onDelete: SetNull)
-  eventCode          String
-  points             Int
-  description        String
+  id                String            @id @default(cuid())
+  rosterSelectionId String
+  rosterSelection   WfRosterSelection @relation(fields: [rosterSelectionId], references: [id], onDelete: Cascade)
+  bracketMatchId    String?
+  bracketMatch      WfBracketMatch?   @relation(fields: [bracketMatchId], references: [id], onDelete: SetNull)
+  eventCode         String
+  points            Int
+  description       String
 
   createdAt DateTime @default(now())
 
@@ -511,23 +520,23 @@ model WfScoringEvent {
 }
 
 model WfRosterScore {
-  id                String   @id @default(cuid())
-  rosterId          String   @unique
-  roster            WfRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
-  tournamentPoints  Int      @default(0)
-  rankInTournament  Int?
+  id               String   @id @default(cuid())
+  rosterId         String   @unique
+  roster           WfRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  tournamentPoints Int      @default(0)
+  rankInTournament Int?
 
   updatedAt DateTime @updatedAt
 }
 
 model WfSeasonScore {
-  id                  String @id @default(cuid())
-  userId              String
-  user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  seasonYear          Int
-  totalPoints         Int    @default(0)
-  tournamentsEntered Int   @default(0)
-  currentRank         Int?
+  id                 String @id @default(cuid())
+  userId             String
+  user               User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seasonYear         Int
+  totalPoints        Int    @default(0)
+  tournamentsEntered Int    @default(0)
+  currentRank        Int?
 
   updatedAt DateTime @updatedAt
 
@@ -539,9 +548,9 @@ model WfSeasonScore {
 // Separate namespace (`Vb*`) avoids collisions with existing DFS `Match` entities.
 
 model VbDivision {
-  id        String @id @default(cuid())
-  code      String @unique
-  name      String
+  id   String @id @default(cuid())
+  code String @unique
+  name String
 
   teams           VbTeam[]
   standings       VbStanding[]
@@ -552,12 +561,12 @@ model VbDivision {
 }
 
 model VbTournament {
-  id        String @id @default(cuid())
-  slug      String @unique
+  id        String    @id @default(cuid())
+  slug      String    @unique
   name      String
   startDate DateTime? @db.Date
   endDate   DateTime? @db.Date
-  status    String @default("upcoming")
+  status    String    @default("upcoming")
 
   matches VbMatch[]
 
@@ -566,15 +575,15 @@ model VbTournament {
 }
 
 model VbTeam {
-  id         String @id @default(cuid())
+  id         String     @id @default(cuid())
   teamName   String
   divisionId String
   division   VbDivision @relation(fields: [divisionId], references: [id], onDelete: Restrict)
 
   players      VbTeamPlayer[]
   matchTeams   VbMatchTeam[]
-  wonSets      VbSet[] @relation("VbSetWinner")
-  scoredPoints VbPoint[] @relation("VbPointScoringTeam")
+  wonSets      VbSet[]         @relation("VbSetWinner")
+  scoredPoints VbPoint[]       @relation("VbPointScoringTeam")
   wonResults   VbMatchResult[] @relation("VbMatchResultWinner")
   lostResults  VbMatchResult[] @relation("VbMatchResultLoser")
   standings    VbStanding[]
@@ -591,9 +600,9 @@ model VbPlayer {
   firstName String
   lastName  String
 
-  teams     VbTeamPlayer[]
-  points    VbPoint[]
-  stats     VbPlayerStat[]
+  teams  VbTeamPlayer[]
+  points VbPoint[]
+  stats  VbPlayerStat[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -603,7 +612,7 @@ model VbPlayer {
 
 model VbTeamPlayer {
   teamId   String
-  team     VbTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team     VbTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   playerId String
   player   VbPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
@@ -614,7 +623,7 @@ model VbTeamPlayer {
 }
 
 model VbMatch {
-  id           String @id @default(cuid())
+  id           String        @id @default(cuid())
   tournamentId String?
   tournament   VbTournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
   round        String
@@ -622,10 +631,10 @@ model VbMatch {
   bestOfSets   Int
   status       VbMatchStatus @default(SCHEDULED)
 
-  teams   VbMatchTeam[]
-  sets    VbSet[]
-  result  VbMatchResult?
-  points  VbPlayerStat[]
+  teams  VbMatchTeam[]
+  sets   VbSet[]
+  result VbMatchResult?
+  points VbPlayerStat[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -635,11 +644,11 @@ model VbMatch {
 }
 
 model VbMatchTeam {
-  id      String @id @default(cuid())
+  id      String  @id @default(cuid())
   matchId String
   match   VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
   teamId  String
-  team    VbTeam @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  team    VbTeam  @relation(fields: [teamId], references: [id], onDelete: Restrict)
   isHome  Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -649,7 +658,7 @@ model VbMatchTeam {
 }
 
 model VbSet {
-  id            String @id @default(cuid())
+  id            String  @id @default(cuid())
   matchId       String
   match         VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
   setNumber     Int
@@ -668,15 +677,15 @@ model VbSet {
 }
 
 model VbPoint {
-  id            String @id @default(cuid())
+  id            String      @id @default(cuid())
   setId         String
-  set           VbSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  set           VbSet       @relation(fields: [setId], references: [id], onDelete: Cascade)
   scoringTeamId String
-  scoringTeam   VbTeam @relation("VbPointScoringTeam", fields: [scoringTeamId], references: [id], onDelete: Restrict)
+  scoringTeam   VbTeam      @relation("VbPointScoringTeam", fields: [scoringTeamId], references: [id], onDelete: Restrict)
   playerId      String?
-  player        VbPlayer? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  player        VbPlayer?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
   skillType     VbSkillType
-  occurredAt    DateTime @default(now())
+  occurredAt    DateTime    @default(now())
 
   @@index([setId, occurredAt])
   @@index([scoringTeamId])
@@ -684,18 +693,18 @@ model VbPoint {
 }
 
 model VbMatchResult {
-  matchId            String @id
-  match              VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  winningTeamId      String
-  winningTeam        VbTeam @relation("VbMatchResultWinner", fields: [winningTeamId], references: [id], onDelete: Restrict)
-  losingTeamId       String
-  losingTeam         VbTeam @relation("VbMatchResultLoser", fields: [losingTeamId], references: [id], onDelete: Restrict)
-  setsWonWinner      Int
-  setsWonLoser       Int
-  totalPointsWinner  Int
-  totalPointsLoser   Int
-  pointsAwardedWin   Int?
-  pointsAwardedLoss  Int?
+  matchId           String  @id
+  match             VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  winningTeamId     String
+  winningTeam       VbTeam  @relation("VbMatchResultWinner", fields: [winningTeamId], references: [id], onDelete: Restrict)
+  losingTeamId      String
+  losingTeam        VbTeam  @relation("VbMatchResultLoser", fields: [losingTeamId], references: [id], onDelete: Restrict)
+  setsWonWinner     Int
+  setsWonLoser      Int
+  totalPointsWinner Int
+  totalPointsLoser  Int
+  pointsAwardedWin  Int?
+  pointsAwardedLoss Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -705,19 +714,19 @@ model VbMatchResult {
 }
 
 model VbStanding {
-  id             String @id @default(cuid())
-  divisionId     String
-  division       VbDivision @relation(fields: [divisionId], references: [id], onDelete: Cascade)
-  teamId         String
-  team           VbTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  matchesPlayed  Int @default(0)
-  wins           Int @default(0)
-  losses         Int @default(0)
-  pointsFor      Int @default(0)
-  pointsAgainst  Int @default(0)
-  setsWon        Int @default(0)
-  setsLost       Int @default(0)
-  rankingPoints  Float @default(0)
+  id            String     @id @default(cuid())
+  divisionId    String
+  division      VbDivision @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  teamId        String
+  team          VbTeam     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  matchesPlayed Int        @default(0)
+  wins          Int        @default(0)
+  losses        Int        @default(0)
+  pointsFor     Int        @default(0)
+  pointsAgainst Int        @default(0)
+  setsWon       Int        @default(0)
+  setsLost      Int        @default(0)
+  rankingPoints Float      @default(0)
 
   updatedAt DateTime @updatedAt
 
@@ -726,9 +735,9 @@ model VbStanding {
 }
 
 model VbTiebreakerRule {
-  id         String @id @default(cuid())
+  id         String               @id @default(cuid())
   divisionId String
-  division   VbDivision @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  division   VbDivision           @relation(fields: [divisionId], references: [id], onDelete: Cascade)
   priority   Int
   ruleType   VbTiebreakerRuleType
 
@@ -740,17 +749,17 @@ model VbTiebreakerRule {
 }
 
 model VbPlayerStat {
-  id       String @id @default(cuid())
+  id       String   @id @default(cuid())
   matchId  String
-  match    VbMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  match    VbMatch  @relation(fields: [matchId], references: [id], onDelete: Cascade)
   playerId String
   player   VbPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  kills    Int @default(0)
-  assists  Int @default(0)
-  blocks   Int @default(0)
-  aces     Int @default(0)
-  digs     Int @default(0)
-  errors   Int @default(0)
+  kills    Int      @default(0)
+  assists  Int      @default(0)
+  blocks   Int      @default(0)
+  aces     Int      @default(0)
+  digs     Int      @default(0)
+  errors   Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -760,7 +769,7 @@ model VbPlayerStat {
 }
 
 model VbScoringRule {
-  id            String @id @default(cuid())
+  id            String  @id @default(cuid())
   setsWon       Int
   setsLost      Int
   pointsAwarded Int
@@ -814,14 +823,14 @@ model Session {
 // ============ WALLET ============
 
 model Wallet {
-  id             String         @id @default(cuid())
-  userId         String         @unique
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cachedBalance  Decimal        @default(0) @db.Decimal(20, 4)
-  currency       String         @default("DILLS")
-  entries        WalletLedger[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cachedBalance Decimal        @default(0) @db.Decimal(20, 4)
+  currency      String         @default("DILLS")
+  entries       WalletLedger[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 enum LedgerEntryType {
@@ -836,17 +845,17 @@ enum LedgerEntryType {
 }
 
 model WalletLedger {
-  id               String           @id @default(cuid())
-  walletId         String
-  wallet           Wallet           @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  type             LedgerEntryType
-  amount           Decimal          @db.Decimal(20, 4)
-  balanceAfter     Decimal          @db.Decimal(20, 4)
-  idempotencyKey   String           @unique
-  contestEntryId   String?
-  contestEntry     ContestEntry?    @relation(fields: [contestEntryId], references: [id], onDelete: SetNull)
-  metadata         Json?
-  createdAt        DateTime         @default(now())
+  id             String          @id @default(cuid())
+  walletId       String
+  wallet         Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type           LedgerEntryType
+  amount         Decimal         @db.Decimal(20, 4)
+  balanceAfter   Decimal         @db.Decimal(20, 4)
+  idempotencyKey String          @unique
+  contestEntryId String?
+  contestEntry   ContestEntry?   @relation(fields: [contestEntryId], references: [id], onDelete: SetNull)
+  metadata       Json?
+  createdAt      DateTime        @default(now())
 
   @@index([walletId, createdAt])
 }
@@ -867,42 +876,42 @@ enum MatchFormat {
 }
 
 model Tournament {
-  id          String    @id @default(cuid())
-  externalId  String    @unique
+  id          String                   @id @default(cuid())
+  externalId  String                   @unique
   name        String
   tour        Tour
   startsAt    DateTime
   endsAt      DateTime
   location    String?
   surface     String?
-  prizePool   Decimal?  @db.Decimal(20, 2)
-  isFinalized Boolean   @default(false)
+  prizePool   Decimal?                 @db.Decimal(20, 2)
+  isFinalized Boolean                  @default(false)
   matches     Match[]
   contests    Contest[]
   players     PlayerTournamentSalary[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
 
   @@index([startsAt])
 }
 
 model Player {
-  id          String    @id @default(cuid())
-  externalId  String    @unique
-  firstName   String
-  lastName    String
-  fullName    String
-  handedness  String?
-  country     String?
-  birthDate   DateTime?
-  photoUrl    String?
-  isActive    Boolean   @default(true)
-  dupr        Decimal?  @db.Decimal(5, 2)
+  id         String    @id @default(cuid())
+  externalId String    @unique
+  firstName  String
+  lastName   String
+  fullName   String
+  handedness String?
+  country    String?
+  birthDate  DateTime?
+  photoUrl   String?
+  isActive   Boolean   @default(true)
+  dupr       Decimal?  @db.Decimal(5, 2)
 
-  matches      MatchParticipant[]
-  stats        PlayerMatchStat[]
-  salaries     PlayerTournamentSalary[]
-  lineupSlots  LineupSlot[]
+  matches     MatchParticipant[]
+  stats       PlayerMatchStat[]
+  salaries    PlayerTournamentSalary[]
+  lineupSlots LineupSlot[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -911,15 +920,15 @@ model Player {
 }
 
 model PlayerTournamentSalary {
-  id           String     @id @default(cuid())
+  id           String      @id @default(cuid())
   playerId     String
-  player       Player     @relation(fields: [playerId], references: [id])
+  player       Player      @relation(fields: [playerId], references: [id])
   tournamentId String
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id])
   format       MatchFormat
   salary       Int
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@unique([playerId, tournamentId, format])
   @@index([tournamentId])
@@ -934,10 +943,10 @@ enum MatchStatus {
 }
 
 model Match {
-  id           String     @id @default(cuid())
-  externalId   String     @unique
+  id           String      @id @default(cuid())
+  externalId   String      @unique
   tournamentId String
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id])
   round        String
   format       MatchFormat
   scheduledAt  DateTime
@@ -958,11 +967,11 @@ model Match {
 }
 
 model MatchParticipant {
-  id       String  @id @default(cuid())
+  id       String   @id @default(cuid())
   matchId  String
-  match    Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  match    Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
   playerId String
-  player   Player  @relation(fields: [playerId], references: [id])
+  player   Player   @relation(fields: [playerId], references: [id])
   side     Int
   isWinner Boolean?
 
@@ -973,11 +982,11 @@ model MatchParticipant {
 }
 
 model PlayerMatchStat {
-  id              String  @id @default(cuid())
-  matchId         String
-  match           Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  playerId        String
-  player          Player  @relation(fields: [playerId], references: [id])
+  id       String @id @default(cuid())
+  matchId  String
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id])
 
   matchWon        Boolean @default(false)
   setsWon         Int     @default(0)
@@ -1024,10 +1033,10 @@ model Contest {
   type              ContestType       @default(SALARY_CAP)
   visibility        ContestVisibility @default(PUBLIC)
   inviteCode        String?           @unique
-  tournamentId    String
-  tournament        Tournament          @relation(fields: [tournamentId], references: [id])
-  salaryCap       Int
-  lineupSize      Int
+  tournamentId      String
+  tournament        Tournament        @relation(fields: [tournamentId], references: [id])
+  salaryCap         Int
+  lineupSize        Int
   format            MatchFormat
   entryFee          Int
   maxEntries        Int
@@ -1040,21 +1049,21 @@ model Contest {
   status            ContestStatus     @default(UPCOMING)
 
   entries   ContestEntry[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
   @@index([tournamentId])
   @@index([status, opensAt])
 }
 
 model ContestEntry {
-  id         String   @id @default(cuid())
-  contestId  String
-  contest    Contest  @relation(fields: [contestId], references: [id])
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  lineupId   String   @unique
-  lineup     Lineup   @relation(fields: [lineupId], references: [id])
+  id        String  @id @default(cuid())
+  contestId String
+  contest   Contest @relation(fields: [contestId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  lineupId  String  @unique
+  lineup    Lineup  @relation(fields: [lineupId], references: [id])
 
   finalScore Decimal? @db.Decimal(10, 2)
   finalRank  Int?
@@ -1114,9 +1123,9 @@ model ArticlePollVote {
 }
 
 model Lineup {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
   name        String?
   totalSalary Int
   slots       LineupSlot[]
@@ -1144,14 +1153,14 @@ model LineupSlot {
 }
 
 model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String
-  title     String
-  body      String
-  data      Json?
-  readAt    DateTime?
+  id     String    @id @default(cuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   String
+  title  String
+  body   String
+  data   Json?
+  readAt DateTime?
 
   createdAt DateTime @default(now())
 
@@ -1176,13 +1185,13 @@ model Job {
 // Separate from DFS `Player` / `Tournament`: one row per real-world result row, never overwritten.
 
 model PpaResultPlayer {
-  id         Int    @id @default(autoincrement())
-  playerKey  String @unique
+  id         Int     @id @default(autoincrement())
+  playerKey  String  @unique
   playerName String
   gender     String?
   homeCity   String?
   homeState  String?
-  active     String @default("yes")
+  active     String  @default("yes")
 
   results PpaResultPlayerEvent[]
 
@@ -1208,7 +1217,7 @@ model PpaResultTournament {
 }
 
 model PpaResultEvent {
-  id             String @id
+  id             String              @id
   tournamentId   String
   tournament     PpaResultTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   eventName      String
@@ -1222,13 +1231,13 @@ model PpaResultEvent {
 
 /// One append-only fact row per player per event (doubles → two rows, same rank/wins/pd).
 model PpaResultPlayerEvent {
-  id           String @id @default(cuid())
+  id           String              @id @default(cuid())
   playerId     Int
-  player       PpaResultPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player       PpaResultPlayer     @relation(fields: [playerId], references: [id], onDelete: Cascade)
   tournamentId String
   tournament   PpaResultTournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   eventId      String
-  event        PpaResultEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event        PpaResultEvent      @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   partnerName  String?
   rank         Int
@@ -1242,4 +1251,84 @@ model PpaResultPlayerEvent {
   @@unique([playerId, eventId])
   @@index([tournamentId, eventId])
   @@index([playerId, createdAt])
+}
+
+// ============ INVEST SPORT — Weekly Stock Pick'em ============
+// Virtual portfolios only. No real money is invested. Picks lock at market open
+// Monday, settle at the close Friday. Prices come from Finnhub (or whichever
+// market-data provider is configured server-side).
+
+/// One user's portfolio for a single weekly contest window.
+model InvestPortfolio {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Stable key for the contest window, e.g. "invest_weekly_2026_05_11".
+  contestKey       String
+  /// ISO instants for the contest window (denormalized for queries; source of truth is shared rules).
+  lockAt           DateTime
+  endAt            DateTime
+  /// Marked true once the price-lock job has run for this contest (open prices captured).
+  isLocked         Boolean  @default(false)
+  /// Marked true once Friday close settlement has run.
+  isSettled        Boolean  @default(false)
+  /// Final portfolio return % after settlement (null until settled).
+  settledReturnPct Float?
+  /// Snapshot of total starting portfolio value in virtual USD at lock time.
+  startingValueUsd Float?
+  /// Snapshot of total ending portfolio value in virtual USD at settle time.
+  endingValueUsd   Float?
+
+  positions InvestPortfolioPosition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, contestKey])
+  @@index([contestKey])
+  @@index([userId])
+}
+
+/// One position (symbol + allocation %) within a portfolio. Per-row snapshots
+/// of lock/settle prices are stored here so historical leaderboards remain
+/// stable even if the price feed disappears later.
+model InvestPortfolioPosition {
+  id            String          @id @default(cuid())
+  portfolioId   String
+  portfolio     InvestPortfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol        String
+  /// 0–100 percent of starting virtual cash allocated to this position.
+  allocationPct Float
+  /// Per-share price at Monday market open (lock). Null until locked.
+  lockPriceUsd  Float?
+  /// Per-share price at Friday close (settlement). Null until settled.
+  endPriceUsd   Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([portfolioId, symbol])
+  @@index([portfolioId])
+  @@index([symbol])
+}
+
+/// Optional price-snapshot history table for auditability / replays.
+/// Captures the lock-time and settle-time price for every symbol that
+/// participated in a given contest window.
+model InvestPriceSnapshot {
+  id         String @id @default(cuid())
+  contestKey String
+  symbol     String
+  /// "lock" = Monday open snapshot; "end" = Friday close snapshot.
+  kind       String
+  priceUsd   Float
+  /// Upstream timestamp from the data provider (unix seconds), when available.
+  sourceTs   Int?
+  /// Provider tag, e.g. "finnhub".
+  provider   String @default("finnhub")
+
+  createdAt DateTime @default(now())
+
+  @@unique([contestKey, symbol, kind])
+  @@index([contestKey])
 }

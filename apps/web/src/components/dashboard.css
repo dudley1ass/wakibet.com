@@ -1558,10 +1558,10 @@ a.rost-dash-link {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
-/** Four sports across — smaller tiles on wide screens */
+/** Five sports across (incl. Invest) — smaller tiles on wide screens */
 .dash-sport-hero-row--four {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   overflow-x: visible;
   scroll-snap-type: none;
@@ -1617,6 +1617,10 @@ a.rost-dash-link {
   background: linear-gradient(155deg, rgba(72, 32, 12, 0.96), rgba(28, 15, 8, 0.98));
   border-color: rgba(251, 191, 36, 0.42);
 }
+.dash-sport-card--invest {
+  background: linear-gradient(155deg, rgba(8, 60, 56, 0.96), rgba(6, 24, 28, 0.98));
+  border-color: rgba(45, 212, 191, 0.4);
+}
 .dash-sport-card__top {
   display: flex;
   gap: 10px;
@@ -1668,6 +1672,9 @@ a.rost-dash-link {
 .dash-sport-card--poker .dash-sport-card__sub {
   color: #fde68a;
 }
+.dash-sport-card--invest .dash-sport-card__sub {
+  color: #ccfbf1;
+}
 .dash-sport-card__meta {
   display: flex;
   align-items: center;
@@ -1703,6 +1710,11 @@ a.rost-dash-link {
   color: #fef3c7;
   border: 1px solid rgba(251, 191, 36, 0.5);
 }
+.dash-sport-card__pill--invest {
+  background: rgba(13, 81, 78, 0.55);
+  color: #ccfbf1;
+  border: 1px solid rgba(45, 212, 191, 0.5);
+}
 .dash-sport-card__cta {
   margin-top: auto;
   display: inline-flex;
@@ -1726,6 +1738,11 @@ a.rost-dash-link {
   transform: translateY(-1px);
 }
 
+@media (max-width: 1280px) {
+  .dash-sport-hero-row--four {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (max-width: 1024px) {
   .dash-sport-hero-row--four {
     grid-template-columns: repeat(2, minmax(0, 1fr));

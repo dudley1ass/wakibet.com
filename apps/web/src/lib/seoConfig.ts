@@ -79,6 +79,36 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "Build a 6-player WSOP fantasy lineup under a 100 WakiCash cap using the featured pool — same dashboard styling as pickleball picks.",
   },
+  "/invest": {
+    title: `Invest — Weekly Stock Pick'em | ${SITE}`,
+    description:
+      "Free stock-picking contest using virtual portfolios. $100,000 in virtual cash, five picks, locks at the Monday market open, settles at the Friday close. No real money is invested.",
+  },
+  "/invest/pick": {
+    title: `Invest — build your weekly portfolio | ${SITE}`,
+    description:
+      "Pick five stocks or ETFs from a curated universe and allocate virtual cash for the Wakibet Weekly Stock Pick'em. Highest weekly return wins.",
+  },
+  "/invest/portfolios": {
+    title: `My Invest portfolios | ${SITE}`,
+    description:
+      "Your saved virtual portfolios for the Wakibet Weekly Stock Pick'em — live return, lock and settle status across every weekly contest.",
+  },
+  "/invest/leaderboard": {
+    title: `Invest standings — Weekly Stock Pick'em | ${SITE}`,
+    description:
+      "Live Wakibet user leaderboard for the Weekly Stock Pick'em — portfolio return % vs a $100,000 starting bank.",
+  },
+  "/invest/scoring": {
+    title: `Invest — rules and scoring | ${SITE}`,
+    description:
+      "How Wakibet's Weekly Stock Pick'em works: $100,000 virtual cash, 5 picks, max 30% per position, Monday open lock, Friday close settle, portfolio-return scoring.",
+  },
+  "/info/invest": {
+    title: `Invest — how the contest works | ${SITE}`,
+    description:
+      "How the Wakibet Weekly Stock Pick'em works: virtual $100,000 starting cash, pick five stocks or ETFs, lock Monday open, settle Friday close. No real money is invested.",
+  },
   "/fantasy-rules": {
     title: `How fantasy works — rules | ${SITE}`,
     description:

@@ -32,6 +32,11 @@ const VolleyballStandingsPage = lazy(
   () => import("./sports/volleyball/components/VolleyballStandingsPage"),
 );
 const PokerStandingsPage = lazy(() => import("./sports/poker/components/PokerStandingsPage"));
+const InvestHubPage = lazy(() => import("./sports/invest/components/InvestHubPage"));
+const InvestPickPage = lazy(() => import("./sports/invest/components/InvestPickPage"));
+const InvestPortfoliosPage = lazy(() => import("./sports/invest/components/InvestPortfoliosPage"));
+const InvestStandingsPage = lazy(() => import("./sports/invest/components/InvestStandingsPage"));
+const InvestScoringTablePage = lazy(() => import("./sports/invest/components/InvestScoringTablePage"));
 const TermsPage = lazy(() =>
   import("./components/StaticPages").then((m) => ({ default: m.TermsPage })),
 );
@@ -243,6 +248,59 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/info/:sportKey" element={<SportPlayInfoPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
+      <Route path="/invest" element={<InvestHubPage user={session} />} />
+      <Route path="/invest/scoring" element={<InvestScoringTablePage />} />
+      <Route
+        path="/invest/pick"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to build your weekly Invest portfolio.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <InvestPickPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/invest/portfolios"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view your Invest portfolios.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <InvestPortfoliosPage user={session} />
+          )
+        }
+      />
+      <Route
+        path="/invest/leaderboard"
+        element={
+          booting ? (
+            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+              Loading…
+            </p>
+          ) : !session ? (
+            <>
+              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the Invest standings.</p>
+              <LoginPage onAuthSuccess={onAuthSuccess} />
+            </>
+          ) : (
+            <InvestStandingsPage user={session} />
+          )
+        }
+      />
       <Route path="/poker" element={<Navigate to="/poker/pick" replace />} />
       <Route path="/poker/scoring" element={<PokerFantasyScoringPage />} />
       <Route

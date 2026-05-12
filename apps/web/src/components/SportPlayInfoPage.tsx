@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { StaticLayout } from "./StaticPages";
 
-const SPORTS = ["pickleball", "volleyball", "lacrosse", "poker"] as const;
+const SPORTS = ["pickleball", "volleyball", "lacrosse", "poker", "invest"] as const;
 type SportKey = (typeof SPORTS)[number];
 
 function isSportKey(s: string): s is SportKey {
@@ -172,6 +172,47 @@ const PAGES: Record<
         <p className="scoring-foot">
           Full tables, multipliers, and MVP formula: <a href="/poker/scoring">WSOP fantasy scoring table</a>. Hub:{" "}
           <a href="/poker">Poker fantasy</a> · <a href="/fantasy-rules">How fantasy works</a>.
+        </p>
+      </>
+    ),
+  },
+  invest: {
+    title: "Invest — how play works",
+    body: (
+      <>
+        <p>
+          <strong>WakiBet Invest</strong> is a <strong>free stock-picking contest using virtual portfolios</strong>. No
+          real money is invested, no brokerage account is involved, and nothing on this page is investment advice.
+        </p>
+        <h3>Weekly Stock Pick&apos;em</h3>
+        <ul>
+          <li>
+            Every week you start with <strong>$100,000 in virtual cash</strong>. You pick <strong>5 stocks or ETFs</strong>{" "}
+            from a curated universe of US large caps and broad ETFs.
+          </li>
+          <li>
+            You allocate up to <strong>100%</strong> of your virtual cash across those picks, with a{" "}
+            <strong>30% max per position</strong>. Penny stocks, OTC names, and leveraged ETFs are excluded.
+          </li>
+          <li>
+            Portfolios <strong>lock at the Monday market open</strong> and <strong>settle at the Friday close</strong>.
+            Once locked, no edits are allowed for that week — your portfolio rides the week as built.
+          </li>
+        </ul>
+        <h3>Scoring</h3>
+        <ul>
+          <li>
+            Score = <strong>((Ending Value − Starting Value) / Starting Value) × 100</strong> — the simple weekly portfolio
+            return %.
+          </li>
+          <li>
+            Highest weekly return wins. Standings update through the week using live prices; final ranks are set at the
+            Friday close.
+          </li>
+        </ul>
+        <p className="scoring-foot">
+          Full rules and contest window: <a href="/invest/scoring">Invest scoring table</a> · Hub:{" "}
+          <a href="/invest">Invest hub</a>. Free stock-picking contest using virtual portfolios. No real money is invested.
         </p>
       </>
     ),

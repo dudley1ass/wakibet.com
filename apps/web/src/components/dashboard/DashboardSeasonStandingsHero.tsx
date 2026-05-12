@@ -9,6 +9,8 @@ type Props = {
   volleyballLoading: boolean;
   pokerSeasonYear: number | null;
   pokerLoading: boolean;
+  investContestKey?: string | null;
+  investLoading?: boolean;
 };
 
 export default function DashboardSeasonStandingsHero({
@@ -20,12 +22,15 @@ export default function DashboardSeasonStandingsHero({
   volleyballLoading,
   pokerSeasonYear,
   pokerLoading,
+  investContestKey = null,
+  investLoading = false,
 }: Props) {
   const pbVal =
     pickleballRank != null ? `#${pickleballRank} · ${Math.round(pickleballPts)} pts` : `— · ${Math.round(pickleballPts)} pts`;
   const laxVal = lacrosseLoading ? "…" : lacrosseSeasonYear != null ? `PLL ${lacrosseSeasonYear}` : "PLL";
   const vbVal = volleyballLoading ? "…" : volleyballSeasonYear != null ? `AVP ${volleyballSeasonYear}` : "AVP";
   const pokerVal = pokerLoading ? "…" : pokerSeasonYear != null ? `WSOP ${pokerSeasonYear}` : "WSOP";
+  const investVal = investLoading ? "…" : investContestKey ?? "Weekly";
 
   return (
     <section className="dash-standings-hero" aria-labelledby="dash-standings-hero-title">
@@ -85,6 +90,19 @@ export default function DashboardSeasonStandingsHero({
             <span className="dash-standings-hero-val">{pokerVal}</span>
           </Link>
         </li>
+        <li className="dash-standings-hero-row dash-standings-hero-row--invest">
+          <Link
+            to="/invest/leaderboard"
+            className="dash-standings-hero-link"
+            aria-label="Open the Invest standings"
+          >
+            <span className="dash-standings-hero-ico" aria-hidden>
+              📈
+            </span>
+            <span className="dash-standings-hero-sport">Invest</span>
+            <span className="dash-standings-hero-val">{investVal}</span>
+          </Link>
+        </li>
       </ul>
       <p className="dash-standings-hero-links">
         <Link className="dash-ms-inline-link" to="/pick-teams/leaderboard">
@@ -101,6 +119,10 @@ export default function DashboardSeasonStandingsHero({
         {" · "}
         <Link className="dash-ms-inline-link" to="/poker/leaderboard">
           Poker
+        </Link>
+        {" · "}
+        <Link className="dash-ms-inline-link" to="/invest/leaderboard">
+          Invest
         </Link>
       </p>
     </section>

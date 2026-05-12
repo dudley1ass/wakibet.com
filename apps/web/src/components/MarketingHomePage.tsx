@@ -471,6 +471,10 @@ export default function MarketingHomePage() {
                     •
                   </span>
                   <span>Poker</span>
+                  <span className="landing-hero__sport-banner-dot" aria-hidden>
+                    •
+                  </span>
+                  <span>Invest</span>
                 </span>
               </div>
               <p style={{ margin: "0 0 6px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
@@ -513,6 +517,9 @@ export default function MarketingHomePage() {
                   </Link>
                   <Link className="dash-ghost-btn" to="/info/poker">
                     Poker info
+                  </Link>
+                  <Link className="dash-ghost-btn" to="/info/invest">
+                    Invest info
                   </Link>
                 </div>
                 <div

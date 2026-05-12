@@ -8,6 +8,8 @@ type Props = { user: SessionUser };
 
 type LeaderboardPayload = {
   sport: "invest";
+  contest_key: string;
+  phase: "open" | "locked" | "settled";
   total_players: number;
   rows: { rank: number; display_name: string; points: number; is_me: boolean }[];
 };
@@ -16,10 +18,16 @@ export default function InvestStandingsPage({ user }: Props) {
   const boardQ = useQuery({
     queryKey: ["invest", "season-leaderboard"] as const,
     queryFn: () => apiGet<LeaderboardPayload>("/api/v1/invest/season-leaderboard"),
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 
   const data = boardQ.data;
+  const phaseLabel = data?.phase === "settled"
+    ? "Final"
+    : data?.phase === "locked"
+      ? "Live (locked)"
+      : "Open — pre-lock indicative";
 
   return (
     <div className="rost-shell">
@@ -51,6 +59,12 @@ export default function InvestStandingsPage({ user }: Props) {
 
       {boardQ.isLoading ? <p className="dash-loading">Loading standings…</p> : null}
       {boardQ.isError ? <p className="dash-error">Could not load standings.</p> : null}
+
+      {data ? (
+        <p className="dash-footnote">
+          Contest <strong>{data.contest_key}</strong> · {phaseLabel} · {data.total_players} player{data.total_players === 1 ? "" : "s"}
+        </p>
+      ) : null}
 
       {data && data.rows.length === 0 ? (
         <p className="rost-empty-body">
