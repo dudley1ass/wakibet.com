@@ -445,11 +445,6 @@ export default function MarketingHomePage() {
           </nav>
         </header>
 
-        <p className="marketing-disclaimer">
-          <strong>Fantasy only — no real-money wagering YET!!</strong> Coming Soon!! WakiBet is for skill-based fantasy and
-          community play, not sports betting.
-        </p>
-
         {/* Hero — visual energy + motion */}
         <section className="landing-hero">
           <div className="landing-hero__mesh" aria-hidden />
