@@ -30,6 +30,9 @@ export default function PickTeamsPage({ user, onRosterSaved }: Props) {
           <Link className="dash-ghost-btn" to="/pick-teams/leaderboard">
             Season leaderboard
           </Link>
+          <Link className="dash-ghost-btn" to="/pickleball/rankings">
+            Player rankings
+          </Link>
           <Link className="dash-ghost-btn" to="/rosters">
             My Rosters
           </Link>
