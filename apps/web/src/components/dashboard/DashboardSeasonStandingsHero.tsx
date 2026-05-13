@@ -109,6 +109,10 @@ export default function DashboardSeasonStandingsHero({
           PB board
         </Link>
         {" · "}
+        <Link className="dash-ms-inline-link" to="/pickleball/rankings">
+          PB player rankings
+        </Link>
+        {" · "}
         <Link className="dash-ms-inline-link" to="/lacrosse/leaderboard">
           Lacrosse
         </Link>

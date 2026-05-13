@@ -25,6 +25,7 @@ const VolleyballPicksPage = lazy(() => import("./components/picks/VolleyballPick
 const PickleballSeasonLeaderboardPage = lazy(() =>
   import("./components/SeasonLeaderboardPage").then((m) => ({ default: m.PickleballSeasonLeaderboardPage })),
 );
+const PickleballRankingsPage = lazy(() => import("./sports/pickleball/components/PickleballRankingsPage"));
 const LacrosseStandingsPage = lazy(
   () => import("./sports/lacrosse/components/LacrosseStandingsPage"),
 );
@@ -246,6 +247,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/wakiodds" element={<WakiOddsPage />} />
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/info/:sportKey" element={<SportPlayInfoPage />} />
+      <Route path="/pickleball/rankings" element={<PickleballRankingsPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
       <Route path="/invest" element={<InvestHubPage user={session} />} />

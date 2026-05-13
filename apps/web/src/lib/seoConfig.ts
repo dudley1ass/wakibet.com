@@ -30,6 +30,11 @@ const ROUTES: Record<string, SeoEntry> = {
     description:
       "See how your WakiPoints rank against other players for the pickleball fantasy season on WakiBet.",
   },
+  "/pickleball/rankings": {
+    title: `Pickleball player rankings — PPA Tour 2026 | ${SITE}`,
+    description:
+      "Wakibet pickleball player rankings built from real PPA Tour 2026 match results across all five Pro divisions: win rate, opponent strength, tournament depth, point differential, and participation.",
+  },
   "/lacrosse/leaderboard": {
     title: `Lacrosse standings — PLL & fantasy leaderboard | ${SITE}`,
     description:
