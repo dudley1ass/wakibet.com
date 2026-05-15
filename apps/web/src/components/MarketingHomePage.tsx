@@ -252,6 +252,13 @@ const DEMO_SPORT_OPTIONS: { value: DemoSport; label: string }[] = [
   { value: "poker", label: "Poker" },
 ];
 
+const REDDIT_COMMUNITIES: { label: string; href: string }[] = [
+  { label: "r/Fantasy_Pickleball", href: "https://www.reddit.com/r/Fantasy_Pickleball/" },
+  { label: "r/Fantasy_Lacrosse", href: "https://www.reddit.com/r/Fantasy_Lacrosse/" },
+  { label: "r/Fantasy_Volleyball", href: "https://www.reddit.com/r/Fantasy_Volleyball/" },
+  { label: "r/Fantasy_Poker", href: "https://www.reddit.com/r/Fantasy_Poker/" },
+];
+
 /** Primary fantasy hubs shown in the hero — full product breadth above the fold. */
 const HERO_FANTASY_SPORTS: { label: string; href: string; title: string }[] = [
   { label: "Pickleball", href: "/pick-teams", title: "Pickleball tournament fantasy" },
@@ -302,30 +309,25 @@ function LandingRedditStrip() {
     <section className="landing-reddit-strip" aria-label="Reddit communities">
       <div className="landing-reddit-strip__copy">
         <p className="landing-reddit-strip__kicker">From Reddit</p>
-        <h2 className="landing-reddit-strip__title">Join the fantasy pickleball conversation</h2>
+        <h2 className="landing-reddit-strip__title">Join the niche fantasy conversation</h2>
         <p className="landing-reddit-strip__lede">
-          We run niche fantasy communities where emerging-sport fans actually hang out. Debate picks, share lineups, and
-          tell us what to build next.
+          Pickleball, lacrosse, volleyball, and poker — each sport has its own subreddit. Debate picks, share lineups,
+          and tell us what to build next.
         </p>
       </div>
       <div className="landing-reddit-strip__actions">
-        <a
-          className="dash-main-btn"
-          href="https://www.reddit.com/r/Fantasy_Pickleball/"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackRedditLead()}
-        >
-          r/Fantasy_Pickleball
-        </a>
-        <a
-          className="dash-ghost-btn"
-          href="https://ads.reddit.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Reddit ads dashboard
-        </a>
+        {REDDIT_COMMUNITIES.map((sub, i) => (
+          <a
+            key={sub.href}
+            className={i === 0 ? "dash-main-btn" : "dash-ghost-btn"}
+            href={sub.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackRedditLead()}
+          >
+            {sub.label}
+          </a>
+        ))}
       </div>
     </section>
   );
