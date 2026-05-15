@@ -41,6 +41,9 @@ type RankingsPayload = {
   divisions: Record<string, DivisionPayload>;
 };
 
+const PICKLEBALL_RANKINGS_REDDIT_URL =
+  "https://www.reddit.com/r/Fantasy_Pickleball/comments/1tbyywn/new_ranking_system/";
+
 const DIVISION_ORDER: ReadonlyArray<string> = [
   "Men's Singles Pro",
   "Women's Singles Pro",
@@ -107,6 +110,22 @@ export default function PickleballRankingsPage() {
           </Link>
         </div>
       </header>
+
+      <section className="dash-card pickleball-rankings-reddit" style={{ marginBottom: 16 }}>
+        <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>About the new ranking system</h2>
+        <p className="dash-sub" style={{ marginTop: 0, marginBottom: 12 }}>
+          We introduced this methodology on r/Fantasy_Pickleball — read the full breakdown, ask questions, and debate
+          how the ratings are built.
+        </p>
+        <a
+          className="dash-main-btn"
+          href={PICKLEBALL_RANKINGS_REDDIT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Join the discussion on Reddit
+        </a>
+      </section>
 
       <section className="dash-card" style={{ marginBottom: 16 }}>
         <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>Use rankings for fantasy</h2>

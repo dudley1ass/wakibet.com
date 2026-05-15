@@ -570,6 +570,11 @@ body {
   background: linear-gradient(135deg, rgba(20, 30, 24, 0.95), rgba(20, 20, 24, 0.92));
 }
 
+.pickleball-rankings-reddit {
+  border-color: rgba(255, 120, 60, 0.35);
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.08), rgba(20, 20, 24, 0.95));
+}
+
 @media (max-width: 760px) {
   .landing-hero__actions-row {
     grid-template-columns: 1fr;
