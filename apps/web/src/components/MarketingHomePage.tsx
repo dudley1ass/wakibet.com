@@ -252,6 +252,14 @@ const DEMO_SPORT_OPTIONS: { value: DemoSport; label: string }[] = [
   { value: "poker", label: "Poker" },
 ];
 
+/** Primary fantasy hubs shown in the hero — full product breadth above the fold. */
+const HERO_FANTASY_SPORTS: { label: string; href: string; title: string }[] = [
+  { label: "Pickleball", href: "/pick-teams", title: "Pickleball tournament fantasy" },
+  { label: "Lacrosse", href: "/lacrosse", title: "PLL lacrosse fantasy" },
+  { label: "Volleyball", href: "/volleyball", title: "AVP beach volleyball fantasy" },
+  { label: "WSOP", href: "/poker/pick", title: "WSOP fantasy poker" },
+];
+
 type LandingStats = {
   generated_at: string;
   registered_users: number;
@@ -268,10 +276,6 @@ type LandingStats = {
 function LandingSocialProof({ stats }: { stats: LandingStats | undefined }) {
   const users = stats?.registered_users ?? 0;
   const lineups = stats?.saved_lineups ?? 0;
-  const slate = stats?.pickleball_slate;
-  const slateStatus =
-    slate?.status === "live" ? "Live now" : slate?.status === "upcoming" ? "Next slate" : "Recent slate";
-
   return (
     <section className="landing-activity-strip" aria-label="Platform activity">
       <div className="landing-activity-strip__item">
@@ -282,23 +286,12 @@ function LandingSocialProof({ stats }: { stats: LandingStats | undefined }) {
         <strong>{lineups > 0 ? lineups : "—"}</strong>
         <span>lineups saved</span>
       </div>
-      <div className="landing-activity-strip__item landing-activity-strip__item--wide">
-        {slate ? (
-          <>
-            <strong>{slateStatus}</strong>
-            <span>
-              {slate.label} · {slate.venue}
-            </span>
-            <Link className="landing-activity-strip__link" to={slate.href}>
-              Build lineup →
-            </Link>
-          </>
-        ) : (
-          <>
-            <strong>Pickleball fantasy</strong>
-            <span>Free weekly contests — no deposits</span>
-          </>
-        )}
+      <div className="landing-activity-strip__item landing-activity-strip__item--wide landing-activity-strip__item--rankings">
+        <strong>New pickleball ranking system</strong>
+        <span>PPA Tour 2026 — win rate, opponent strength, and participation across all five pro divisions.</span>
+        <Link className="landing-activity-strip__link" to="/pickleball/rankings">
+          Explore rankings →
+        </Link>
       </div>
     </section>
   );
@@ -581,11 +574,31 @@ export default function MarketingHomePage() {
           <div className="landing-hero__mesh" aria-hidden />
           <div className="landing-hero__grid">
             <div className="landing-hero__copy">
-              <p className="landing-hero__eyebrow">Fantasy pickleball & emerging sports · 100% free</p>
+              <div
+                className="landing-hero__sport-banner landing-hero__sport-banner--inline landing-hero__sport-banner--hero-top"
+                aria-label="Fantasy sports on WakiBet"
+              >
+                <span className="landing-hero__sport-banner-kicker">Free fantasy for</span>
+                <div className="landing-hero__sport-banner-list landing-hero__sport-banner-list--links">
+                  {HERO_FANTASY_SPORTS.map((sport, i) => (
+                    <span key={sport.href} className="landing-hero__sport-banner-entry">
+                      {i > 0 ? (
+                        <span className="landing-hero__sport-banner-dot" aria-hidden>
+                          •
+                        </span>
+                      ) : null}
+                      <Link className="landing-hero__sport-link" to={sport.href} title={sport.title}>
+                        {sport.label}
+                      </Link>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <p className="landing-hero__eyebrow">100% free — no entry fees, no deposits</p>
               <h1 className="landing-hero__title">Pick players. Earn points. Climb weekly leaderboards.</h1>
               <p className="landing-hero__lede">
-                Free fantasy built for niche sports fans — starting with pickleball. Use PPA rankings, build lineups with
-                WakiCash, and compete before the slate locks.
+                Build lineups for pickleball, lacrosse, beach volleyball, and WSOP-style poker fantasy — plus our new PPA
+                player rankings built from real tournament results.
               </p>
               <div className="landing-hero__cta-row landing-hero__cta-row--hero">
                 <a className="dash-main-btn landing-cta-lineup" href="#demo-contest">
@@ -593,7 +606,7 @@ export default function MarketingHomePage() {
                   <span className="landing-cta-lineup__sub">No signup — pick 5 players in 30 seconds</span>
                 </a>
                 <Link className="dash-ghost-btn landing-cta-rankings" to="/pickleball/rankings">
-                  PPA player rankings
+                  New pickleball rankings
                 </Link>
               </div>
             </div>
@@ -647,19 +660,19 @@ export default function MarketingHomePage() {
         </section>
 
         <details className="landing-more-sports" style={{ marginBottom: 16 }}>
-          <summary>More sports on WakiBet (lacrosse, volleyball, poker, invest)</summary>
+          <summary>How each sport works · invest hub</summary>
           <div className="landing-hero__cta-row" style={{ marginTop: 12, flexWrap: "wrap", gap: 8 }}>
             <Link className="dash-ghost-btn" to="/info/pickleball">
-              Pickleball
+              Pickleball rules
             </Link>
             <Link className="dash-ghost-btn" to="/info/lacrosse">
-              Lacrosse
+              Lacrosse rules
             </Link>
             <Link className="dash-ghost-btn" to="/info/volleyball">
-              Volleyball
+              Volleyball rules
             </Link>
             <Link className="dash-ghost-btn" to="/info/poker">
-              Poker
+              WSOP fantasy rules
             </Link>
             <Link className="dash-ghost-btn" to="/info/invest">
               Invest

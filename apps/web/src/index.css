@@ -543,6 +543,33 @@ body {
   font-size: 0.7em;
 }
 
+.landing-hero__sport-banner-entry {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.landing-hero__sport-banner-list--links {
+  gap: 4px 10px;
+}
+
+.landing-hero__sport-link {
+  color: #fde68a;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.landing-hero__sport-link:hover {
+  color: #fff;
+  border-bottom-color: rgba(252, 211, 77, 0.65);
+}
+
+.landing-activity-strip__item--rankings {
+  border-color: rgba(134, 239, 172, 0.35);
+  background: linear-gradient(135deg, rgba(20, 30, 24, 0.95), rgba(20, 20, 24, 0.92));
+}
+
 @media (max-width: 760px) {
   .landing-hero__actions-row {
     grid-template-columns: 1fr;
