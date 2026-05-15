@@ -108,6 +108,28 @@ export default function PickleballRankingsPage() {
         </div>
       </header>
 
+      <section className="dash-card" style={{ marginBottom: 16 }}>
+        <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>Use rankings for fantasy</h2>
+        <p className="dash-sub" style={{ marginTop: 0 }}>
+          Turn ratings into lineups — weekly strategy guides and scoring explainers:
+        </p>
+        <ul style={{ margin: "8px 0 0", paddingLeft: 20, lineHeight: 1.7 }}>
+          <li>
+            <Link to="/articles/pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026">
+              MLP Dallas 2026: captain picks & sleepers
+            </Link>
+          </li>
+          <li>
+            <Link to="/articles/pickleball-fantasy-scoring-wakipoints-explained">How WakiPoints scoring works</Link>
+          </li>
+          <li>
+            <Link to="/pick-teams">Build your pickleball lineup</Link>
+            {" · "}
+            <Link to="/#demo-contest">Try demo contest (no login)</Link>
+          </li>
+        </ul>
+      </section>
+
       {q.error && <p className="dash-error">{(q.error as Error).message}</p>}
       {q.isPending && (
         <p className="dash-loading" role="status">

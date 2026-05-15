@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { apiPost, finalizeAuthFromLoginResponse } from "../api";
-import { trackRedditSignUp } from "../lib/analytics";
+import { trackRedditSignUp, trackRegisterComplete } from "../lib/analytics";
+import type { AnalyticsSource } from "../lib/analytics";
 import ThisWeekPicksHomeSection from "./ThisWeekPicksHomeSection";
 import "./dashboard.css";
 
@@ -83,6 +84,8 @@ export default function LoginPage({ onAuthSuccess }: Props) {
       const data = await apiPost<Record<string, unknown>>("/api/v1/auth/register", body);
       const payload = await finalizeAuthFromLoginResponse(data);
       trackRedditSignUp();
+      const from = new URLSearchParams(location.search).get("from");
+      trackRegisterComplete((from ?? "direct") as AnalyticsSource);
       setMessage("Account created. You're signed in.");
       onAuthSuccess(payload);
     } catch (e) {

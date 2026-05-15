@@ -11,9 +11,9 @@ const SITE = "WakiBet";
 
 const ROUTES: Record<string, SeoEntry> = {
   "/": {
-    title: `${SITE} — Fantasy pickleball, lacrosse & volleyball`,
+    title: `${SITE} — Fantasy pickleball & emerging sports`,
     description:
-      "Free-to-play fantasy for pickleball tournaments, PLL lacrosse, and beach volleyball. Build lineups with WakiCash budgets, earn WakiPoints, and climb leaderboards.",
+      "Free pickleball fantasy: pick players with WakiCash, earn WakiPoints from real PPA results, and climb weekly leaderboards. Try a demo contest — no signup required.",
   },
   "/pick-teams": {
     title: `Pick / edit teams — pickleball tournament fantasy | ${SITE}`,

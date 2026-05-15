@@ -849,3 +849,96 @@ export function VolleyballPowerHittersCreditBody() {
     </>
   );
 }
+
+export function PickleballMlpDallasCaptainPicksBody() {
+  return (
+    <>
+      <p>
+        MLP Dallas 2026 is the kind of slate where fantasy players win or lose on captain discipline—not on guessing
+        who wins a single highlight reel. Team formats reward stable side-out rates, smart stacking, and knowing which
+        franchises actually rotate well across gender splits. If you are building a WakiBet lineup for Dallas, start with
+        the scoring sheet, then use{" "}
+        <Link to="/pickleball/rankings">PPA-derived player rankings</Link> to price consistency instead of name value.
+      </p>
+      <h2>Captain picks: boom vs floor</h2>
+      <p>
+        Captain multipliers punish volatility harder than casual fans expect. A flashy speed-up specialist who gifts two
+        unforced errors per game can crater a weekend even with one viral rally. For Dallas, prioritize players who (a)
+        earn side-outs in both serve and receive games, (b) have a stable partner chemistry track record, and (c) are not
+        coming off a short turnaround from a prior stop. Cross-check our rankings for win rate and opponent-strength
+        components—those are better captain signals than rec-league DUPR.
+      </p>
+      <h2>Salary-cap sleepers on MLP slates</h2>
+      <p>
+        Public entries overweight household names. Look for mid-tier WakiCash prices on players with strong participation
+        scores (lots of matches played across the season sample) and positive point differential trends. Mixed doubles
+        specialists often deliver the best points-per-WakiCash when the field chases singles stars. Build a short list of
+        three sleepers before you open the player pool so you are not reacting to prices in real time.
+      </p>
+      <h2>Stacking franchises without over-correlating</h2>
+      <p>
+        Stacking teammates can make sense when a franchise is projected for deep bracket runs, but stacking too many
+        players from one team concentrates variance. A balanced approach: one franchise anchor, two neutral high-floor
+        picks, and two contrarian values. Tie your tiebreaker guesses to realistic match totals—overestimating volume
+        burns tiebreakers silently.
+      </p>
+      <h2>Turn rankings into a weekly process</h2>
+      <p>
+        Each MLP stop shifts opponent strength and participation. Revisit rankings after every PPA weekend that feeds
+        the dataset, then adjust captain shortlists. Pair this guide with our{" "}
+        <Link to="/articles/pickleball-fantasy-scoring-wakipoints-explained">WakiPoints scoring primer</Link> and lock
+        your lineup on <Link to="/pick-teams">Pick / edit teams</Link> before slate locks.
+      </p>
+      <p>
+        New here? <Link to="/#demo-contest">Try the free demo contest</Link> on the homepage—no account required—then{" "}
+        <Link to="/auth?mode=register&from=article">create a free account</Link> to save real rosters.
+      </p>
+      <ArticleRedditCta slug="pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026" />
+    </>
+  );
+}
+
+export function PickleballFantasyScoringWakiPointsBody() {
+  return (
+    <>
+      <p>
+        Pickleball fantasy only feels confusing when the scoring is hidden. WakiBet uses WakiPoints tied to real match
+        outcomes—wins, sets, points, and event depth—not arbitrary “fan vote” numbers. Whether you are playing a
+        multi-event tournament shell or a weekly MLP-style slate, the same habit wins: read the rules once, then pick
+        players who fit the point matrix.
+      </p>
+      <h2>What WakiPoints actually reward</h2>
+      <p>
+        Deep runs pay more than single lucky matches because tournament depth and opponent strength matter in our
+        rankings and in fantasy production. Captain slots amplify your best projection—so captains should be high-floor
+        performers, not highlight merchants. Use the{" "}
+        <Link to="/scoring-table">scoring table</Link> as your cheat sheet before you spend WakiCash.
+      </p>
+      <h2>How rankings connect to fantasy</h2>
+      <p>
+        Our <Link to="/pickleball/rankings">pickleball rankings</Link> blend win rate, opponent strength, draw depth,
+        point differential, and participation. Fantasy pricing and public perception often lag those components. When a
+        player’s rating climbs but their WakiCash price stays flat, that is a classic value window—especially entering a
+        new MLP stop.
+      </p>
+      <h2>Weekly workflow (10 minutes)</h2>
+      <ol>
+        <li>Check the upcoming slate on the dashboard or homepage activity strip.</li>
+        <li>Scan rankings for participation and point-differential movers.</li>
+        <li>Shortlist one captain, two core picks, and two value plays.</li>
+        <li>Build the lineup on <Link to="/pick-teams">Pick / edit teams</Link> and sanity-check WakiCash spend.</li>
+        <li>Compare against the <Link to="/pick-teams/leaderboard">season leaderboard</Link> after results post.</li>
+      </ol>
+      <h2>Practice without signing up</h2>
+      <p>
+        The homepage demo lets you pick five players under a salary cap and see a projected score from recent results—no
+        login. Use it to learn pricing, then graduate to saved lineups when you are ready.
+      </p>
+      <p>
+        Ready to compete for real? <Link to="/auth?mode=register&from=article">Create a free WakiBet account</Link> and
+        join the next pickleball contest.
+      </p>
+      <ArticleRedditCta slug="pickleball-fantasy-scoring-wakipoints-explained" />
+    </>
+  );
+}

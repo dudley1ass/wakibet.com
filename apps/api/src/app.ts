@@ -22,6 +22,7 @@ import { pokerRoutes } from "./routes/poker.js";
 import { volleyballRoutes } from "./routes/volleyball.js";
 import { fantasyTournamentRoutes, winterFantasyRoutes } from "./sports/pickleball/routes/index.js";
 import { publicContactRoutes } from "./routes/publicContact.js";
+import { publicLandingRoutes } from "./routes/publicLanding.js";
 import { picksSpotlightRoutes } from "./routes/picksSpotlight.js";
 import { articlesRoutes } from "./routes/articles.js";
 
@@ -125,6 +126,7 @@ export async function buildApp() {
   await app.register(healthRoutes);
   await app.register(authRoutes);
   await app.register(publicContactRoutes);
+  await app.register(publicLandingRoutes);
   await app.register(picksSpotlightRoutes, { prefix: "/api/v1/picks" });
   await app.register(articlesRoutes);
   await app.register(usersRoutes);

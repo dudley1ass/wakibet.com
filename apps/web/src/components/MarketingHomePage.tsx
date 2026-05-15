@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiGet } from "../api";
+import {
+  trackDemoContestComplete,
+  trackDemoContestStart,
+  trackRedditLead,
+  trackRegisterFromDemoClick,
+} from "../lib/analytics";
 import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
 import {
   getMarketingHotTakes,
@@ -17,6 +23,28 @@ const sectionCard: React.CSSProperties = {
   boxShadow: "0 20px 40px rgba(0,0,0,0.28)",
 };
 
+const PICKLEBALL_STRATEGY_ARTICLES: {
+  slug: string;
+  title: string;
+  blurb: string;
+}[] = [
+  {
+    slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
+    title: "MLP Dallas 2026: Captain picks & sleepers",
+    blurb: "Weekly fantasy guide tied to the next MLP stop.",
+  },
+  {
+    slug: "pickleball-fantasy-scoring-wakipoints-explained",
+    title: "How WakiPoints scoring works",
+    blurb: "Captain multipliers, WakiCash, and a 10-minute weekly workflow.",
+  },
+  {
+    slug: "pickleball-10-players-everyone-overrates",
+    title: "10 pickleball profiles fans overrate",
+    blurb: "Archetypes to avoid when pricing fantasy lineups.",
+  },
+];
+
 const FEATURED_ARTICLES: {
   slug: string;
   title: string;
@@ -25,6 +53,22 @@ const FEATURED_ARTICLES: {
   trending: boolean;
   thumbMod: string;
 }[] = [
+  {
+    slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
+    title: "MLP Dallas 2026 Fantasy: Captain Picks & Sleepers",
+    category: "Pickleball strategy",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pb",
+  },
+  {
+    slug: "pickleball-fantasy-scoring-wakipoints-explained",
+    title: "How Pickleball Fantasy Scoring Works (WakiPoints)",
+    category: "Pickleball strategy",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pb",
+  },
   {
     slug: "pickleball-anna-leigh-waters-bad-for-pickleball",
     title: "Is Anna Leigh Waters Bad for Pickleball?",
@@ -208,9 +252,97 @@ const DEMO_SPORT_OPTIONS: { value: DemoSport; label: string }[] = [
   { value: "poker", label: "Poker" },
 ];
 
+type LandingStats = {
+  generated_at: string;
+  registered_users: number;
+  saved_lineups: number;
+  pickleball_slate: {
+    label: string;
+    venue: string;
+    status: "live" | "upcoming" | "ended";
+    starts_at: string;
+    href: string;
+  } | null;
+};
+
+function LandingSocialProof({ stats }: { stats: LandingStats | undefined }) {
+  const users = stats?.registered_users ?? 0;
+  const lineups = stats?.saved_lineups ?? 0;
+  const slate = stats?.pickleball_slate;
+  const slateStatus =
+    slate?.status === "live" ? "Live now" : slate?.status === "upcoming" ? "Next slate" : "Recent slate";
+
+  return (
+    <section className="landing-activity-strip" aria-label="Platform activity">
+      <div className="landing-activity-strip__item">
+        <strong>{users > 0 ? users : "—"}</strong>
+        <span>players registered</span>
+      </div>
+      <div className="landing-activity-strip__item">
+        <strong>{lineups > 0 ? lineups : "—"}</strong>
+        <span>lineups saved</span>
+      </div>
+      <div className="landing-activity-strip__item landing-activity-strip__item--wide">
+        {slate ? (
+          <>
+            <strong>{slateStatus}</strong>
+            <span>
+              {slate.label} · {slate.venue}
+            </span>
+            <Link className="landing-activity-strip__link" to={slate.href}>
+              Build lineup →
+            </Link>
+          </>
+        ) : (
+          <>
+            <strong>Pickleball fantasy</strong>
+            <span>Free weekly contests — no deposits</span>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function LandingRedditStrip() {
+  return (
+    <section className="landing-reddit-strip" aria-label="Reddit communities">
+      <div className="landing-reddit-strip__copy">
+        <p className="landing-reddit-strip__kicker">From Reddit</p>
+        <h2 className="landing-reddit-strip__title">Join the fantasy pickleball conversation</h2>
+        <p className="landing-reddit-strip__lede">
+          We run niche fantasy communities where emerging-sport fans actually hang out. Debate picks, share lineups, and
+          tell us what to build next.
+        </p>
+      </div>
+      <div className="landing-reddit-strip__actions">
+        <a
+          className="dash-main-btn"
+          href="https://www.reddit.com/r/Fantasy_Pickleball/"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackRedditLead()}
+        >
+          r/Fantasy_Pickleball
+        </a>
+        <a
+          className="dash-ghost-btn"
+          href="https://ads.reddit.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Reddit ads dashboard
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function DemoContestBuilder() {
   const [selectedSport, setSelectedSport] = useState<DemoSport>("pickleball");
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
+  const demoStartedRef = useRef(false);
+  const demoCompletedRef = useRef(false);
   const demoQuery = useQuery({
     queryKey: ["landing", "fantasy-demo-contest", selectedSport] as const,
     queryFn: () =>
@@ -234,6 +366,10 @@ function DemoContestBuilder() {
   const isBuilt = isFull && wakiCashRemaining >= 0;
 
   function togglePlayer(player: DemoContestPlayer) {
+    if (!demoStartedRef.current) {
+      demoStartedRef.current = true;
+      trackDemoContestStart(selectedSport);
+    }
     setSelectedNames((prev) => {
       if (prev.includes(player.player_name)) return prev.filter((name) => name !== player.player_name);
       if (prev.length >= rosterSize) return prev;
@@ -241,6 +377,12 @@ function DemoContestBuilder() {
       return [...prev, player.player_name];
     });
   }
+
+  useEffect(() => {
+    if (!isBuilt || demoCompletedRef.current) return;
+    demoCompletedRef.current = true;
+    trackDemoContestComplete(selectedSport, projectedScore);
+  }, [isBuilt, projectedScore, selectedSport]);
 
   function handleSportChange(next: DemoSport) {
     if (next === selectedSport) return;
@@ -336,8 +478,12 @@ function DemoContestBuilder() {
                   Lineup built — spent {wakiCashSpent}/{salaryCap} WakiCash for {projectedScore} projected points.
                   Create a free account to save real lineups, join contests, and track results.
                 </p>
-                <Link className="dash-main-btn landing-demo-contest__signup" to="/auth?mode=register">
-                  Create free account
+                <Link
+                  className="dash-main-btn landing-demo-contest__signup"
+                  to="/auth?mode=register&from=demo"
+                  onClick={() => trackRegisterFromDemoClick()}
+                >
+                  Save lineup — create free account
                 </Link>
               </>
             ) : isFull && wakiCashRemaining < 0 ? (
@@ -379,19 +525,6 @@ export default function MarketingHomePage() {
     staleTime: 60_000,
     retry: 1,
   });
-  const oddsQuery = useQuery({
-    queryKey: ["landing", "featured-odds"] as const,
-    queryFn: () =>
-      apiGet<{
-        updated_at: string;
-        markets: {
-          pickleball: { source: string; team_a: { label: string; rating: number }; team_b: { label: string; rating: number } };
-          lacrosse: { source: string; team_a: { label: string; rating: number }; team_b: { label: string; rating: number } };
-        };
-      }>("/api/v1/wakiodds/featured", { timeoutMs: 20_000 }),
-    staleTime: 60_000,
-    retry: 1,
-  });
   const lacrosseQuery = useQuery({
     queryKey: ["landing", "lacrosse-current"] as const,
     queryFn: () =>
@@ -405,9 +538,13 @@ export default function MarketingHomePage() {
     staleTime: 60_000,
     retry: 1,
   });
+  const landingStatsQuery = useQuery({
+    queryKey: ["landing", "public-stats"] as const,
+    queryFn: () => apiGet<LandingStats>("/api/v1/public/landing-stats", { timeoutMs: 20_000 }),
+    staleTime: 60_000,
+    retry: 1,
+  });
   const spotlightItems = spotlightQuery.data?.items ?? [];
-  const liveSpotlight = spotlightItems.find((x) => x.status === "live") ?? spotlightItems[0];
-
   const hotTakePeriod = marketingHotTakePeriodIndex();
   const hotTakeThursday = isThursdayHotTakeDay();
   const hotTakes = useMemo(
@@ -418,14 +555,8 @@ export default function MarketingHomePage() {
       }),
     [hotTakePeriod, hotTakeThursday, spotlightItems, lacrosseQuery.data?.name],
   );
-  const lacrosseLines = lacrosseQuery.data?.lines ?? [];
-
-  const pbGap = useMemo(() => {
-    if (!oddsQuery.data) return null;
-    return Math.abs(
-      oddsQuery.data.markets.pickleball.team_a.rating - oddsQuery.data.markets.pickleball.team_b.rating,
-    );
-  }, [oddsQuery.data]);
+  const pickleballSpotlight =
+    spotlightItems.find((x) => x.sport_key === "pickleball") ?? spotlightItems[0];
 
   return (
     <div className="marketing-page">
@@ -450,129 +581,94 @@ export default function MarketingHomePage() {
           <div className="landing-hero__mesh" aria-hidden />
           <div className="landing-hero__grid">
             <div className="landing-hero__copy">
-              <div className="landing-hero__sport-banner landing-hero__sport-banner--inline landing-hero__sport-banner--hero-top">
-                <span className="landing-hero__sport-banner-kicker">Fantasy sports for</span>
-                <span className="landing-hero__sport-banner-list">
-                  <span>Pickleball</span>
-                  <span className="landing-hero__sport-banner-dot" aria-hidden>
-                    •
-                  </span>
-                  <span>Volleyball</span>
-                  <span className="landing-hero__sport-banner-dot" aria-hidden>
-                    •
-                  </span>
-                  <span>Lacrosse</span>
-                  <span className="landing-hero__sport-banner-dot" aria-hidden>
-                    •
-                  </span>
-                  <span>Poker</span>
-                  <span className="landing-hero__sport-banner-dot" aria-hidden>
-                    •
-                  </span>
-                  <span>Invest</span>
-                </span>
-              </div>
-              <p style={{ margin: "0 0 6px", color: "#86efac", fontSize: 14, fontWeight: 600 }}>
-                100% free to play — no entry fees, no deposits required.
-              </p>
-              <h1 className="landing-hero__title">Where Sports Fans Compete Beyond the Scoreboard</h1>
+              <p className="landing-hero__eyebrow">Fantasy pickleball & emerging sports · 100% free</p>
+              <h1 className="landing-hero__title">Pick players. Earn points. Climb weekly leaderboards.</h1>
               <p className="landing-hero__lede">
-                Rankings, debates, hot takes, and fantasy — built for fans who live in the comments section as much as the
-                scoreboard.
+                Free fantasy built for niche sports fans — starting with pickleball. Use PPA rankings, build lineups with
+                WakiCash, and compete before the slate locks.
               </p>
-              <div className="landing-hero__cta-primary">
+              <div className="landing-hero__cta-row landing-hero__cta-row--hero">
                 <a className="dash-main-btn landing-cta-lineup" href="#demo-contest">
-                  <span className="landing-cta-lineup__title">
-                    Build Lineups. Predict Winners. Climb the Leaderboard.
-                  </span>
-                  <span className="landing-cta-lineup__sub">
-                    Free fantasy sports contests powered by strategy.
-                  </span>
+                  <span className="landing-cta-lineup__title">Try demo contest</span>
+                  <span className="landing-cta-lineup__sub">No signup — pick 5 players in 30 seconds</span>
                 </a>
-              </div>
-            </div>
-
-            <div className="landing-hero__actions-row">
-              <div className="landing-hero__season-prizes">
-                <DashboardSeasonPrizesStrip twoLineCaption />
-              </div>
-              <div className="landing-hero__cta-stack">
-                <div
-                  className="landing-hero__cta-row landing-hero__cta-row--four-across"
-                  aria-label="Sport info pages"
-                >
-                  <Link className="dash-ghost-btn" to="/info/pickleball">
-                    Pickleball info
-                  </Link>
-                  <Link className="dash-ghost-btn" to="/info/volleyball">
-                    Volleyball info
-                  </Link>
-                  <Link className="dash-ghost-btn" to="/info/lacrosse">
-                    Lacrosse info
-                  </Link>
-                  <Link className="dash-ghost-btn" to="/info/poker">
-                    Poker info
-                  </Link>
-                  <Link className="dash-ghost-btn" to="/info/invest">
-                    Invest info
-                  </Link>
-                </div>
-                <div
-                  className="landing-hero__cta-row landing-hero__cta-row--four-across"
-                  aria-label="Join our Reddit communities"
-                >
-                  <a
-                    className="dash-ghost-btn"
-                    href="https://www.reddit.com/r/Fantasy_Pickleball/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    r/Fantasy_Pickleball
-                  </a>
-                  <a
-                    className="dash-ghost-btn"
-                    href="https://www.reddit.com/r/Fantasy_Volleyball/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    r/Fantasy_Volleyball
-                  </a>
-                  <a
-                    className="dash-ghost-btn"
-                    href="https://www.reddit.com/r/Fantasy_Lacrosse/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    r/Fantasy_Lacrosse
-                  </a>
-                  <a
-                    className="dash-ghost-btn"
-                    href="https://www.reddit.com/r/Fantasy_Poker/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    r/Fantasy_Poker
-                  </a>
-                </div>
+                <Link className="dash-ghost-btn landing-cta-rankings" to="/pickleball/rankings">
+                  PPA player rankings
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
+        <LandingSocialProof stats={landingStatsQuery.data} />
+
         <DemoContestBuilder />
 
-        <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
-          {[
-            ["Fantasy Contests", "Predict performances and compete with friends."],
-            ["Community Rankings", "Debate overrated and underrated players."],
-            ["Sports Intelligence", "Stats, matchups, trends, and hot takes."],
-          ].map(([title, body]) => (
-            <article key={title} style={sectionCard}>
-              <h3 style={{ margin: "0 0 8px", color: "#f8fafc" }}>{title}</h3>
-              <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
-            </article>
-          ))}
+        <LandingRedditStrip />
+
+        <section style={{ ...sectionCard, marginBottom: 16 }}>
+          <h2 style={{ marginTop: 0, color: "#f8fafc", fontSize: "1.15rem" }}>How it works</h2>
+          <ol className="landing-how-steps">
+            <li>
+              <strong>Pick players</strong> under a WakiCash salary cap for the week&apos;s slate.
+            </li>
+            <li>
+              <strong>Earn WakiPoints</strong> from real match results — captains score more.
+            </li>
+            <li>
+              <strong>Climb leaderboards</strong> and compare lineups with the community.
+            </li>
+          </ol>
+          {pickleballSpotlight ? (
+            <p className="dash-sub" style={{ marginBottom: 0 }}>
+              This week: <strong>{pickleballSpotlight.label_full}</strong> ({pickleballSpotlight.venue}) —{" "}
+              <Link to={pickleballSpotlight.href}>view slate</Link>
+            </p>
+          ) : null}
         </section>
+
+        <section style={{ ...sectionCard, marginBottom: 16 }}>
+          <h2 style={{ marginTop: 0, color: "#f8fafc", fontSize: "1.15rem" }}>Pickleball strategy & projections</h2>
+          <p className="dash-sub" style={{ marginTop: 0 }}>
+            Rankings and weekly guides are the fastest way to learn the game — updated for live MLP and PPA slates.
+          </p>
+          <div className="landing-strategy-links">
+            {PICKLEBALL_STRATEGY_ARTICLES.map((a) => (
+              <Link key={a.slug} to={`/articles/${a.slug}`} className="landing-strategy-links__card">
+                <strong>{a.title}</strong>
+                <span>{a.blurb}</span>
+              </Link>
+            ))}
+            <Link to="/pickleball/rankings" className="landing-strategy-links__card landing-strategy-links__card--rankings">
+              <strong>PPA Tour 2026 rankings</strong>
+              <span>Win rate, opponent strength, and participation — all five pro divisions.</span>
+            </Link>
+          </div>
+        </section>
+
+        <details className="landing-more-sports" style={{ marginBottom: 16 }}>
+          <summary>More sports on WakiBet (lacrosse, volleyball, poker, invest)</summary>
+          <div className="landing-hero__cta-row" style={{ marginTop: 12, flexWrap: "wrap", gap: 8 }}>
+            <Link className="dash-ghost-btn" to="/info/pickleball">
+              Pickleball
+            </Link>
+            <Link className="dash-ghost-btn" to="/info/lacrosse">
+              Lacrosse
+            </Link>
+            <Link className="dash-ghost-btn" to="/info/volleyball">
+              Volleyball
+            </Link>
+            <Link className="dash-ghost-btn" to="/info/poker">
+              Poker
+            </Link>
+            <Link className="dash-ghost-btn" to="/info/invest">
+              Invest
+            </Link>
+          </div>
+          <div className="landing-hero__season-prizes" style={{ marginTop: 12 }}>
+            <DashboardSeasonPrizesStrip twoLineCaption />
+          </div>
+        </details>
 
         {/* Hot Takes — scroll feed + votes */}
         <section className="marketing-section marketing-section--hot">
@@ -591,58 +687,9 @@ export default function MarketingHomePage() {
           </div>
         </section>
 
-        <section style={{ ...sectionCard, marginBottom: 16 }}>
-          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Trending Content</h2>
-          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-            {(spotlightItems.length
-              ? spotlightItems.map((item) => `${item.label_short} — ${item.venue}`)
-              : [
-                  "Most overrated 5.0 pickleball player?",
-                  "Hardest position in lacrosse?",
-                  "Would old-school volleyball teams survive today?",
-                  "Best sleeper picks this week",
-                  "Players trending upward right now",
-                  "Who wins this matchup?",
-                ]
-            ).map((item) => (
-              <div key={item} style={{ ...sectionCard, padding: 12 }}>
-                {item}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", marginBottom: 16 }}>
-          {[
-            [
-              "🔥 Trending Debates",
-              liveSpotlight
-                ? `${liveSpotlight.label_full} (${liveSpotlight.status.toUpperCase()})`
-                : "Most heated conversations in the last 24h.",
-            ],
-            [
-              "📈 Fastest Rising Players",
-              pbGap != null ? `Pickleball rating gap: ${pbGap}` : "Names climbing fast in community rankings.",
-            ],
-            [
-              "🏆 Weekly Fantasy Leaders",
-              lacrosseQuery.data ? `${lacrosseQuery.data.name} (${lacrosseLines.length} active lines)` : "Top fantasy performers across active contests.",
-            ],
-            [
-              "🎯 Most Picked Sleeper",
-              lacrosseLines[0] ? `${lacrosseLines[0].team_a} vs ${lacrosseLines[0].team_b}` : "Most-backed underdog selections this week.",
-            ],
-          ].map(([title, body]) => (
-            <article key={title} style={sectionCard}>
-              <h3 style={{ margin: "0 0 8px" }}>{title}</h3>
-              <p style={{ margin: 0, color: "#cbd5e1" }}>{body}</p>
-            </article>
-          ))}
-        </section>
-
         {/* Featured articles — card layout */}
         <section className="marketing-section">
-          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Start the debate</h2>
+          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Debate & community articles</h2>
           <p className="dash-sub" style={{ marginTop: 0, marginBottom: 16 }}>
             Hot takes with a Reddit thread on every piece — open an article, then jump to the discussion link at the
             bottom and keep arguing where the internet actually argues.
@@ -669,26 +716,13 @@ export default function MarketingHomePage() {
           </p>
         </section>
 
-        <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 16 }}>
-          {[
-            ["1", "Pick a sport"],
-            ["2", "Enter contests or predictions"],
-            ["3", "Climb leaderboards and win rewards"],
-          ].map(([step, text]) => (
-            <article key={step} style={sectionCard}>
-              <div style={{ color: "#fcd34d", fontWeight: 700, marginBottom: 6 }}>Step {step}</div>
-              <div>{text}</div>
-            </article>
-          ))}
-        </section>
-
         <section style={{ ...sectionCard, textAlign: "center" }}>
-          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Join Before Public Launch</h2>
+          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Save your lineup — free account</h2>
           <p style={{ color: "#cbd5e1" }}>
-            Early users get exclusive contests, rankings access, and beta features.
+            Try the demo above, then register to enter weekly contests and climb the leaderboard.
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-            <Link className="dash-main-btn" to="/auth?mode=register">
+            <Link className="dash-main-btn" to="/auth?mode=register&from=homepage">
               Create account
             </Link>
             <Link className="dash-ghost-btn" to="/auth?mode=login">

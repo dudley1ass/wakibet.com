@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import type { ReactNode } from "react";
 import type { ArticleRecord } from "./registry";
 import ArticleEngagementCard from "./ArticleEngagementCard";
-import { trackEvent } from "../lib/analytics";
+import { trackArticleCtaClick, trackEvent } from "../lib/analytics";
 
 export default function ArticleLayout({ article, children }: { article: ArticleRecord; children: ReactNode }) {
   useEffect(() => {
@@ -83,7 +83,20 @@ export default function ArticleLayout({ article, children }: { article: ArticleR
           </div>
           <p className="dash-sub" style={{ margin: 0 }}>
             Play free-to-play fantasy and join the conversation on{" "}
-            <Link to="/auth?mode=register">WakiBet</Link>.
+            <Link
+              to="/auth?mode=register&from=article"
+              onClick={() => trackArticleCtaClick(article.slug, "register")}
+            >
+              WakiBet
+            </Link>
+            {" · "}
+            <Link to="/pickleball/rankings" onClick={() => trackArticleCtaClick(article.slug, "rankings")}>
+              Pickleball rankings
+            </Link>
+            {" · "}
+            <Link to="/#demo-contest" onClick={() => trackArticleCtaClick(article.slug, "demo")}>
+              Try demo contest
+            </Link>
           </p>
         </footer>
       </article>

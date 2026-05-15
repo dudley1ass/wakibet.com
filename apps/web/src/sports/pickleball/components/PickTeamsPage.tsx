@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { trackPickTeamsView } from "../../../lib/analytics";
 import type { SessionUser } from "../../../App";
 import WeekPicksHelpCue from "../../../components/WeekPicksHelpCue";
 import WeekPicksPromoBanner from "../../../components/WeekPicksPromoBanner";
@@ -13,6 +15,10 @@ type Props = {
 
 export default function PickTeamsPage({ user, onRosterSaved }: Props) {
   const { reload } = useDashboardDataRequired();
+
+  useEffect(() => {
+    trackPickTeamsView();
+  }, []);
 
   return (
     <div className="pick-teams-shell">

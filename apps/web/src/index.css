@@ -1258,3 +1258,165 @@ body {
   color: #fcd34d;
   font-weight: 600;
 }
+
+.landing-hero__eyebrow {
+  margin: 0 0 8px;
+  color: #86efac;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.landing-hero__cta-row--hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.landing-activity-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.landing-activity-strip__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(20, 20, 24, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.landing-activity-strip__item strong {
+  color: #f8fafc;
+  font-size: 1.1rem;
+}
+
+.landing-activity-strip__item span {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.landing-activity-strip__item--wide {
+  grid-column: span 2;
+}
+
+.landing-activity-strip__link {
+  color: #fcd34d;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+@media (max-width: 520px) {
+  .landing-activity-strip__item--wide {
+    grid-column: span 1;
+  }
+}
+
+.landing-reddit-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.12), rgba(20, 20, 24, 0.95));
+  border: 1px solid rgba(255, 120, 60, 0.35);
+}
+
+.landing-reddit-strip__kicker {
+  margin: 0 0 4px;
+  color: #fb923c;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.landing-reddit-strip__title {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  color: #f8fafc;
+}
+
+.landing-reddit-strip__lede {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  max-width: 42rem;
+  line-height: 1.5;
+}
+
+.landing-reddit-strip__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.landing-how-steps {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  line-height: 1.65;
+  color: #cbd5e1;
+}
+
+.landing-strategy-links {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.landing-strategy-links__card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.5);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.landing-strategy-links__card:hover {
+  border-color: rgba(252, 211, 77, 0.45);
+}
+
+.landing-strategy-links__card strong {
+  color: #f8fafc;
+  font-size: 14px;
+}
+
+.landing-strategy-links__card span {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.landing-strategy-links__card--rankings {
+  border-color: rgba(134, 239, 172, 0.35);
+}
+
+.landing-more-sports {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.35);
+  color: #cbd5e1;
+}
+
+.landing-more-sports summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #94a3b8;
+}

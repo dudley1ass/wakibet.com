@@ -30,7 +30,9 @@ export type ArticleSlug =
   | "volleyball-serve-receive-still-underrated"
   | "volleyball-club-hype-vs-player-development"
   | "lacrosse-attack-gets-too-much-credit"
-  | "lacrosse-highlights-vs-fundamentals";
+  | "lacrosse-highlights-vs-fundamentals"
+  | "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026"
+  | "pickleball-fantasy-scoring-wakipoints-explained";
 
 export type ArticleRecord = {
   slug: ArticleSlug;
@@ -320,6 +322,38 @@ export const ARTICLES: ArticleRecord[] = [
     keywords: ["lacrosse fundamentals", "lacrosse highlights", "PLL culture", "WakiBet"],
     datePublished: "2026-05-08",
     dateModified: "2026-05-08",
+  },
+  {
+    slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
+    headline: "MLP Dallas 2026 Fantasy: Captain Picks, Sleepers & Stacking Strategy",
+    description:
+      "Weekly pickleball fantasy guide for MLP Dallas—captain discipline, WakiCash sleepers, franchise stacking, and how to use PPA rankings before locks.",
+    keywords: [
+      "MLP Dallas 2026",
+      "pickleball fantasy",
+      "fantasy captain picks",
+      "PPA sleepers",
+      "pickleball strategy",
+      "WakiBet",
+    ],
+    datePublished: "2026-05-15",
+    dateModified: "2026-05-15",
+  },
+  {
+    slug: "pickleball-fantasy-scoring-wakipoints-explained",
+    headline: "How Pickleball Fantasy Scoring Works on WakiBet (WakiPoints Explained)",
+    description:
+      "Plain-language guide to WakiPoints, captain multipliers, WakiCash budgets, and a repeatable weekly workflow using rankings and live slates.",
+    keywords: [
+      "pickleball fantasy scoring",
+      "WakiPoints",
+      "fantasy pickleball",
+      "how scoring works",
+      "pickleball strategy",
+      "WakiBet",
+    ],
+    datePublished: "2026-05-15",
+    dateModified: "2026-05-15",
   },
 ];
 
