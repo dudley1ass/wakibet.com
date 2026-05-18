@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../api";
 import { lineupEntryForSport } from "../lib/lineupEntryRoutes";
 import { trackPlayInstantClick } from "../lib/analytics";
+import BuildPickleballLineupCta, { buildPickleballLineupSubtext } from "./BuildPickleballLineupCta";
 
 type SampleContest = {
   sport: "pickleball" | "lacrosse" | "volleyball" | "poker";
@@ -13,13 +14,6 @@ type SampleContest = {
 };
 
 const FEATURES = [
-  {
-    title: "Weekly slates",
-    body: "Pick players under a WakiCash cap for the next tournament stop.",
-    href: "/pick-teams",
-    cta: "Build lineup",
-    track: "feature_build_lineup",
-  },
   {
     title: "PPA rankings",
     body: "Player ratings from real tour results — win rate, strength of schedule, and more.",
@@ -37,6 +31,18 @@ const FEATURES = [
 ] as const;
 
 export default function InstantPlayStrip() {
+  const spotlightQuery = useQuery({
+    queryKey: ["landing", "picks-spotlight"] as const,
+    queryFn: () =>
+      apiGet<{
+        items: { sport_key: string; label_short: string; label_full: string; venue: string }[];
+      }>("/api/v1/picks/spotlight", { timeoutMs: 20_000 }),
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const pickleballSpotlight =
+    spotlightQuery.data?.items?.find((x) => x.sport_key === "pickleball") ?? spotlightQuery.data?.items?.[0];
+
   const contestsQuery = useQuery({
     queryKey: ["public", "sample-contests"] as const,
     queryFn: () =>
@@ -48,19 +54,36 @@ export default function InstantPlayStrip() {
   return (
     <section className="instant-play-strip" aria-label="Enter a league">
       <div className="instant-play-strip__intro">
-        <h2 className="instant-play-strip__title">Enter a league this week</h2>
+        <h2 className="instant-play-strip__title">Build your pickleball lineup this week</h2>
         <p className="instant-play-strip__lede">
-          Build a lineup for the next real tournament slate, then create your free account to save it and compete.
+          {pickleballSpotlight
+            ? `Pick players for ${pickleballSpotlight.label_full} (${pickleballSpotlight.venue}) — free fantasy tied to live pro results.`
+            : "Pick pro players for this week's tournament slate — free fantasy tied to live results."}
         </p>
+        <BuildPickleballLineupCta
+          className="instant-play-strip__hero-cta"
+          tournamentName={pickleballSpotlight?.label_short}
+          venue={pickleballSpotlight?.venue}
+          onClick={() => trackPlayInstantClick("feature_build_lineup")}
+        />
       </div>
 
       <div className="instant-play-strip__features">
+        <article className="instant-play-strip__card instant-play-strip__card--lineup">
+          <h3>Your pickleball lineup</h3>
+          <p>{buildPickleballLineupSubtext(pickleballSpotlight?.label_short, pickleballSpotlight?.venue)}</p>
+          <BuildPickleballLineupCta
+            tournamentName={pickleballSpotlight?.label_short}
+            venue={pickleballSpotlight?.venue}
+            onClick={() => trackPlayInstantClick("instant_card_build_lineup")}
+          />
+        </article>
         {FEATURES.map((f) => (
           <article key={f.track} className="instant-play-strip__card">
             <h3>{f.title}</h3>
             <p>{f.body}</p>
             <Link
-              className="dash-main-btn"
+              className={f.track === "feature_register" ? "dash-main-btn" : "dash-ghost-btn"}
               to={f.href}
               onClick={() => trackPlayInstantClick(f.track)}
             >
@@ -83,11 +106,22 @@ export default function InstantPlayStrip() {
                 <span>{c.venue}</span>
                 <div className="instant-play-strip__contest-actions">
                   <Link
-                    className="dash-main-btn"
+                    className={
+                      c.sport === "pickleball"
+                        ? "dash-main-btn landing-cta-lineup landing-cta-lineup--build landing-cta-lineup--compact"
+                        : "dash-ghost-btn"
+                    }
                     to={lineupEntryForSport(c.sport)}
                     onClick={() => trackPlayInstantClick(`contest_${c.sport}`)}
                   >
-                    Build lineup
+                    {c.sport === "pickleball" ? (
+                      <>
+                        <span className="landing-cta-lineup__title">Build pickleball lineup</span>
+                        <span className="landing-cta-lineup__sub">This week&apos;s slate</span>
+                      </>
+                    ) : (
+                      `Build ${c.sport} lineup`
+                    )}
                   </Link>
                 </div>
               </article>

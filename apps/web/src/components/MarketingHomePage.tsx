@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { apiGet } from "../api";
 import { trackHowItWorksClick, trackPlayInstantClick, trackRedditLead } from "../lib/analytics";
+import BuildPickleballLineupCta from "./BuildPickleballLineupCta";
 import MarketingSiteHeader from "./MarketingSiteHeader";
 import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
 import HotTakePollSection from "./HotTakePollSection";
@@ -135,9 +136,12 @@ function LandingFeatureStrip() {
         <strong>⚡ Live scoring</strong>
         <span>WakiPoints update from real tournament results.</span>
       </div>
-      <div className="landing-activity-strip__item landing-activity-strip__item--feature">
-        <strong>🏆 Weekly slates</strong>
-        <span>Free fantasy contests tied to real tournament weekends.</span>
+      <div className="landing-activity-strip__item landing-activity-strip__item--feature landing-activity-strip__item--lineup">
+        <strong>🏓 This week&apos;s pickleball lineup</strong>
+        <span>Pick pro players for the live tournament slate — build your own team for free.</span>
+        <Link className="landing-activity-strip__link landing-activity-strip__link--cta" to="/pick-teams">
+          Build your lineup →
+        </Link>
       </div>
       <div className="landing-activity-strip__item landing-activity-strip__item--wide landing-activity-strip__item--rankings">
         <strong>New pickleball ranking system</strong>
@@ -263,24 +267,45 @@ export default function MarketingHomePage() {
                 Build lineups for pickleball, lacrosse, beach volleyball, and WSOP-style poker fantasy — plus our new PPA
                 player rankings built from real tournament results.
               </p>
-              <div className="landing-hero__cta-row landing-hero__cta-row--hero landing-hero__cta-row--single">
+              <div className="landing-hero__cta-row landing-hero__cta-row--hero landing-hero__cta-row--dual">
+                <BuildPickleballLineupCta
+                  tournamentName={pickleballSpotlight?.label_short}
+                  venue={pickleballSpotlight?.venue}
+                  onClick={() => trackPlayInstantClick("hero_build_lineup")}
+                />
                 <Link
                   className="dash-main-btn landing-cta-lineup landing-cta-lineup--register"
                   to="/auth?mode=register&from=hero"
                 >
                   <span className="landing-cta-lineup__title">Create free account</span>
-                  <span className="landing-cta-lineup__sub">Join now — it&apos;s free · enter weekly slates</span>
-                </Link>
-                <Link
-                  className="landing-hero__guest-link"
-                  to="/pick-teams"
-                  onClick={() => trackPlayInstantClick("hero_build_lineup")}
-                >
-                  Build lineup for next tournament
+                  <span className="landing-cta-lineup__sub">Save your lineup · enter weekly contests · free</span>
                 </Link>
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="landing-lineup-promo" aria-label="Build a pickleball lineup">
+          <div className="landing-lineup-promo__copy">
+            <p className="landing-lineup-promo__kicker">Free fantasy · real PPA &amp; MLP tournaments</p>
+            <h2 className="landing-lineup-promo__title">Create your own pickleball lineup for this week&apos;s tournament</h2>
+            {pickleballSpotlight ? (
+              <p className="landing-lineup-promo__event">
+                <strong>{pickleballSpotlight.label_full}</strong>
+                <span>{pickleballSpotlight.venue}</span>
+              </p>
+            ) : (
+              <p className="landing-lineup-promo__event landing-lineup-promo__event--muted">
+                Pick players under a salary cap — scores update from live match results.
+              </p>
+            )}
+          </div>
+          <BuildPickleballLineupCta
+            className="landing-lineup-promo__cta"
+            tournamentName={pickleballSpotlight?.label_short}
+            venue={pickleballSpotlight?.venue}
+            onClick={() => trackPlayInstantClick("lineup_promo_strip")}
+          />
         </section>
 
         <LandingFeatureStrip />
@@ -395,17 +420,23 @@ export default function MarketingHomePage() {
           </div>
         </details>
 
-        <section style={{ ...sectionCard, textAlign: "center" }}>
-          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Ready for this week&apos;s slate?</h2>
-          <p style={{ color: "#cbd5e1" }}>
-            Create your free account to save lineups and enter weekly contests.
+        <section className="landing-footer-cta" style={sectionCard}>
+          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Ready to pick this week&apos;s tournament?</h2>
+          <p style={{ color: "#cbd5e1", marginBottom: 16 }}>
+            Build your pickleball lineup now — create a free account when you&apos;re ready to save it.
           </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-            <Link className="dash-main-btn landing-cta-lineup landing-cta-lineup--register" to="/auth?mode=register&from=homepage_footer">
+          <div className="landing-footer-cta__actions">
+            <BuildPickleballLineupCta
+              className="landing-footer-cta__lineup"
+              tournamentName={pickleballSpotlight?.label_short}
+              venue={pickleballSpotlight?.venue}
+              onClick={() => trackPlayInstantClick("footer_build_lineup")}
+            />
+            <Link
+              className="dash-ghost-btn landing-footer-cta__register"
+              to="/auth?mode=register&from=homepage_footer"
+            >
               Create free account
-            </Link>
-            <Link className="dash-main-btn landing-cta-lineup landing-cta-lineup--register" to="/pick-teams">
-              Build lineup
             </Link>
           </div>
         </section>
