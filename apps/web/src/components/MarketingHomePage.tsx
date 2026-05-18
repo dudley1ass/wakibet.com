@@ -259,6 +259,9 @@ export default function MarketingHomePage() {
                 </div>
               </div>
               <p className="landing-hero__eyebrow">100% free — no entry fees, no deposits</p>
+              <p className="landing-hero__eyebrow">
+                Free fantasy today. Real-money contests are on our roadmap pending state-by-state licensing.
+              </p>
               <h1 className="landing-hero__title">Pick players. Earn points. Win your weekly slate.</h1>
               <p className="landing-hero__lede">
                 Build lineups for pickleball, lacrosse, beach volleyball, and WSOP-style poker fantasy — plus our new PPA
