@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { apiGet } from "../api";
 import { trackHowItWorksClick, trackPlayInstantClick, trackRedditLead } from "../lib/analytics";
-import BuildPickleballLineupCta from "./BuildPickleballLineupCta";
+import BuildLineupCta from "./BuildLineupCta";
 import MarketingSiteHeader from "./MarketingSiteHeader";
+import { lineupHrefForSpotlight, pickHeroSpotlightItem, sportDisplayName } from "../lib/landingSpotlight";
 import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
 import HotTakePollSection from "./HotTakePollSection";
 import InstantPlayStrip from "./InstantPlayStrip";
@@ -136,12 +137,9 @@ function LandingFeatureStrip() {
         <strong>⚡ Live scoring</strong>
         <span>WakiPoints update from real tournament results.</span>
       </div>
-      <div className="landing-activity-strip__item landing-activity-strip__item--feature landing-activity-strip__item--lineup">
-        <strong>🏓 This week&apos;s pickleball lineup</strong>
-        <span>Pick pro players for the live tournament slate — build your own team for free.</span>
-        <Link className="landing-activity-strip__link landing-activity-strip__link--cta" to="/pick-teams">
-          Build your lineup →
-        </Link>
+      <div className="landing-activity-strip__item landing-activity-strip__item--feature">
+        <strong>🏆 Weekly slates</strong>
+        <span>Free fantasy for pickleball, lacrosse, volleyball, and WSOP — tied to real events.</span>
       </div>
       <div className="landing-activity-strip__item landing-activity-strip__item--wide landing-activity-strip__item--rankings">
         <strong>New pickleball ranking system</strong>
@@ -228,8 +226,7 @@ export default function MarketingHomePage() {
       }),
     [hotTakePeriod, hotTakeThursday, spotlightItems, lacrosseQuery.data?.name],
   );
-  const pickleballSpotlight =
-    spotlightItems.find((x) => x.sport_key === "pickleball") ?? spotlightItems[0];
+  const heroSpotlight = useMemo(() => pickHeroSpotlightItem(spotlightItems), [spotlightItems]);
 
   return (
     <div className="marketing-page">
@@ -268,9 +265,11 @@ export default function MarketingHomePage() {
                 player rankings built from real tournament results.
               </p>
               <div className="landing-hero__cta-row landing-hero__cta-row--hero landing-hero__cta-row--dual">
-                <BuildPickleballLineupCta
-                  tournamentName={pickleballSpotlight?.label_short}
-                  venue={pickleballSpotlight?.venue}
+                <BuildLineupCta
+                  sportLabel={heroSpotlight ? sportDisplayName(heroSpotlight.sport_key) : undefined}
+                  href={heroSpotlight ? lineupHrefForSpotlight(heroSpotlight) : "/pick-teams"}
+                  tournamentName={heroSpotlight?.label_short}
+                  venue={heroSpotlight?.venue}
                   onClick={() => trackPlayInstantClick("hero_build_lineup")}
                 />
                 <Link
@@ -283,29 +282,6 @@ export default function MarketingHomePage() {
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="landing-lineup-promo" aria-label="Build a pickleball lineup">
-          <div className="landing-lineup-promo__copy">
-            <p className="landing-lineup-promo__kicker">Free fantasy · real PPA &amp; MLP tournaments</p>
-            <h2 className="landing-lineup-promo__title">Create your own pickleball lineup for this week&apos;s tournament</h2>
-            {pickleballSpotlight ? (
-              <p className="landing-lineup-promo__event">
-                <strong>{pickleballSpotlight.label_full}</strong>
-                <span>{pickleballSpotlight.venue}</span>
-              </p>
-            ) : (
-              <p className="landing-lineup-promo__event landing-lineup-promo__event--muted">
-                Pick players under a salary cap — scores update from live match results.
-              </p>
-            )}
-          </div>
-          <BuildPickleballLineupCta
-            className="landing-lineup-promo__cta"
-            tournamentName={pickleballSpotlight?.label_short}
-            venue={pickleballSpotlight?.venue}
-            onClick={() => trackPlayInstantClick("lineup_promo_strip")}
-          />
         </section>
 
         <LandingFeatureStrip />
@@ -369,10 +345,15 @@ export default function MarketingHomePage() {
               <strong>Save your lineup</strong> and compete in free weekly contests.
             </li>
           </ol>
-          {pickleballSpotlight ? (
+          {spotlightItems.length > 0 ? (
             <p className="dash-sub" style={{ marginBottom: 0 }}>
-              This week: <strong>{pickleballSpotlight.label_full}</strong> ({pickleballSpotlight.venue}) —{" "}
-              <Link to={pickleballSpotlight.href}>view slate</Link>
+              Upcoming slates:{" "}
+              {spotlightItems.map((item, i) => (
+                <span key={item.sport_key}>
+                  {i > 0 ? " · " : null}
+                  <Link to={item.href}>{sportDisplayName(item.sport_key)}</Link>
+                </span>
+              ))}
             </p>
           ) : null}
         </section>
@@ -421,22 +402,17 @@ export default function MarketingHomePage() {
         </details>
 
         <section className="landing-footer-cta" style={sectionCard}>
-          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Ready to pick this week&apos;s tournament?</h2>
+          <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Ready for this week&apos;s slates?</h2>
           <p style={{ color: "#cbd5e1", marginBottom: 16 }}>
-            Build your pickleball lineup now — create a free account when you&apos;re ready to save it.
+            Pick players across all four sports — create a free account when you&apos;re ready to save your lineups.
           </p>
           <div className="landing-footer-cta__actions">
-            <BuildPickleballLineupCta
-              className="landing-footer-cta__lineup"
-              tournamentName={pickleballSpotlight?.label_short}
-              venue={pickleballSpotlight?.venue}
-              onClick={() => trackPlayInstantClick("footer_build_lineup")}
-            />
-            <Link
-              className="dash-ghost-btn landing-footer-cta__register"
-              to="/auth?mode=register&from=homepage_footer"
-            >
-              Create free account
+            <Link className="dash-main-btn landing-cta-lineup landing-cta-lineup--register" to="/auth?mode=register&from=homepage_footer">
+              <span className="landing-cta-lineup__title">Create free account</span>
+              <span className="landing-cta-lineup__sub">Save lineups · enter weekly contests · free</span>
+            </Link>
+            <Link className="dash-ghost-btn landing-footer-cta__register" to="#this-week">
+              See this week&apos;s tournaments
             </Link>
           </div>
         </section>

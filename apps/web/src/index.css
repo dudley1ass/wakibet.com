@@ -1582,6 +1582,10 @@ body {
   color: #94a3b8;
 }
 
+#this-week {
+  scroll-margin-top: 88px;
+}
+
 .instant-play-strip {
   margin-bottom: 20px;
   padding: 18px;
@@ -1634,6 +1638,16 @@ body {
   margin: 0 0 10px;
   font-size: 1rem;
   color: #e2e8f0;
+}
+
+.instant-play-strip__contests--primary {
+  margin-bottom: 16px;
+}
+
+.instant-play-strip__contest-label {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.35;
 }
 
 .instant-play-strip__contest-grid {

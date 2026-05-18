@@ -26,15 +26,11 @@ export default function MarketingSiteHeader({ sticky = false, registerFrom }: Pr
           </Link>
         ) : null}
         <Link
-          className={
-            onHome
-              ? "dash-main-btn marketing-header__lineup-cta"
-              : "dash-ghost-btn marketing-header__nav-quiet"
-          }
-          to="/pick-teams"
+          className="dash-ghost-btn marketing-header__nav-quiet"
+          to={onHome ? "/#this-week" : "/pick-teams"}
           onClick={() => trackPlayInstantClick("header_build_lineup")}
         >
-          {onHome ? "Pickleball lineup" : "Build lineup"}
+          Build lineup
         </Link>
         {!onHome ? (
           <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/leaderboard/pickleball">

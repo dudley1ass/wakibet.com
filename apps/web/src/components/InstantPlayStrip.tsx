@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../api";
 import { lineupEntryForSport } from "../lib/lineupEntryRoutes";
 import { trackPlayInstantClick } from "../lib/analytics";
-import BuildPickleballLineupCta, { buildPickleballLineupSubtext } from "./BuildPickleballLineupCta";
 
 type SampleContest = {
   sport: "pickleball" | "lacrosse" | "volleyball" | "poker";
@@ -11,6 +10,13 @@ type SampleContest = {
   venue: string;
   status: "live" | "upcoming" | "ended";
   play_href: string;
+};
+
+const SPORT_LABEL: Record<SampleContest["sport"], string> = {
+  pickleball: "Pickleball",
+  lacrosse: "Lacrosse",
+  volleyball: "Volleyball",
+  poker: "WSOP",
 };
 
 const FEATURES = [
@@ -31,18 +37,6 @@ const FEATURES = [
 ] as const;
 
 export default function InstantPlayStrip() {
-  const spotlightQuery = useQuery({
-    queryKey: ["landing", "picks-spotlight"] as const,
-    queryFn: () =>
-      apiGet<{
-        items: { sport_key: string; label_short: string; label_full: string; venue: string }[];
-      }>("/api/v1/picks/spotlight", { timeoutMs: 20_000 }),
-    staleTime: 60_000,
-    retry: 1,
-  });
-  const pickleballSpotlight =
-    spotlightQuery.data?.items?.find((x) => x.sport_key === "pickleball") ?? spotlightQuery.data?.items?.[0];
-
   const contestsQuery = useQuery({
     queryKey: ["public", "sample-contests"] as const,
     queryFn: () =>
@@ -52,32 +46,42 @@ export default function InstantPlayStrip() {
   const contests = contestsQuery.data?.contests ?? [];
 
   return (
-    <section className="instant-play-strip" aria-label="Enter a league">
+    <section id="this-week" className="instant-play-strip" aria-label="This week's tournaments">
       <div className="instant-play-strip__intro">
-        <h2 className="instant-play-strip__title">Build your pickleball lineup this week</h2>
+        <h2 className="instant-play-strip__title">This week&apos;s slates</h2>
         <p className="instant-play-strip__lede">
-          {pickleballSpotlight
-            ? `Pick players for ${pickleballSpotlight.label_full} (${pickleballSpotlight.venue}) — free fantasy tied to live pro results.`
-            : "Pick pro players for this week's tournament slate — free fantasy tied to live results."}
+          Pick players for the next live tournament in each sport — free fantasy tied to real results. No account
+          needed to start building.
         </p>
-        <BuildPickleballLineupCta
-          className="instant-play-strip__hero-cta"
-          tournamentName={pickleballSpotlight?.label_short}
-          venue={pickleballSpotlight?.venue}
-          onClick={() => trackPlayInstantClick("feature_build_lineup")}
-        />
       </div>
 
+      {contests.length > 0 ? (
+        <div className="instant-play-strip__contests instant-play-strip__contests--primary">
+          <div className="instant-play-strip__contest-grid">
+            {contests.map((c) => (
+              <article key={c.sport} className="instant-play-strip__contest-card">
+                <span className={`instant-play-strip__status instant-play-strip__status--${c.status}`}>
+                  {c.status === "live" ? "Live" : c.status === "upcoming" ? "Upcoming" : "Recent"}
+                </span>
+                <strong>{SPORT_LABEL[c.sport]}</strong>
+                <span className="instant-play-strip__contest-label">{c.label}</span>
+                <span>{c.venue}</span>
+                <div className="instant-play-strip__contest-actions">
+                  <Link
+                    className="dash-main-btn"
+                    to={lineupEntryForSport(c.sport)}
+                    onClick={() => trackPlayInstantClick(`contest_${c.sport}`)}
+                  >
+                    Enter {SPORT_LABEL[c.sport]} slate
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="instant-play-strip__features">
-        <article className="instant-play-strip__card instant-play-strip__card--lineup">
-          <h3>Your pickleball lineup</h3>
-          <p>{buildPickleballLineupSubtext(pickleballSpotlight?.label_short, pickleballSpotlight?.venue)}</p>
-          <BuildPickleballLineupCta
-            tournamentName={pickleballSpotlight?.label_short}
-            venue={pickleballSpotlight?.venue}
-            onClick={() => trackPlayInstantClick("instant_card_build_lineup")}
-          />
-        </article>
         {FEATURES.map((f) => (
           <article key={f.track} className="instant-play-strip__card">
             <h3>{f.title}</h3>
@@ -92,43 +96,6 @@ export default function InstantPlayStrip() {
           </article>
         ))}
       </div>
-
-      {contests.length > 0 ? (
-        <div className="instant-play-strip__contests">
-          <h3 className="instant-play-strip__contests-title">Tournaments this week</h3>
-          <div className="instant-play-strip__contest-grid">
-            {contests.map((c) => (
-              <article key={c.sport} className="instant-play-strip__contest-card">
-                <span className={`instant-play-strip__status instant-play-strip__status--${c.status}`}>
-                  {c.status === "live" ? "Live" : c.status === "upcoming" ? "Upcoming" : "Recent"}
-                </span>
-                <strong>{c.label}</strong>
-                <span>{c.venue}</span>
-                <div className="instant-play-strip__contest-actions">
-                  <Link
-                    className={
-                      c.sport === "pickleball"
-                        ? "dash-main-btn landing-cta-lineup landing-cta-lineup--build landing-cta-lineup--compact"
-                        : "dash-ghost-btn"
-                    }
-                    to={lineupEntryForSport(c.sport)}
-                    onClick={() => trackPlayInstantClick(`contest_${c.sport}`)}
-                  >
-                    {c.sport === "pickleball" ? (
-                      <>
-                        <span className="landing-cta-lineup__title">Build pickleball lineup</span>
-                        <span className="landing-cta-lineup__sub">This week&apos;s slate</span>
-                      </>
-                    ) : (
-                      `Build ${c.sport} lineup`
-                    )}
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
