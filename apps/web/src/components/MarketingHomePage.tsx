@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { apiGet } from "../api";
 import { trackHowItWorksClick, trackPlayInstantClick, trackRedditLead } from "../lib/analytics";
+import MarketingSiteHeader from "./MarketingSiteHeader";
 import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
 import GuestDemoContest from "./GuestDemoContest";
 import InstantPlayStrip from "./InstantPlayStrip";
@@ -408,20 +409,7 @@ export default function MarketingHomePage() {
   return (
     <div className="marketing-page">
       <div style={{ maxWidth: 1140, margin: "0 auto", padding: "20px 16px 48px", color: "#e5e7eb" }}>
-        <header className="marketing-header">
-          <img src="/brand/logo-primary.svg" alt="WakiBet" style={{ height: 34, width: "auto" }} />
-          <nav style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Link className="dash-ghost-btn" to="/articles">
-              Articles
-            </Link>
-            <Link className="dash-ghost-btn" to="/auth?mode=login">
-              Log in
-            </Link>
-            <Link className="dash-main-btn" to="/auth?mode=register">
-              Create account
-            </Link>
-          </nav>
-        </header>
+        <MarketingSiteHeader />
 
         {/* Hero — visual energy + motion */}
         <section className="landing-hero">
