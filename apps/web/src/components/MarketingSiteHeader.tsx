@@ -32,9 +32,11 @@ export default function MarketingSiteHeader({ sticky = false, registerFrom }: Pr
         >
           Build lineup
         </Link>
-        <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/leaderboard/pickleball">
-          Leaderboards
-        </Link>
+        {!onHome ? (
+          <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/leaderboard/pickleball">
+            Leaderboards
+          </Link>
+        ) : null}
         <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/auth?mode=login">
           Log in
         </Link>

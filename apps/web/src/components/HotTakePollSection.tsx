@@ -79,7 +79,7 @@ export default function HotTakePollSection({ hotTakes, subtitle, featured = fals
       <RegisterPromptModal
         open={signupOpen}
         title="Track your sports knowledge"
-        message="See how your take matches the leaderboard. Create a free profile to save votes and enter weekly fantasy slates."
+        message="Create a free profile to save your vote and build lineups for this week's fantasy slates."
         registerFrom="hot_take_vote"
         onClose={() => setSignupOpen(false)}
       />

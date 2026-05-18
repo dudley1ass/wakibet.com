@@ -136,8 +136,8 @@ function LandingFeatureStrip() {
         <span>WakiPoints update from real tournament results.</span>
       </div>
       <div className="landing-activity-strip__item landing-activity-strip__item--feature">
-        <strong>🏆 Weekly leaderboards</strong>
-        <span>Climb the board with free fantasy slates every week.</span>
+        <strong>🏆 Weekly slates</strong>
+        <span>Free fantasy contests tied to real tournament weekends.</span>
       </div>
       <div className="landing-activity-strip__item landing-activity-strip__item--wide landing-activity-strip__item--rankings">
         <strong>New pickleball ranking system</strong>
@@ -258,7 +258,7 @@ export default function MarketingHomePage() {
                 </div>
               </div>
               <p className="landing-hero__eyebrow">100% free — no entry fees, no deposits</p>
-              <h1 className="landing-hero__title">Pick players. Earn points. Climb weekly leaderboards.</h1>
+              <h1 className="landing-hero__title">Pick players. Earn points. Win your weekly slate.</h1>
               <p className="landing-hero__lede">
                 Build lineups for pickleball, lacrosse, beach volleyball, and WSOP-style poker fantasy — plus our new PPA
                 player rankings built from real tournament results.
@@ -341,7 +341,7 @@ export default function MarketingHomePage() {
               <strong>Earn WakiPoints</strong> from real match results — captains score more.
             </li>
             <li>
-              <strong>Climb leaderboards</strong> and compare lineups with the community.
+              <strong>Save your lineup</strong> and compete in free weekly contests.
             </li>
           </ol>
           {pickleballSpotlight ? (
@@ -398,7 +398,7 @@ export default function MarketingHomePage() {
         <section style={{ ...sectionCard, textAlign: "center" }}>
           <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Ready for this week&apos;s slate?</h2>
           <p style={{ color: "#cbd5e1" }}>
-            Create your free account to save lineups, enter contests, and climb the leaderboard.
+            Create your free account to save lineups and enter weekly contests.
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
             <Link className="dash-main-btn landing-cta-lineup landing-cta-lineup--register" to="/auth?mode=register&from=homepage_footer">

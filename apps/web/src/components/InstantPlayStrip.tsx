@@ -10,7 +10,6 @@ type SampleContest = {
   venue: string;
   status: "live" | "upcoming" | "ended";
   play_href: string;
-  leaderboard_href: string;
 };
 
 const FEATURES = [
@@ -22,15 +21,15 @@ const FEATURES = [
     track: "feature_build_lineup",
   },
   {
-    title: "Public leaderboards",
-    body: "See who is winning before you join — updated from real saved lineups.",
-    href: "/leaderboard/pickleball",
-    cta: "View leaderboard",
-    track: "feature_leaderboard",
+    title: "PPA rankings",
+    body: "Player ratings from real tour results — win rate, strength of schedule, and more.",
+    href: "/pickleball/rankings",
+    cta: "View rankings",
+    track: "feature_rankings",
   },
   {
     title: "Create free account",
-    body: "Save your lineup and enter weekly contests on the leaderboard.",
+    body: "Save your lineup and enter weekly contests for free.",
     href: "/auth?mode=register&from=instant_strip",
     cta: "Create free account",
     track: "feature_register",
@@ -61,7 +60,7 @@ export default function InstantPlayStrip() {
             <h3>{f.title}</h3>
             <p>{f.body}</p>
             <Link
-              className={f.track === "feature_register" || f.track === "feature_build_lineup" ? "dash-main-btn" : "dash-ghost-btn"}
+              className="dash-main-btn"
               to={f.href}
               onClick={() => trackPlayInstantClick(f.track)}
             >
@@ -89,9 +88,6 @@ export default function InstantPlayStrip() {
                     onClick={() => trackPlayInstantClick(`contest_${c.sport}`)}
                   >
                     Build lineup
-                  </Link>
-                  <Link className="dash-ghost-btn" to={c.leaderboard_href}>
-                    Leaderboard
                   </Link>
                 </div>
               </article>
