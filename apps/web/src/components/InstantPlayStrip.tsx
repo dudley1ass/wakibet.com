@@ -14,11 +14,11 @@ type SampleContest = {
 
 const FEATURES = [
   {
-    title: "Play instantly",
-    body: "Build a guest lineup in under a minute — no account, no deposit.",
-    href: "/play",
-    cta: "Create free lineup",
-    track: "feature_play",
+    title: "Weekly slates",
+    body: "Pick players under a WakiCash cap and climb the board when results land.",
+    href: "/auth?mode=register&from=feature_slates",
+    cta: "Create free account",
+    track: "feature_register",
   },
   {
     title: "Public leaderboards",
@@ -29,10 +29,10 @@ const FEATURES = [
   },
   {
     title: "Beat the experts",
-    body: "Every demo contest includes a WakiBet expert benchmark lineup to beat.",
+    body: "Try the guest demo, then save your lineup with a free account to enter for real.",
     href: "/play",
-    cta: "Challenge experts",
-    track: "feature_experts",
+    cta: "Try guest demo",
+    track: "feature_guest",
   },
 ] as const;
 
@@ -46,12 +46,12 @@ export default function InstantPlayStrip() {
   const contests = contestsQuery.data?.contests ?? [];
 
   return (
-    <section className="instant-play-strip" aria-label="Play without an account">
+    <section className="instant-play-strip" aria-label="Enter a league">
       <div className="instant-play-strip__intro">
-        <h2 className="instant-play-strip__title">Play now — keep your lineup, join contests later</h2>
+        <h2 className="instant-play-strip__title">Enter a league this week</h2>
         <p className="instant-play-strip__lede">
-          Fantasy platforms win when users build lineups first and sign up second. Try guest play, sample contests, and
-          public leaderboards — then create a free account to save for real.
+          Free fantasy for pickleball, lacrosse, volleyball, and WSOP-style poker. Create your account to save lineups
+          and compete on the leaderboard.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export default function InstantPlayStrip() {
             <h3>{f.title}</h3>
             <p>{f.body}</p>
             <Link
-              className="dash-ghost-btn"
+              className={f.track === "feature_register" ? "dash-main-btn" : "dash-ghost-btn"}
               to={f.href}
               onClick={() => trackPlayInstantClick(f.track)}
             >
@@ -85,10 +85,10 @@ export default function InstantPlayStrip() {
                 <div className="instant-play-strip__contest-actions">
                   <Link
                     className="dash-main-btn"
-                    to={c.play_href}
+                    to={`/auth?mode=register&from=contest_${c.sport}`}
                     onClick={() => trackPlayInstantClick(`contest_${c.sport}`)}
                   >
-                    Play
+                    Enter league
                   </Link>
                   <Link className="dash-ghost-btn" to={c.leaderboard_href}>
                     Leaderboard

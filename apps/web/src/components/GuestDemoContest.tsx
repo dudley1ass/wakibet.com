@@ -10,6 +10,9 @@ import {
   trackRegisterFromDemoClick,
 } from "../lib/analytics";
 import { clearGuestLineup, loadGuestLineup, saveGuestLineup, type GuestLineupSport } from "../lib/guestLineup";
+import RegisterPromptModal from "./RegisterPromptModal";
+
+const GUEST_PICK_PROMPT_KEY = "wakibet_guest_pick_prompt_seen";
 
 export type DemoContestPlayer = {
   player_name: string;
@@ -65,6 +68,7 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
   const [selectedSport, setSelectedSport] = useState<DemoSport>(validInitial);
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [guestSaved, setGuestSaved] = useState(false);
+  const [registerModal, setRegisterModal] = useState<"pick" | "save" | null>(null);
   const demoStartedRef = useRef(false);
   const demoCompletedRef = useRef(false);
   const beatTrackedRef = useRef(false);
@@ -111,7 +115,11 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
       if (prev.includes(player.player_name)) return prev.filter((name) => name !== player.player_name);
       if (prev.length >= rosterSize) return prev;
       if (wakiCashRemaining - player.waki_cash < 0) return prev;
-      return [...prev, player.player_name];
+      const next = [...prev, player.player_name];
+      if (next.length === 1 && typeof sessionStorage !== "undefined" && !sessionStorage.getItem(GUEST_PICK_PROMPT_KEY)) {
+        setRegisterModal("pick");
+      }
+      return next;
     });
   }
 
@@ -140,6 +148,11 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
 
   function handleSaveGuestLineup() {
     if (!isBuilt || !demoQuery.data) return;
+    setRegisterModal("save");
+  }
+
+  function persistGuestLineup() {
+    if (!isBuilt || !demoQuery.data) return;
     saveGuestLineup({
       sport: selectedSport,
       tournament_key: demoQuery.data.tournament_key,
@@ -152,6 +165,14 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
     });
     setGuestSaved(true);
     trackGuestLineupSaved(selectedSport, projectedScore);
+    setRegisterModal(null);
+  }
+
+  function dismissPickPrompt() {
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(GUEST_PICK_PROMPT_KEY, "1");
+    }
+    setRegisterModal(null);
   }
 
   const expertScore = expert?.projected_score ?? 0;
@@ -160,11 +181,27 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
 
   return (
     <section id={sectionId} className="landing-demo-contest">
+      <RegisterPromptModal
+        open={registerModal === "pick"}
+        title="Save your picks on the leaderboard"
+        message="Create a free account to save this lineup, enter weekly contests, and climb the public leaderboard."
+        registerFrom="demo_first_pick"
+        onClose={dismissPickPrompt}
+        secondaryLabel="Keep playing as guest"
+        onSecondary={dismissPickPrompt}
+      />
+      <RegisterPromptModal
+        open={registerModal === "save"}
+        title="Enter the leaderboard for real"
+        message="Guest saves stay on this device only. Create a free account to save your lineup and compete on WakiBet."
+        registerFrom="demo_save"
+        onClose={() => setRegisterModal(null)}
+        secondaryLabel="Save on this device only"
+        onSecondary={() => persistGuestLineup()}
+      />
       <div className="landing-demo-contest__head">
         <div>
-          <div className="landing-demo-contest__kicker">
-            {compact ? "Play instantly — no account" : "Guest lineup · no login"}
-          </div>
+          <div className="landing-demo-contest__kicker">Guest demo · try a lineup</div>
           <h2 className="landing-demo-contest__title">
             {compact ? (
               <>Build a free lineup for{" "}</>
@@ -188,8 +225,8 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
             {compact ? null : "."}
           </h2>
           <p className="landing-demo-contest__lede">
-            {salaryCap} WakiCash salary cap · projected scores from recent results · save your guest lineup on this
-            device, then create a free account when you want to enter real contests.
+            {salaryCap} WakiCash salary cap · projected scores from recent results · create a free account to save your
+            lineup and enter real contests.
           </p>
         </div>
         <div className="landing-demo-contest__score-card">
@@ -277,7 +314,7 @@ export default function GuestDemoContest({ sectionId = "demo-contest", compact =
                 </p>
                 <div className="landing-demo-contest__footer-actions">
                   <button type="button" className="dash-ghost-btn" onClick={handleSaveGuestLineup}>
-                    {guestSaved ? "Saved ✓" : "Save guest lineup"}
+                    {guestSaved ? "Saved ✓" : "Save lineup"}
                   </button>
                   <Link
                     className="dash-main-btn landing-demo-contest__signup"

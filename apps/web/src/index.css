@@ -1680,3 +1680,177 @@ body {
 .landing-beat-experts--tie {
   color: #94a3b8;
 }
+
+/* Conversion-focused landing */
+.landing-hero__cta-row--single {
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 28rem;
+}
+
+.landing-hero__cta-row--single .landing-cta-lineup--register {
+  width: 100%;
+  max-width: none;
+}
+
+.landing-hero__guest-link {
+  display: block;
+  margin-top: 4px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-decoration: none;
+}
+
+.landing-hero__guest-link:hover {
+  color: #fde68a;
+  text-decoration: underline;
+}
+
+.landing-activity-strip__item--feature strong {
+  font-size: 1.05rem;
+  color: #fde68a;
+}
+
+.marketing-header__cta-primary {
+  font-size: 14px !important;
+  padding: 12px 22px !important;
+  min-height: 44px;
+  font-weight: 800 !important;
+  box-shadow:
+    0 0 0 1px rgba(251, 191, 36, 0.55),
+    0 10px 28px rgba(220, 179, 21, 0.35);
+}
+
+.marketing-header__nav-quiet {
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+}
+
+@media (max-width: 720px) {
+  .marketing-header__nav-quiet {
+    display: none;
+  }
+}
+
+.register-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.register-prompt-modal {
+  width: min(100%, 420px);
+  padding: 22px 20px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: linear-gradient(160deg, rgba(30, 27, 18, 0.98), rgba(15, 23, 42, 0.98));
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.5);
+}
+
+.register-prompt-modal__title {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  color: #f8fafc;
+}
+
+.register-prompt-modal__message {
+  margin: 0 0 16px;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.register-prompt-modal__actions .register-prompt-modal__primary {
+  width: 100%;
+  justify-content: center;
+  font-size: 15px !important;
+  padding: 12px 20px !important;
+}
+
+.register-prompt-modal__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.register-prompt-modal__secondary,
+.register-prompt-modal__dismiss {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: underline;
+}
+
+.register-prompt-modal__secondary {
+  color: #fcd34d;
+}
+
+.marketing-section--hot-featured {
+  margin-bottom: 16px;
+}
+
+.hot-take-featured {
+  margin-bottom: 12px;
+}
+
+.hot-take-featured .hot-take-card {
+  max-width: none;
+}
+
+.hot-take-section__cta {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.hot-take-section__cta a {
+  color: #fcd34d;
+  font-weight: 700;
+}
+
+.auth-google-block {
+  margin-bottom: 14px;
+}
+
+.auth-google-block__label {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fde68a;
+  text-align: center;
+}
+
+.auth-google-block__divider {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.auth-google-block__divider span {
+  display: inline-block;
+  padding: 0 10px;
+  background: rgba(20, 20, 20, 0.94);
+}
+
+.google-signin-btn-host {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.google-signin-placeholder {
+  text-align: center;
+  margin: 0;
+}

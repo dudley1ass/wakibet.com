@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 import { apiPost, finalizeAuthFromLoginResponse } from "../api";
 import { trackLoginComplete, trackRedditSignUp, trackRegisterComplete } from "../lib/analytics";
 import type { AnalyticsSource } from "../lib/analytics";
+import { signInWithGoogleIdToken } from "../lib/googleAuth";
+import GoogleSignInButton from "./GoogleSignInButton";
 import ThisWeekPicksHomeSection from "./ThisWeekPicksHomeSection";
 import "./dashboard.css";
 
@@ -24,6 +26,8 @@ export default function LoginPage({ onAuthSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [googleIdToken, setGoogleIdToken] = useState<string | null>(null);
+  const [googleProfileEmail, setGoogleProfileEmail] = useState("");
 
   function resetMessages() {
     setMessage(null);
@@ -98,10 +102,66 @@ export default function LoginPage({ onAuthSuccess }: Props) {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (googleIdToken) {
+      void handleGoogleComplete();
+      return;
+    }
     if (mode === "login") {
       void handleLogin();
     } else {
       void handleRegister();
+    }
+  }
+
+  async function handleGoogleCredential(idToken: string) {
+    resetMessages();
+    try {
+      setLoading(true);
+      const result = await signInWithGoogleIdToken(idToken);
+      if (result.kind === "needs_profile") {
+        setGoogleIdToken(result.id_token);
+        setGoogleProfileEmail(result.email);
+        setDisplayName(result.display_name);
+        setMode("register");
+        setMessage("Almost done — confirm your state and date of birth to finish signing up.");
+        return;
+      }
+      trackRedditSignUp();
+      const from = new URLSearchParams(location.search).get("from");
+      trackRegisterComplete((from ?? "google") as AnalyticsSource);
+      trackLoginComplete();
+      setMessage("Signed in with Google.");
+      onAuthSuccess(result);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Google sign-in failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleComplete() {
+    resetMessages();
+    if (!googleIdToken || !dob || !stateVal) {
+      setError("State and date of birth are required to finish Google sign-up.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const result = await signInWithGoogleIdToken(googleIdToken, { state: stateVal, dob });
+      if (result.kind === "needs_profile") {
+        setError("Could not complete profile. Try Google sign-in again.");
+        return;
+      }
+      trackRedditSignUp();
+      const from = new URLSearchParams(location.search).get("from");
+      trackRegisterComplete((from ?? "google") as AnalyticsSource);
+      setMessage("Account created. You're signed in.");
+      onAuthSuccess(result);
+      setGoogleIdToken(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not finish Google sign-up.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -185,7 +245,29 @@ export default function LoginPage({ onAuthSuccess }: Props) {
         </div>
       </div>
 
+      {!googleIdToken ? (
+        <div className="auth-google-block">
+          <p className="auth-google-block__label">
+            {mode === "register" ? "Sign up in one tap" : "Sign in with Google"}
+          </p>
+          <GoogleSignInButton
+            mode={mode === "register" ? "signup" : "signin"}
+            disabled={loading}
+            onCredential={(token) => void handleGoogleCredential(token)}
+          />
+          <p className="auth-google-block__divider">
+            <span>or use email</span>
+          </p>
+        </div>
+      ) : (
+        <p className="auth-google-block__label">
+          Finishing sign-up for <strong>{googleProfileEmail}</strong>
+        </p>
+      )}
+
       <form onSubmit={onSubmit} style={{ fontSize: "13px" }}>
+        {!googleIdToken ? (
+        <>
         <div style={{ marginBottom: "8px" }}>
           <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>Email</label>
           <input
@@ -226,8 +308,10 @@ export default function LoginPage({ onAuthSuccess }: Props) {
             Passwords are hashed on the server (bcrypt).
           </div>
         </div>
+        </>
+        ) : null}
 
-        {mode === "register" && (
+        {mode === "register" && !googleIdToken && (
           <div style={{ marginBottom: "8px" }}>
             <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>
               Screen name (optional)
@@ -250,7 +334,7 @@ export default function LoginPage({ onAuthSuccess }: Props) {
           </div>
         )}
 
-        {mode === "register" && (
+        {(mode === "register" || googleIdToken) && (
           <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: "block", fontSize: "11px", color: "#fcd34d" }}>State</label>
@@ -312,12 +396,16 @@ export default function LoginPage({ onAuthSuccess }: Props) {
           }}
         >
           {loading
-            ? mode === "login"
-              ? "Logging in..."
-              : "Creating account..."
-            : mode === "login"
-              ? "Log in"
-              : "Create account"}
+            ? googleIdToken
+              ? "Finishing sign-up..."
+              : mode === "login"
+                ? "Logging in..."
+                : "Creating account..."
+            : googleIdToken
+              ? "Finish Google sign-up"
+              : mode === "login"
+                ? "Log in"
+                : "Create account"}
         </button>
       </form>
 

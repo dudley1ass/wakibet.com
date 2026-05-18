@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { SIGNUP_BONUS_DILLS } from "@wakibet/shared";
 import { prisma } from "../lib/prisma.js";
+import { verifyGoogleIdToken } from "../lib/googleIdToken.js";
 import { signAccessToken, verifyAccessToken } from "../lib/jwt.js";
 
 async function sendNewAccountAlert(params: {
@@ -94,6 +95,28 @@ const LoginBody = z.object({
   password: z.string().min(1),
 });
 
+const GoogleAuthBody = z.object({
+  id_token: z.string().min(20),
+  state: z.string().min(2).max(8).optional(),
+  dob: z.string().min(8).optional(),
+});
+
+async function authResponseForUser(userId: string) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
+  const virtual_cents = wallet ? Math.round(Number(wallet.cachedBalance) * 100) : 0;
+  const access_token = signAccessToken(user.id, user.email);
+  return {
+    access_token,
+    user: {
+      user_id: user.id,
+      email: user.email,
+      display_name: user.displayName,
+      virtual_cents,
+    },
+  };
+}
+
 export const authRoutes: FastifyPluginAsync = async (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -148,23 +171,26 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
         return u;
       });
 
-      const wallet = await prisma.wallet.findUniqueOrThrow({ where: { userId: user.id } });
-      const virtual_cents = Math.round(Number(wallet.cachedBalance) * 100);
-      const access_token = signAccessToken(user.id, user.email);
       void sendNewAccountAlert({
         email: user.email,
         displayName: user.displayName,
         userId: user.id,
         state,
       });
+      return authResponseForUser(user.id);
+    },
+  );
+
+  typed.get(
+    "/api/v1/auth/google/config",
+    {
+      schema: { tags: ["auth"] },
+    },
+    async () => {
+      const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim();
       return {
-        access_token,
-        user: {
-          user_id: user.id,
-          email: user.email,
-          display_name: user.displayName,
-          virtual_cents,
-        },
+        enabled: Boolean(clientId),
+        client_id: clientId ?? null,
       };
     },
   );
@@ -186,18 +212,102 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       if (user.isBanned) {
         return reply.code(401).send({ message: "Account is suspended." } as const);
       }
-      const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
-      const virtual_cents = wallet ? Math.round(Number(wallet.cachedBalance) * 100) : 0;
-      const access_token = signAccessToken(user.id, user.email);
-      return {
-        access_token,
-        user: {
-          user_id: user.id,
-          email: user.email,
-          display_name: user.displayName,
-          virtual_cents,
-        },
-      };
+      return authResponseForUser(user.id);
+    },
+  );
+
+  typed.post(
+    "/api/v1/auth/google",
+    {
+      schema: {
+        tags: ["auth"],
+        body: GoogleAuthBody,
+      },
+    },
+    async (req, reply) => {
+      const { id_token, state, dob } = req.body;
+      let googleUser;
+      try {
+        googleUser = await verifyGoogleIdToken(id_token);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Google sign-in failed.";
+        return reply.code(401).send({ message: msg } as const);
+      }
+
+      const byGoogle = await prisma.user.findUnique({ where: { googleId: googleUser.sub } });
+      if (byGoogle) {
+        if (byGoogle.isBanned) {
+          return reply.code(401).send({ message: "Account is suspended." } as const);
+        }
+        return authResponseForUser(byGoogle.id);
+      }
+
+      const byEmail = await prisma.user.findUnique({ where: { email: googleUser.email } });
+      if (byEmail) {
+        if (byEmail.isBanned) {
+          return reply.code(401).send({ message: "Account is suspended." } as const);
+        }
+        if (!byEmail.googleId) {
+          await prisma.user.update({
+            where: { id: byEmail.id },
+            data: { googleId: googleUser.sub },
+          });
+        }
+        return authResponseForUser(byEmail.id);
+      }
+
+      if (!state || !dob) {
+        return {
+          needs_profile: true as const,
+          email: googleUser.email,
+          display_name: (googleUser.name || googleUser.email.split("@")[0] || "Player").slice(0, 80),
+        };
+      }
+
+      const dateOfBirth = parseDob(dob);
+      const username = await pickUsername(googleUser.email);
+      const displayName = (googleUser.name || googleUser.email.split("@")[0] || "Player").slice(0, 80);
+      const bonus = new Prisma.Decimal(SIGNUP_BONUS_DILLS);
+
+      const user = await prisma.$transaction(async (tx) => {
+        const u = await tx.user.create({
+          data: {
+            email: googleUser.email,
+            username,
+            googleId: googleUser.sub,
+            displayName,
+            dateOfBirth,
+            country: "US",
+            region: state,
+            isEmailVerified: true,
+          },
+        });
+        const w = await tx.wallet.create({
+          data: {
+            userId: u.id,
+            cachedBalance: bonus,
+            currency: "DILLS",
+          },
+        });
+        await tx.walletLedger.create({
+          data: {
+            walletId: w.id,
+            type: "SIGNUP_BONUS",
+            amount: bonus,
+            balanceAfter: bonus,
+            idempotencyKey: `signup-bonus:${u.id}`,
+          },
+        });
+        return u;
+      });
+
+      void sendNewAccountAlert({
+        email: user.email,
+        displayName: user.displayName,
+        userId: user.id,
+        state,
+      });
+      return authResponseForUser(user.id);
     },
   );
 

@@ -1,20 +1,20 @@
 import { Link, useLocation } from "react-router-dom";
+import { trackPlayInstantClick } from "../lib/analytics";
 
 type Props = {
-  /** Keep nav visible while scrolling lineup builder */
   sticky?: boolean;
-  /** Append ?from= for register CTA (e.g. play page) */
   registerFrom?: string;
 };
 
 export default function MarketingSiteHeader({ sticky = false, registerFrom }: Props) {
   const { pathname } = useLocation();
   const onHome = pathname === "/";
+  const registerHref = registerFrom
+    ? `/auth?mode=register&from=${encodeURIComponent(registerFrom)}`
+    : "/auth?mode=register&from=header";
 
   return (
-    <header
-      className={`marketing-header${sticky ? " marketing-header--sticky" : ""}`}
-    >
+    <header className={`marketing-header${sticky ? " marketing-header--sticky" : ""}`}>
       <Link className="marketing-header__brand" to="/" aria-label="WakiBet home">
         <img src="/brand/logo-primary.svg" alt="" width={120} height={34} style={{ height: 34, width: "auto" }} />
         {!onHome ? <span className="marketing-header__home-hint">← Home</span> : null}
@@ -25,23 +25,21 @@ export default function MarketingSiteHeader({ sticky = false, registerFrom }: Pr
             Home
           </Link>
         ) : null}
-        <Link className="dash-ghost-btn" to="/play">
-          Play instantly
+        <Link
+          className="dash-ghost-btn marketing-header__nav-quiet"
+          to="/play"
+          onClick={() => trackPlayInstantClick("header_guest_demo")}
+        >
+          Guest demo
         </Link>
-        <Link className="dash-ghost-btn" to="/leaderboard/pickleball">
+        <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/leaderboard/pickleball">
           Leaderboards
         </Link>
-        <Link className="dash-ghost-btn" to="/articles">
-          Articles
-        </Link>
-        <Link className="dash-ghost-btn" to="/auth?mode=login">
+        <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/auth?mode=login">
           Log in
         </Link>
-        <Link
-          className="dash-main-btn"
-          to={registerFrom ? `/auth?mode=register&from=${encodeURIComponent(registerFrom)}` : "/auth?mode=register"}
-        >
-          {registerFrom === "play" ? "Create free account" : "Create account"}
+        <Link className="dash-main-btn marketing-header__cta-primary" to={registerHref}>
+          Create free account
         </Link>
       </nav>
     </header>
