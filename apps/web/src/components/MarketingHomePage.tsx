@@ -5,7 +5,6 @@ import { apiGet } from "../api";
 import { trackHowItWorksClick, trackPlayInstantClick, trackRedditLead } from "../lib/analytics";
 import MarketingSiteHeader from "./MarketingSiteHeader";
 import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
-import GuestDemoContest from "./GuestDemoContest";
 import InstantPlayStrip from "./InstantPlayStrip";
 import {
   getMarketingHotTakes,
@@ -27,21 +26,6 @@ const PICKLEBALL_STRATEGY_ARTICLES: {
   blurb: string;
 }[] = [
   {
-    slug: "pickleball-top-mlp-fantasy-picks-this-week",
-    title: "Top MLP fantasy picks this week",
-    blurb: "Weekly slate prep—captains, value, and locks.",
-  },
-  {
-    slug: "pickleball-best-players-for-fantasy-scoring",
-    title: "Best players for fantasy scoring",
-    blurb: "Which profiles actually move WakiPoints.",
-  },
-  {
-    slug: "pickleball-underrated-ppa-tour-players",
-    title: "Underrated PPA Tour players",
-    blurb: "Sleepers the rankings already hint at.",
-  },
-  {
     slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
     title: "MLP Dallas 2026: Captain picks & sleepers",
     blurb: "Weekly fantasy guide tied to the next MLP stop.",
@@ -51,12 +35,9 @@ const PICKLEBALL_STRATEGY_ARTICLES: {
     title: "How WakiPoints scoring works",
     blurb: "Captain multipliers, WakiCash, and a 10-minute weekly workflow.",
   },
-  {
-    slug: "pickleball-10-players-everyone-overrates",
-    title: "10 pickleball profiles fans overrate",
-    blurb: "Archetypes to avoid when pricing fantasy lineups.",
-  },
 ];
+
+/** Homepage article cards — four new guides plus a few debate pieces */
 
 const FEATURED_ARTICLES: {
   slug: string;
@@ -69,7 +50,7 @@ const FEATURED_ARTICLES: {
   {
     slug: "pickleball-top-mlp-fantasy-picks-this-week",
     title: "Top MLP Fantasy Picks This Week",
-    category: "Pickleball SEO",
+    category: "Pickleball",
     comments: 0,
     trending: true,
     thumbMod: "article-thumb--pb",
@@ -77,7 +58,7 @@ const FEATURED_ARTICLES: {
   {
     slug: "pickleball-best-players-for-fantasy-scoring",
     title: "Best Pickleball Players for Fantasy Scoring",
-    category: "Pickleball SEO",
+    category: "Pickleball",
     comments: 0,
     trending: true,
     thumbMod: "article-thumb--pb",
@@ -85,7 +66,7 @@ const FEATURED_ARTICLES: {
   {
     slug: "poker-wsop-fantasy-strategy-guide",
     title: "WSOP Fantasy Strategy",
-    category: "Poker SEO",
+    category: "Poker",
     comments: 0,
     trending: true,
     thumbMod: "article-thumb--pk",
@@ -93,26 +74,18 @@ const FEATURED_ARTICLES: {
   {
     slug: "pickleball-underrated-ppa-tour-players",
     title: "Underrated PPA Tour Players",
-    category: "Pickleball SEO",
+    category: "Pickleball",
     comments: 0,
     trending: true,
     thumbMod: "article-thumb--pb",
   },
   {
-    slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
-    title: "MLP Dallas 2026 Fantasy: Captain Picks & Sleepers",
-    category: "Pickleball strategy",
+    slug: "poker-wsop-fantasy-strategy-explained",
+    title: "WSOP Fantasy Strategy Explained",
+    category: "Poker",
     comments: 0,
     trending: true,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "pickleball-fantasy-scoring-wakipoints-explained",
-    title: "How Pickleball Fantasy Scoring Works (WakiPoints)",
-    category: "Pickleball strategy",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pb",
+    thumbMod: "article-thumb--pk",
   },
   {
     slug: "pickleball-anna-leigh-waters-bad-for-pickleball",
@@ -123,62 +96,6 @@ const FEATURED_ARTICLES: {
     thumbMod: "article-thumb--pb",
   },
   {
-    slug: "pickleball-dupr-ratings-inflated",
-    title: "Most DUPR Ratings Are Inflated",
-    category: "Pickleball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "pickleball-bangers-vs-soft-game-rec",
-    title: "Bangers Beat Dinkers More Often Than People Admit",
-    category: "Pickleball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "pickleball-pro-too-predictable",
-    title: "Pro Pickleball Is Becoming Too Predictable",
-    category: "Pickleball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pb",
-  },
-  {
-    slug: "poker-wsop-main-event-endurance-more-than-skill",
-    title: "The WSOP Main Event Rewards Endurance More Than Skill",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "poker-bracelets-overrated",
-    title: "Bracelets Are Overrated",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "poker-pros-better-at-branding-than-poker",
-    title: "Most Poker Pros Are Better at Branding Than Poker",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
-    slug: "poker-gto-made-poker-less-interesting",
-    title: "GTO Has Made Poker Less Interesting to Watch",
-    category: "Poker",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--pk",
-  },
-  {
     slug: "lacrosse-highlights-vs-fundamentals",
     title: "Lacrosse Culture Cares More About Highlights Than Fundamentals",
     category: "Lacrosse",
@@ -187,40 +104,8 @@ const FEATURED_ARTICLES: {
     thumbMod: "article-thumb--lx",
   },
   {
-    slug: "lacrosse-attack-gets-too-much-credit",
-    title: "Attack Players Get Too Much Credit",
-    category: "Lacrosse",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--lx",
-  },
-  {
-    slug: "lacrosse-high-school-rankings-are-politics",
-    title: "Most High School Lacrosse Rankings Are Politics",
-    category: "Lacrosse",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--lx",
-  },
-  {
     slug: "volleyball-players-dont-understand-rotations",
     title: "Most Volleyball Players Don’t Actually Understand Rotations",
-    category: "Volleyball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--vb",
-  },
-  {
-    slug: "volleyball-liberos-most-underrated-athletes",
-    title: "Liberos Are the Most Underrated Athletes in Volleyball",
-    category: "Volleyball",
-    comments: 0,
-    trending: true,
-    thumbMod: "article-thumb--vb",
-  },
-  {
-    slug: "volleyball-power-hitters-get-too-much-credit",
-    title: "Power Hitters Get Too Much Credit",
     category: "Volleyball",
     comments: 0,
     trending: true,
@@ -470,7 +355,33 @@ export default function MarketingHomePage() {
 
         <InstantPlayStrip />
 
-        <GuestDemoContest compact />
+        <section className="marketing-section" style={{ marginBottom: 16 }}>
+          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Fantasy strategy</h2>
+          <p className="dash-sub" style={{ marginTop: 0, marginBottom: 16 }}>
+            Weekly picks, scoring explainers, and underrated players—long-form guides for building better lineups on
+            WakiBet.
+          </p>
+          <div className="featured-articles-grid">
+            {FEATURED_ARTICLES.map((a) => (
+              <Link key={a.slug} to={`/articles/${a.slug}`} className="featured-article-card">
+                <div className={`featured-article-card__thumb ${a.thumbMod}`}>
+                  {a.trending ? <span className="featured-article-card__badge">Trending</span> : null}
+                  <span className="featured-article-card__cat">{a.category}</span>
+                </div>
+                <div className="featured-article-card__body">
+                  <h3 className="featured-article-card__title">{a.title}</h3>
+                  <div className="featured-article-card__meta">
+                    <span>{a.comments > 0 ? `${a.comments} comments` : "Discussion linked"}</span>
+                    <span>Read →</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <p className="dash-sub" style={{ marginTop: 16, marginBottom: 0 }}>
+            <Link to="/articles">Browse all articles →</Link>
+          </p>
+        </section>
 
         <LandingRedditStrip />
 
@@ -559,41 +470,15 @@ export default function MarketingHomePage() {
           </div>
         </section>
 
-        {/* Featured articles — card layout */}
-        <section className="marketing-section">
-          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Fantasy strategy & SEO guides</h2>
-          <p className="dash-sub" style={{ marginTop: 0, marginBottom: 16 }}>
-            Weekly picks, scoring explainers, and underrated players—long-form guides built for search and for building
-            better lineups on WakiBet.
-          </p>
-          <div className="featured-articles-grid">
-            {FEATURED_ARTICLES.map((a) => (
-              <Link key={a.slug} to={`/articles/${a.slug}`} className="featured-article-card">
-                <div className={`featured-article-card__thumb ${a.thumbMod}`}>
-                  {a.trending ? <span className="featured-article-card__badge">Trending</span> : null}
-                  <span className="featured-article-card__cat">{a.category}</span>
-                </div>
-                <div className="featured-article-card__body">
-                  <h3 className="featured-article-card__title">{a.title}</h3>
-                  <div className="featured-article-card__meta">
-                    <span>{a.comments > 0 ? `${a.comments} comments` : "Discussion linked"}</span>
-                    <span>Read →</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <p className="dash-sub" style={{ marginTop: 16, marginBottom: 0 }}>
-            <Link to="/articles">Browse all articles →</Link>
-          </p>
-        </section>
-
         <section style={{ ...sectionCard, textAlign: "center" }}>
           <h2 style={{ marginTop: 0, color: "#f8fafc" }}>Save your lineup — free account</h2>
           <p style={{ color: "#cbd5e1" }}>
-            Try the demo above, then register to enter weekly contests and climb the leaderboard.
+            Build a free lineup on the play page, then register to enter weekly contests and climb the leaderboard.
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+            <Link className="dash-main-btn" to="/play">
+              Create free lineup
+            </Link>
             <Link className="dash-main-btn" to="/auth?mode=register&from=homepage">
               Create account
             </Link>
