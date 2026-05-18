@@ -26,6 +26,21 @@ const PICKLEBALL_STRATEGY_ARTICLES: {
   blurb: string;
 }[] = [
   {
+    slug: "pickleball-top-mlp-fantasy-picks-this-week",
+    title: "Top MLP fantasy picks this week",
+    blurb: "Weekly slate prep—captains, value, and locks.",
+  },
+  {
+    slug: "pickleball-best-players-for-fantasy-scoring",
+    title: "Best players for fantasy scoring",
+    blurb: "Which profiles actually move WakiPoints.",
+  },
+  {
+    slug: "pickleball-underrated-ppa-tour-players",
+    title: "Underrated PPA Tour players",
+    blurb: "Sleepers the rankings already hint at.",
+  },
+  {
     slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
     title: "MLP Dallas 2026: Captain picks & sleepers",
     blurb: "Weekly fantasy guide tied to the next MLP stop.",
@@ -50,6 +65,38 @@ const FEATURED_ARTICLES: {
   trending: boolean;
   thumbMod: string;
 }[] = [
+  {
+    slug: "pickleball-top-mlp-fantasy-picks-this-week",
+    title: "Top MLP Fantasy Picks This Week",
+    category: "Pickleball SEO",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pb",
+  },
+  {
+    slug: "pickleball-best-players-for-fantasy-scoring",
+    title: "Best Pickleball Players for Fantasy Scoring",
+    category: "Pickleball SEO",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pb",
+  },
+  {
+    slug: "poker-wsop-fantasy-strategy-guide",
+    title: "WSOP Fantasy Strategy",
+    category: "Poker SEO",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pk",
+  },
+  {
+    slug: "pickleball-underrated-ppa-tour-players",
+    title: "Underrated PPA Tour Players",
+    category: "Pickleball SEO",
+    comments: 0,
+    trending: true,
+    thumbMod: "article-thumb--pb",
+  },
   {
     slug: "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026",
     title: "MLP Dallas 2026 Fantasy: Captain Picks & Sleepers",
@@ -526,10 +573,10 @@ export default function MarketingHomePage() {
 
         {/* Featured articles — card layout */}
         <section className="marketing-section">
-          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Debate & community articles</h2>
+          <h2 style={{ marginTop: 0, color: "#f8fafc", marginBottom: 4 }}>Fantasy strategy & SEO guides</h2>
           <p className="dash-sub" style={{ marginTop: 0, marginBottom: 16 }}>
-            Hot takes with a Reddit thread on every piece — open an article, then jump to the discussion link at the
-            bottom and keep arguing where the internet actually argues.
+            Weekly picks, scoring explainers, and underrated players—long-form guides built for search and for building
+            better lineups on WakiBet.
           </p>
           <div className="featured-articles-grid">
             {FEATURED_ARTICLES.map((a) => (

@@ -32,7 +32,11 @@ export type ArticleSlug =
   | "lacrosse-attack-gets-too-much-credit"
   | "lacrosse-highlights-vs-fundamentals"
   | "pickleball-ppa-fantasy-captain-picks-mlp-dallas-2026"
-  | "pickleball-fantasy-scoring-wakipoints-explained";
+  | "pickleball-fantasy-scoring-wakipoints-explained"
+  | "pickleball-top-mlp-fantasy-picks-this-week"
+  | "pickleball-best-players-for-fantasy-scoring"
+  | "poker-wsop-fantasy-strategy-guide"
+  | "pickleball-underrated-ppa-tour-players";
 
 export type ArticleRecord = {
   slug: ArticleSlug;
@@ -47,6 +51,66 @@ export type ArticleRecord = {
 };
 
 export const ARTICLES: ArticleRecord[] = [
+  {
+    slug: "pickleball-top-mlp-fantasy-picks-this-week",
+    headline: "Top MLP Fantasy Picks This Week: How to Read the Slate Before You Lock",
+    description:
+      "Weekly MLP fantasy guide for WakiBet—how to pick captains, find WakiCash value, and build a lineup that survives a full team-format weekend.",
+    keywords: [
+      "MLP fantasy picks",
+      "pickleball fantasy this week",
+      "MLP 2026 fantasy",
+      "fantasy pickleball strategy",
+      "WakiBet",
+    ],
+    datePublished: "2026-05-18",
+    dateModified: "2026-05-18",
+  },
+  {
+    slug: "pickleball-best-players-for-fantasy-scoring",
+    headline: "Best Pickleball Players for Fantasy Scoring (What Actually Moves WakiPoints)",
+    description:
+      "Which pro pickleball profiles produce fantasy value on WakiBet—floor players, ceiling plays, and how PPA results translate into WakiPoints.",
+    keywords: [
+      "best pickleball fantasy players",
+      "pickleball fantasy scoring",
+      "PPA fantasy",
+      "WakiPoints",
+      "WakiBet",
+    ],
+    datePublished: "2026-05-18",
+    dateModified: "2026-05-18",
+  },
+  {
+    slug: "poker-wsop-fantasy-strategy-guide",
+    headline: "WSOP Fantasy Strategy: Building a Roster for the Full Summer",
+    description:
+      "Practical WSOP fantasy strategy for salary-cap pools—schedule discipline, star pricing, variance, and how to think like a media game instead of a cash grinder.",
+    keywords: [
+      "WSOP fantasy strategy",
+      "World Series of Poker fantasy",
+      "poker fantasy roster",
+      "WSOP 2026",
+      "WakiBet",
+    ],
+    datePublished: "2026-05-18",
+    dateModified: "2026-05-18",
+  },
+  {
+    slug: "pickleball-underrated-ppa-tour-players",
+    headline: "Underrated PPA Tour Players Fantasy Fans Keep Missing",
+    description:
+      "PPA Tour names that outperform their hype in fantasy—participation, draw strength, and why rec-league fame is not the same as WakiCash value.",
+    keywords: [
+      "underrated PPA players",
+      "PPA Tour fantasy",
+      "pickleball sleepers",
+      "pickleball rankings",
+      "WakiBet",
+    ],
+    datePublished: "2026-05-18",
+    dateModified: "2026-05-18",
+  },
   {
     slug: "pickleball-anna-leigh-waters-bad-for-pickleball",
     headline: "Is Anna Leigh Waters Bad for Pickleball?",

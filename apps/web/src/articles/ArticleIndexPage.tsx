@@ -16,7 +16,9 @@ export default function ArticleIndexPage() {
           fans who want substance—not clickbait—with clear takeaways you can use on WakiBet and in your league chats.
         </p>
         <ul className="static-page-body" style={{ listStyle: "none", padding: 0, margin: "16px 0 0" }}>
-          {ARTICLES.map((a) => (
+          {[...ARTICLES]
+            .sort((a, b) => b.datePublished.localeCompare(a.datePublished))
+            .map((a) => (
             <li
               key={a.slug}
               style={{

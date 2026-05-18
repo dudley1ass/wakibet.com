@@ -26,4 +26,8 @@ export const ARTICLE_REDDIT_DISCUSSION_URLS: Record<string, string> = {
   "lacrosse-attack-gets-too-much-credit":
     "https://www.reddit.com/r/Fantasy_Lacrosse/comments/1t5lksk/who_does_the_dirty_work_your_favorite_star/",
   "lacrosse-highlights-vs-fundamentals": "https://www.reddit.com/r/Fantasy_Lacrosse/",
+  "pickleball-top-mlp-fantasy-picks-this-week": "https://www.reddit.com/r/Fantasy_Pickleball/",
+  "pickleball-best-players-for-fantasy-scoring": "https://www.reddit.com/r/Fantasy_Pickleball/",
+  "poker-wsop-fantasy-strategy-guide": "https://www.reddit.com/r/Fantasy_Poker/",
+  "pickleball-underrated-ppa-tour-players": "https://www.reddit.com/r/Fantasy_Pickleball/",
 };
