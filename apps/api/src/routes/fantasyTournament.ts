@@ -23,6 +23,7 @@ import { createKeyedMutex } from "../lib/asyncMutex.js";
 import { HttpReplyError } from "../lib/httpReplyError.js";
 import { buildDemoExpertLineup } from "../lib/demoExpertLineup.js";
 import { pickleballDemoWakiCashFromRating } from "../lib/pickleballSkillRatings.js";
+import { optionalAuthUser } from "../lib/optionalAuthUser.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 
 const fantasyLineupSaveMutex = createKeyedMutex();
@@ -43,6 +44,7 @@ import { getMlpPlayersForTournament, isMlpTournament } from "../lib/mlpTournamen
 const ErrorMessage = z.object({ message: z.string() });
 
 const authPre = { preHandler: [requireAuthUser] };
+const optionalAuthPre = { preHandler: [optionalAuthUser] };
 
 type RosterRules = {
   rosterSize: number;
@@ -504,7 +506,6 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
   typed.get(
     "/:tournament_key/events",
     {
-      ...authPre,
       schema: {
         tags: ["fantasy-tournament"],
         params: TourneyParams,
@@ -533,7 +534,6 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
               }),
             ),
           }),
-          401: ErrorMessage,
           503: ErrorMessage,
         },
       },
@@ -586,7 +586,7 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
   typed.get(
     "/:tournament_key/lineup",
     {
-      ...authPre,
+      ...optionalAuthPre,
       schema: {
         tags: ["fantasy-tournament"],
         params: TourneyParams,
@@ -626,10 +626,24 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (req, reply) => {
-      const uid = req.authUser!.id;
       const { tournament_key: tournamentKey } = req.params;
       const rules = rosterRulesForTournament(tournamentKey);
       const seasonKey = req.query.season_key ?? "";
+
+      if (!req.authUser) {
+        return {
+          tournament_key: tournamentKey as TournamentKey,
+          season_key: seasonKey,
+          roster_size: rules.rosterSize,
+          required_men: rules.requiredMen,
+          required_women: rules.requiredWomen,
+          wakicash_budget: rules.budget,
+          wakicash_spent: 0,
+          events: [],
+        };
+      }
+
+      const uid = req.authUser.id;
       const data = await getTournamentData(tournamentKey);
       if (data) await syncTournamentEventCatalog(prisma, tournamentKey, data);
 

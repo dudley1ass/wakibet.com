@@ -50,8 +50,8 @@ export default function PublicLeaderboardPage() {
           </p>
         </div>
         <div className="dash-head-actions">
-          <Link className="dash-main-btn" to={`/play?sport=${sport}`}>
-            Play instantly
+          <Link className="dash-main-btn" to="/pick-teams">
+            Build lineup
           </Link>
           <Link className="dash-ghost-btn" to="/">
             Home
@@ -80,7 +80,7 @@ export default function PublicLeaderboardPage() {
       {q.data && q.data.total_players === 0 && (
         <p className="dash-empty">
           No scores on the board yet for {sport}.{" "}
-          <Link to={`/play?sport=${sport}`}>Be the first — build a guest lineup</Link>.
+          <Link to="/pick-teams">Be the first — build a lineup</Link>.
         </p>
       )}
       {q.data && q.data.total_players > 0 && (

@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { trackPickTeamsView } from "../../../lib/analytics";
+import { apiPut } from "../../../api";
+import { trackPickTeamsView, trackLineupSaved } from "../../../lib/analytics";
+import { clearPendingTournamentLineup, loadPendingTournamentLineup } from "../../../lib/pendingLineup";
 import type { SessionUser } from "../../../App";
 import WeekPicksHelpCue from "../../../components/WeekPicksHelpCue";
 import WeekPicksPromoBanner from "../../../components/WeekPicksPromoBanner";
@@ -15,10 +17,32 @@ type Props = {
 
 export default function PickTeamsPage({ user, onRosterSaved }: Props) {
   const { reload } = useDashboardDataRequired();
+  const pendingAppliedRef = useRef(false);
 
   useEffect(() => {
     trackPickTeamsView();
   }, []);
+
+  useEffect(() => {
+    if (pendingAppliedRef.current) return;
+    const pending = loadPendingTournamentLineup();
+    if (!pending) return;
+    pendingAppliedRef.current = true;
+    void (async () => {
+      try {
+        const enc = encodeURIComponent(pending.tournament_key);
+        await apiPut(`/api/v1/fantasy-tournament/${enc}/lineup`, {
+          season_key: pending.season_key,
+          events: pending.events,
+        });
+        clearPendingTournamentLineup();
+        trackLineupSaved("pickleball", pending.tournament_key);
+        await reload();
+      } catch {
+        pendingAppliedRef.current = false;
+      }
+    })();
+  }, [reload]);
 
   return (
     <div className="pick-teams-shell">

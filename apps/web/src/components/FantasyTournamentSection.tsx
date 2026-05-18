@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   isPickleballTournamentKey,
   MLP_2026_CALENDAR,
@@ -7,7 +7,8 @@ import {
   WINTER_FANTASY_ROSTER_SIZE,
 } from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
-import { trackLineupSaved } from "../lib/analytics";
+import { savePendingTournamentLineup } from "../lib/pendingLineup";
+import { trackLineupSaved, trackRegisterFromDemoClick } from "../lib/analytics";
 import "./dashboard.css";
 
 type CatalogEvent = {
@@ -115,9 +116,16 @@ type SlotDraft = {
 type FantasyTournamentProps = {
   onRosterSaved?: () => void | Promise<void>;
   pageLayout?: boolean;
+  /** Logged-out builder: save stores draft locally and sends user to register. */
+  saveRequiresAuth?: boolean;
 };
 
-export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: FantasyTournamentProps) {
+export default function FantasyTournamentSection({
+  onRosterSaved,
+  pageLayout,
+  saveRequiresAuth = false,
+}: FantasyTournamentProps) {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [tournamentKey, setTournamentKey] = useState<string>(() => {
     const q = searchParams.get("tournament_key");
@@ -521,6 +529,18 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       return;
     }
 
+    if (saveRequiresAuth) {
+      savePendingTournamentLineup({
+        tournament_key: tournamentKey,
+        season_key: lineup?.season_key ?? "",
+        events: payloadEvents,
+        saved_at: new Date().toISOString(),
+      });
+      trackRegisterFromDemoClick();
+      navigate("/auth?mode=register&from=pick_teams");
+      return;
+    }
+
     setBusy(true);
     try {
       const enc = encodeURIComponent(tournamentKey);
@@ -766,7 +786,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
             disabled={busy || hasEventOverBudget}
             onClick={() => void handleSave()}
           >
-            {busy ? "Working…" : "Save Tournament Lineup"}
+            {busy ? "Working…" : saveRequiresAuth ? "Save lineup" : "Save Tournament Lineup"}
           </button>
         </div>
       ) : null}

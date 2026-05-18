@@ -304,9 +304,6 @@ export default function LoginPage({ onAuthSuccess }: Props) {
               outline: "none",
             }}
           />
-          <div style={{ fontSize: "10px", color: "#fcd34d", marginTop: "2px" }}>
-            Passwords are hashed on the server (bcrypt).
-          </div>
         </div>
         </>
         ) : null}

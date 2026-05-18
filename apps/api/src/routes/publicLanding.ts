@@ -103,7 +103,7 @@ export const publicLandingRoutes: FastifyPluginAsync = async (app) => {
           label: pb?.label_full ?? "Pickleball fantasy",
           venue: pb?.venue ?? "PPA / MLP",
           status: pb?.status ?? "upcoming",
-          play_href: "/play?sport=pickleball",
+          play_href: "/pick-teams",
           leaderboard_href: "/leaderboard/pickleball",
         },
         {
@@ -111,7 +111,7 @@ export const publicLandingRoutes: FastifyPluginAsync = async (app) => {
           label: "PLL lacrosse fantasy",
           venue: "Premier Lacrosse League",
           status: "upcoming",
-          play_href: "/play?sport=lacrosse",
+          play_href: "/lacrosse",
           leaderboard_href: "/leaderboard/lacrosse",
         },
         {
@@ -119,7 +119,7 @@ export const publicLandingRoutes: FastifyPluginAsync = async (app) => {
           label: "AVP beach volleyball fantasy",
           venue: "AVP Tour 2026",
           status: "upcoming",
-          play_href: "/play?sport=volleyball",
+          play_href: "/volleyball",
           leaderboard_href: "/leaderboard/volleyball",
         },
         {
@@ -127,7 +127,7 @@ export const publicLandingRoutes: FastifyPluginAsync = async (app) => {
           label: "WSOP fantasy",
           venue: "World Series of Poker 2026",
           status: "upcoming",
-          play_href: "/play?sport=poker",
+          play_href: "/auth?mode=register&from=contest_poker",
           leaderboard_href: "/leaderboard/poker",
         },
       ];

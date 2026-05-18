@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../api";
+import { lineupEntryForSport } from "../lib/lineupEntryRoutes";
 import { trackPlayInstantClick } from "../lib/analytics";
 
 type SampleContest = {
@@ -15,10 +16,10 @@ type SampleContest = {
 const FEATURES = [
   {
     title: "Weekly slates",
-    body: "Pick players under a WakiCash cap and climb the board when results land.",
-    href: "/auth?mode=register&from=feature_slates",
-    cta: "Create free account",
-    track: "feature_register",
+    body: "Pick players under a WakiCash cap for the next tournament stop.",
+    href: "/pick-teams",
+    cta: "Build lineup",
+    track: "feature_build_lineup",
   },
   {
     title: "Public leaderboards",
@@ -28,11 +29,11 @@ const FEATURES = [
     track: "feature_leaderboard",
   },
   {
-    title: "Beat the experts",
-    body: "Try the guest demo, then save your lineup with a free account to enter for real.",
-    href: "/play",
-    cta: "Try guest demo",
-    track: "feature_guest",
+    title: "Create free account",
+    body: "Save your lineup and enter weekly contests on the leaderboard.",
+    href: "/auth?mode=register&from=instant_strip",
+    cta: "Create free account",
+    track: "feature_register",
   },
 ] as const;
 
@@ -50,8 +51,7 @@ export default function InstantPlayStrip() {
       <div className="instant-play-strip__intro">
         <h2 className="instant-play-strip__title">Enter a league this week</h2>
         <p className="instant-play-strip__lede">
-          Free fantasy for pickleball, lacrosse, volleyball, and WSOP-style poker. Create your account to save lineups
-          and compete on the leaderboard.
+          Build a lineup for the next real tournament slate, then create your free account to save it and compete.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export default function InstantPlayStrip() {
             <h3>{f.title}</h3>
             <p>{f.body}</p>
             <Link
-              className={f.track === "feature_register" ? "dash-main-btn" : "dash-ghost-btn"}
+              className={f.track === "feature_register" || f.track === "feature_build_lineup" ? "dash-main-btn" : "dash-ghost-btn"}
               to={f.href}
               onClick={() => trackPlayInstantClick(f.track)}
             >
@@ -73,7 +73,7 @@ export default function InstantPlayStrip() {
 
       {contests.length > 0 ? (
         <div className="instant-play-strip__contests">
-          <h3 className="instant-play-strip__contests-title">Sample contests this week</h3>
+          <h3 className="instant-play-strip__contests-title">Tournaments this week</h3>
           <div className="instant-play-strip__contest-grid">
             {contests.map((c) => (
               <article key={c.sport} className="instant-play-strip__contest-card">
@@ -85,10 +85,10 @@ export default function InstantPlayStrip() {
                 <div className="instant-play-strip__contest-actions">
                   <Link
                     className="dash-main-btn"
-                    to={`/auth?mode=register&from=contest_${c.sport}`}
+                    to={lineupEntryForSport(c.sport)}
                     onClick={() => trackPlayInstantClick(`contest_${c.sport}`)}
                   >
-                    Enter league
+                    Build lineup
                   </Link>
                   <Link className="dash-ghost-btn" to={c.leaderboard_href}>
                     Leaderboard

@@ -273,10 +273,10 @@ export default function MarketingHomePage() {
                 </Link>
                 <Link
                   className="landing-hero__guest-link"
-                  to="/play"
-                  onClick={() => trackPlayInstantClick("hero_guest_demo")}
+                  to="/pick-teams"
+                  onClick={() => trackPlayInstantClick("hero_build_lineup")}
                 >
-                  Try guest demo first
+                  Build lineup for next tournament
                 </Link>
               </div>
             </div>
@@ -404,8 +404,8 @@ export default function MarketingHomePage() {
             <Link className="dash-main-btn landing-cta-lineup landing-cta-lineup--register" to="/auth?mode=register&from=homepage_footer">
               Create free account
             </Link>
-            <Link className="dash-ghost-btn" to="/play" onClick={() => trackPlayInstantClick("footer_guest_demo")}>
-              Try guest demo
+            <Link className="dash-main-btn landing-cta-lineup landing-cta-lineup--register" to="/pick-teams">
+              Build lineup
             </Link>
           </div>
         </section>

@@ -27,10 +27,10 @@ export default function MarketingSiteHeader({ sticky = false, registerFrom }: Pr
         ) : null}
         <Link
           className="dash-ghost-btn marketing-header__nav-quiet"
-          to="/play"
-          onClick={() => trackPlayInstantClick("header_guest_demo")}
+          to="/pick-teams"
+          onClick={() => trackPlayInstantClick("header_build_lineup")}
         >
-          Guest demo
+          Build lineup
         </Link>
         <Link className="dash-ghost-btn marketing-header__nav-quiet" to="/leaderboard/pickleball">
           Leaderboards

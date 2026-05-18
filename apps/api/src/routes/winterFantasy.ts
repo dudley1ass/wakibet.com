@@ -190,7 +190,6 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
   typed.get(
     "/api/v1/winter-fantasy/division-players",
     {
-      ...authPre,
       schema: {
         tags: ["winter-fantasy"],
         querystring: DivisionKeyQuery,
@@ -212,7 +211,6 @@ export const winterFantasyRoutes: FastifyPluginAsync = async (app) => {
               }),
             ),
           }),
-          401: ErrorMessage,
           400: ErrorMessage,
           503: ErrorMessage,
         },

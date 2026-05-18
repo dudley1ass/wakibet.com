@@ -16,7 +16,7 @@ const ROUTES: Record<string, SeoEntry> = {
       "Free pickleball fantasy: pick players with WakiCash, earn WakiPoints from real PPA results, and climb weekly leaderboards. Play instantly — no signup required.",
   },
   "/play": {
-    title: `Play instantly — free guest lineup | ${SITE}`,
+    title: `Build your lineup | ${SITE}`,
     description:
       "Build a fantasy lineup in 60 seconds with no account. Beat the WakiBet expert benchmark, save your guest roster, then create a free account to enter real contests.",
   },

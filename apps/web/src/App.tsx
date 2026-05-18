@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import MarketingHomePage from "./components/MarketingHomePage";
 import { apiGet, loadStoredToken, setAccessToken } from "./api";
@@ -65,7 +65,7 @@ const WakiOddsPage = lazy(() =>
 const ArticleIndexPage = lazy(() => import("./articles/ArticleIndexPage"));
 const ArticleDetailPage = lazy(() => import("./articles/ArticleDetailPage"));
 const SportPlayInfoPage = lazy(() => import("./components/SportPlayInfoPage"));
-const PlayInstantPage = lazy(() => import("./components/PlayInstantPage"));
+const PublicPickTeamsPage = lazy(() => import("./sports/pickleball/components/PublicPickTeamsPage"));
 const PublicLeaderboardPage = lazy(() => import("./components/PublicLeaderboardPage"));
 
 export type SessionUser = {
@@ -227,6 +227,33 @@ type ShellProps = {
   onLogout: () => void;
 };
 
+function AuthRoute({
+  session,
+  booting,
+  onAuthSuccess,
+}: {
+  session: SessionUser | null;
+  booting: boolean;
+  onAuthSuccess: ShellProps["onAuthSuccess"];
+}) {
+  const location = useLocation();
+  if (booting) {
+    return (
+      <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
+        Loading…
+      </p>
+    );
+  }
+  if (session) {
+    const from = new URLSearchParams(location.search).get("from");
+    if (from === "pick_teams") {
+      return <Navigate to="/pick-teams" replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
+  return <LoginPage onAuthSuccess={onAuthSuccess} />;
+}
+
 function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
   let main: ReactNode;
 
@@ -250,7 +277,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/info/:sportKey" element={<SportPlayInfoPage />} />
       <Route path="/pickleball/rankings" element={<PickleballRankingsPage />} />
-      <Route path="/play" element={<PlayInstantPage />} />
+      <Route path="/play" element={<Navigate to="/pick-teams" replace />} />
       <Route path="/leaderboard" element={<Navigate to="/leaderboard/pickleball" replace />} />
       <Route path="/leaderboard/:sport" element={<PublicLeaderboardPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
@@ -485,10 +512,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
               Loading…
             </p>
           ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to pick and edit your teams.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
+            <PublicPickTeamsPage />
           ) : (
             <PickTeamsPage user={session} />
           )
@@ -496,17 +520,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       />
       <Route
         path="/auth"
-        element={
-          booting ? (
-            <p className="dash-loading" style={{ color: "#7f1d1d", fontSize: "14px" }}>
-              Loading…
-            </p>
-          ) : !session ? (
-            <LoginPage onAuthSuccess={onAuthSuccess} />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
+        element={<AuthRoute session={session} booting={booting} onAuthSuccess={onAuthSuccess} />}
       />
       <Route
         path="/"
