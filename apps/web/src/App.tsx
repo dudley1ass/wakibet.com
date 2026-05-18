@@ -65,6 +65,8 @@ const WakiOddsPage = lazy(() =>
 const ArticleIndexPage = lazy(() => import("./articles/ArticleIndexPage"));
 const ArticleDetailPage = lazy(() => import("./articles/ArticleDetailPage"));
 const SportPlayInfoPage = lazy(() => import("./components/SportPlayInfoPage"));
+const PlayInstantPage = lazy(() => import("./components/PlayInstantPage"));
+const PublicLeaderboardPage = lazy(() => import("./components/PublicLeaderboardPage"));
 
 export type SessionUser = {
   user_id: string;
@@ -248,6 +250,9 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
       <Route path="/fantasy-rules" element={<FantasyRulesPage />} />
       <Route path="/info/:sportKey" element={<SportPlayInfoPage />} />
       <Route path="/pickleball/rankings" element={<PickleballRankingsPage />} />
+      <Route path="/play" element={<PlayInstantPage />} />
+      <Route path="/leaderboard" element={<Navigate to="/leaderboard/pickleball" replace />} />
+      <Route path="/leaderboard/:sport" element={<PublicLeaderboardPage />} />
       <Route path="/lacrosse" element={<LacrosseHubPage user={session} />} />
       <Route path="/volleyball" element={<VolleyballHubPage user={session} />} />
       <Route path="/invest" element={<InvestHubPage user={session} />} />
@@ -389,10 +394,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
               Loading…
             </p>
           ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the season leaderboard.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
+            <PublicLeaderboardPage />
           ) : (
             <PickleballSeasonLeaderboardPage user={session} />
           )
@@ -406,10 +408,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
               Loading…
             </p>
           ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the lacrosse standings.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
+            <Navigate to="/leaderboard/lacrosse" replace />
           ) : (
             <LacrosseStandingsPage user={session} />
           )
@@ -423,10 +422,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
               Loading…
             </p>
           ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the volleyball standings.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
+            <Navigate to="/leaderboard/volleyball" replace />
           ) : (
             <VolleyballStandingsPage user={session} />
           )
@@ -440,10 +436,7 @@ function AppShell({ session, booting, onAuthSuccess, onLogout }: ShellProps) {
               Loading…
             </p>
           ) : !session ? (
-            <>
-              <p style={{ color: "#fcd34d", marginBottom: 12 }}>Sign in to view the poker standings.</p>
-              <LoginPage onAuthSuccess={onAuthSuccess} />
-            </>
+            <Navigate to="/leaderboard/poker" replace />
           ) : (
             <PokerStandingsPage user={session} />
           )

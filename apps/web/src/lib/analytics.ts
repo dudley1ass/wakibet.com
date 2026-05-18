@@ -60,3 +60,37 @@ export function trackPickTeamsView(): void {
 export function trackArticleCtaClick(article_slug: string, cta: "register" | "pick_teams" | "rankings" | "demo"): void {
   trackEvent("article_cta_click", { article_slug, cta, engagement_type: "conversion" });
 }
+
+export function trackGuestLineupSaved(sport: string, projected_score: number): void {
+  trackEvent("guest_lineup_saved", { sport, projected_score, engagement_type: "conversion" });
+}
+
+export function trackBeatExpertsResult(
+  sport: string,
+  result: "win" | "tie" | "loss",
+  user_score: number,
+  expert_score: number,
+): void {
+  trackEvent("beat_experts_result", { sport, result, user_score, expert_score, engagement_type: "engagement" });
+}
+
+export function trackPlayInstantClick(source: string): void {
+  trackEvent("play_instant_click", { source, engagement_type: "conversion" });
+}
+
+export function trackPublicLeaderboardView(sport: string): void {
+  trackEvent("public_leaderboard_view", { sport, engagement_type: "product" });
+}
+
+export function trackLoginComplete(): void {
+  trackEvent("login_complete", { engagement_type: "conversion" });
+}
+
+export function trackHowItWorksClick(source: string): void {
+  trackEvent("how_it_works_click", { source, engagement_type: "engagement" });
+}
+
+/** Authenticated lineup saved to the server. */
+export function trackLineupSaved(sport: string, tournament_key: string): void {
+  trackEvent("lineup_saved", { sport, tournament_key, engagement_type: "conversion" });
+}

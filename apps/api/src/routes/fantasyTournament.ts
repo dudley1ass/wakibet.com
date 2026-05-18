@@ -21,6 +21,7 @@ import {
 import { Prisma, prisma } from "../lib/prisma.js";
 import { createKeyedMutex } from "../lib/asyncMutex.js";
 import { HttpReplyError } from "../lib/httpReplyError.js";
+import { buildDemoExpertLineup } from "../lib/demoExpertLineup.js";
 import { pickleballDemoWakiCashFromRating } from "../lib/pickleballSkillRatings.js";
 import { requireAuthUser } from "../lib/requireAuthUser.js";
 
@@ -468,6 +469,22 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
                 last_event_label: z.string(),
               }),
             ),
+            expert_lineup: z
+              .object({
+                label: z.string(),
+                player_names: z.array(z.string()),
+                projected_score: z.number(),
+                waki_cash_spent: z.number().int(),
+                players: z.array(
+                  z.object({
+                    player_name: z.string(),
+                    display_name: z.string(),
+                    projected_points: z.number(),
+                    waki_cash: z.number().int(),
+                  }),
+                ),
+              })
+              .nullable(),
           }),
           503: ErrorMessage,
         },
@@ -479,7 +496,8 @@ export const fantasyTournamentRoutes: FastifyPluginAsync = async (app) => {
       if (!demo) {
         return reply.code(503).send({ message: "Demo contest data is not available." } as const);
       }
-      return { sport, ...demo };
+      const expert_lineup = buildDemoExpertLineup(demo.players, demo.roster_size, demo.salary_cap);
+      return { sport, ...demo, expert_lineup };
     },
   );
 

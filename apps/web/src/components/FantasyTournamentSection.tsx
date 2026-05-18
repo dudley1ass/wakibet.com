@@ -7,6 +7,7 @@ import {
   WINTER_FANTASY_ROSTER_SIZE,
 } from "@wakibet/shared";
 import { apiGet, apiPut } from "../api";
+import { trackLineupSaved } from "../lib/analytics";
 import "./dashboard.css";
 
 type CatalogEvent = {
@@ -531,6 +532,7 @@ export default function FantasyTournamentSection({ onRosterSaved, pageLayout }: 
       setActionOk(
         `Saved Tournament Lineup with ${saved.events.length} event${saved.events.length === 1 ? "" : "s"}.`,
       );
+      trackLineupSaved("pickleball", tournamentKey);
       await onRosterSaved?.();
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : "Save failed.");

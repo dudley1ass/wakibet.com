@@ -13,7 +13,32 @@ const ROUTES: Record<string, SeoEntry> = {
   "/": {
     title: `${SITE} — Fantasy pickleball & emerging sports`,
     description:
-      "Free pickleball fantasy: pick players with WakiCash, earn WakiPoints from real PPA results, and climb weekly leaderboards. Try a demo contest — no signup required.",
+      "Free pickleball fantasy: pick players with WakiCash, earn WakiPoints from real PPA results, and climb weekly leaderboards. Play instantly — no signup required.",
+  },
+  "/play": {
+    title: `Play instantly — free guest lineup | ${SITE}`,
+    description:
+      "Build a fantasy lineup in 60 seconds with no account. Beat the WakiBet expert benchmark, save your guest roster, then create a free account to enter real contests.",
+  },
+  "/leaderboard": {
+    title: `Public fantasy leaderboards | ${SITE}`,
+    description: "See who is winning on WakiBet — public leaderboards for pickleball, lacrosse, volleyball, and WSOP fantasy.",
+  },
+  "/leaderboard/pickleball": {
+    title: `Pickleball fantasy leaderboard | ${SITE}`,
+    description: "Public pickleball season leaderboard on WakiBet — no login required to view rankings.",
+  },
+  "/leaderboard/lacrosse": {
+    title: `Lacrosse fantasy leaderboard | ${SITE}`,
+    description: "Public PLL lacrosse fantasy leaderboard on WakiBet.",
+  },
+  "/leaderboard/volleyball": {
+    title: `Volleyball fantasy leaderboard | ${SITE}`,
+    description: "Public AVP volleyball fantasy leaderboard on WakiBet.",
+  },
+  "/leaderboard/poker": {
+    title: `WSOP fantasy leaderboard | ${SITE}`,
+    description: "Public WSOP fantasy leaderboard on WakiBet.",
   },
   "/pick-teams": {
     title: `Pick / edit teams — pickleball tournament fantasy | ${SITE}`,

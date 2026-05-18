@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { apiGet } from "../api";
-import {
-  trackDemoContestComplete,
-  trackDemoContestStart,
-  trackRedditLead,
-  trackRegisterFromDemoClick,
-} from "../lib/analytics";
+import { trackHowItWorksClick, trackPlayInstantClick, trackRedditLead } from "../lib/analytics";
 import DashboardSeasonPrizesStrip from "./dashboard/DashboardSeasonPrizesStrip";
+import GuestDemoContest from "./GuestDemoContest";
+import InstantPlayStrip from "./InstantPlayStrip";
 import {
   getMarketingHotTakes,
   isThursdayHotTakeDay,
@@ -226,32 +223,6 @@ function HotTakeCard({
   );
 }
 
-type DemoContestPlayer = {
-  player_name: string;
-  display_name: string;
-  projected_points: number;
-  waki_cash: number;
-  last_event_label: string;
-};
-
-type DemoSport = "pickleball" | "lacrosse" | "volleyball" | "poker";
-
-type DemoContestResponse = {
-  sport: DemoSport;
-  tournament_key: string;
-  tournament_name: string;
-  roster_size: number;
-  salary_cap: number;
-  players: DemoContestPlayer[];
-};
-
-const DEMO_SPORT_OPTIONS: { value: DemoSport; label: string }[] = [
-  { value: "pickleball", label: "Pickleball" },
-  { value: "lacrosse", label: "Lacrosse" },
-  { value: "volleyball", label: "Volleyball" },
-  { value: "poker", label: "Poker" },
-];
-
 const REDDIT_COMMUNITIES: { label: string; href: string }[] = [
   { label: "r/Fantasy_Pickleball", href: "https://www.reddit.com/r/Fantasy_Pickleball/" },
   { label: "r/Fantasy_Lacrosse", href: "https://www.reddit.com/r/Fantasy_Lacrosse/" },
@@ -259,7 +230,6 @@ const REDDIT_COMMUNITIES: { label: string; href: string }[] = [
   { label: "r/Fantasy_Poker", href: "https://www.reddit.com/r/Fantasy_Poker/" },
 ];
 
-/** Primary fantasy hubs shown in the hero — full product breadth above the fold. */
 const HERO_FANTASY_SPORTS: { label: string; href: string; title: string }[] = [
   { label: "Pickleball", href: "/pick-teams", title: "Pickleball tournament fantasy" },
   { label: "Lacrosse", href: "/lacrosse", title: "PLL lacrosse fantasy" },
@@ -283,6 +253,7 @@ type LandingStats = {
 function LandingSocialProof({ stats }: { stats: LandingStats | undefined }) {
   const users = stats?.registered_users ?? 0;
   const lineups = stats?.saved_lineups ?? 0;
+
   return (
     <section className="landing-activity-strip" aria-label="Platform activity">
       <div className="landing-activity-strip__item">
@@ -329,172 +300,6 @@ function LandingRedditStrip() {
           </a>
         ))}
       </div>
-    </section>
-  );
-}
-
-function DemoContestBuilder() {
-  const [selectedSport, setSelectedSport] = useState<DemoSport>("pickleball");
-  const [selectedNames, setSelectedNames] = useState<string[]>([]);
-  const demoStartedRef = useRef(false);
-  const demoCompletedRef = useRef(false);
-  const demoQuery = useQuery({
-    queryKey: ["landing", "fantasy-demo-contest", selectedSport] as const,
-    queryFn: () =>
-      apiGet<DemoContestResponse>(
-        `/api/v1/fantasy-tournament/demo?sport=${encodeURIComponent(selectedSport)}`,
-        { timeoutMs: 20_000 },
-      ),
-    staleTime: 5 * 60_000,
-    retry: 1,
-  });
-  const players = demoQuery.data?.players ?? [];
-  const rosterSize = demoQuery.data?.roster_size ?? 5;
-  const salaryCap = demoQuery.data?.salary_cap ?? 100;
-  const selectedPlayers = selectedNames
-    .map((name) => players.find((p) => p.player_name === name))
-    .filter((p): p is DemoContestPlayer => Boolean(p));
-  const projectedScore = Math.round(selectedPlayers.reduce((sum, p) => sum + p.projected_points, 0) * 100) / 100;
-  const wakiCashSpent = selectedPlayers.reduce((sum, p) => sum + p.waki_cash, 0);
-  const wakiCashRemaining = salaryCap - wakiCashSpent;
-  const isFull = selectedPlayers.length === rosterSize;
-  const isBuilt = isFull && wakiCashRemaining >= 0;
-
-  function togglePlayer(player: DemoContestPlayer) {
-    if (!demoStartedRef.current) {
-      demoStartedRef.current = true;
-      trackDemoContestStart(selectedSport);
-    }
-    setSelectedNames((prev) => {
-      if (prev.includes(player.player_name)) return prev.filter((name) => name !== player.player_name);
-      if (prev.length >= rosterSize) return prev;
-      if (wakiCashRemaining - player.waki_cash < 0) return prev;
-      return [...prev, player.player_name];
-    });
-  }
-
-  useEffect(() => {
-    if (!isBuilt || demoCompletedRef.current) return;
-    demoCompletedRef.current = true;
-    trackDemoContestComplete(selectedSport, projectedScore);
-  }, [isBuilt, projectedScore, selectedSport]);
-
-  function handleSportChange(next: DemoSport) {
-    if (next === selectedSport) return;
-    setSelectedSport(next);
-    setSelectedNames([]);
-  }
-
-  return (
-    <section id="demo-contest" className="landing-demo-contest">
-      <div className="landing-demo-contest__head">
-        <div>
-          <div className="landing-demo-contest__kicker">Demo contest</div>
-          <h2 className="landing-demo-contest__title">
-            Pick 5 players. See your projected score{" "}
-            <span className="landing-demo-contest__sport-pick">
-              <select
-                aria-label="Choose a sport to demo"
-                className="landing-demo-contest__sport-select"
-                value={selectedSport}
-                onChange={(e) => handleSportChange(e.target.value as DemoSport)}
-              >
-                {DEMO_SPORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </span>
-            .
-          </h2>
-          <p className="landing-demo-contest__lede">
-            No login required. You get {salaryCap} WakiCash — every player has a price, and your projected score uses
-            each player’s last tournament result. Create an account after the lineup is built.
-          </p>
-        </div>
-        <div className="landing-demo-contest__score-card">
-          <div className="landing-demo-contest__score-row">
-            <span>WakiCash left</span>
-            <strong className={wakiCashRemaining < 0 ? "landing-demo-contest__over" : undefined}>
-              {wakiCashRemaining}
-            </strong>
-            <small>of {salaryCap}</small>
-          </div>
-          <div className="landing-demo-contest__score-row landing-demo-contest__score-row--alt">
-            <span>Projected score</span>
-            <strong>{projectedScore}</strong>
-            <small>
-              {selectedPlayers.length}/{rosterSize} players picked
-            </small>
-          </div>
-        </div>
-      </div>
-
-      {demoQuery.isLoading ? <p className="dash-empty">Loading demo players…</p> : null}
-      {demoQuery.isError ? (
-        <p className="dash-error">Demo contest data is not available right now.</p>
-      ) : null}
-
-      {players.length > 0 ? (
-        <>
-          <div className="landing-demo-contest__players" aria-label="Demo contest player pool">
-            {players.map((player) => {
-              const selected = selectedNames.includes(player.player_name);
-              const wouldOverspend = !selected && wakiCashRemaining - player.waki_cash < 0;
-              const rosterFull = !selected && selectedNames.length >= rosterSize;
-              const disabled = rosterFull || wouldOverspend;
-              return (
-                <button
-                  key={player.player_name}
-                  type="button"
-                  className={`landing-demo-player${selected ? " landing-demo-player--selected" : ""}${
-                    wouldOverspend ? " landing-demo-player--over" : ""
-                  }`}
-                  disabled={disabled}
-                  onClick={() => togglePlayer(player)}
-                  aria-label={`${player.display_name}, costs ${player.waki_cash} WakiCash, projects ${player.projected_points} points`}
-                >
-                  <span className="landing-demo-player__row">
-                    <span className="landing-demo-player__name">{player.display_name}</span>
-                    <span className="landing-demo-player__price">{player.waki_cash} WC</span>
-                  </span>
-                  <span className="landing-demo-player__meta">
-                    {player.projected_points} pts · {player.last_event_label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="landing-demo-contest__footer">
-            {isBuilt ? (
-              <>
-                <p>
-                  Lineup built — spent {wakiCashSpent}/{salaryCap} WakiCash for {projectedScore} projected points.
-                  Create a free account to save real lineups, join contests, and track results.
-                </p>
-                <Link
-                  className="dash-main-btn landing-demo-contest__signup"
-                  to="/auth?mode=register&from=demo"
-                  onClick={() => trackRegisterFromDemoClick()}
-                >
-                  Save lineup — create free account
-                </Link>
-              </>
-            ) : isFull && wakiCashRemaining < 0 ? (
-              <p>
-                Over budget by {Math.abs(wakiCashRemaining)} WakiCash. Swap an expensive player for a cheaper one to
-                finish the demo lineup.
-              </p>
-            ) : (
-              <p>
-                Choose {rosterSize - selectedPlayers.length} more player
-                {rosterSize - selectedPlayers.length === 1 ? "" : "s"} — {wakiCashRemaining} WakiCash left.
-              </p>
-            )}
-          </div>
-        </>
-      ) : null}
     </section>
   );
 }
@@ -603,12 +408,23 @@ export default function MarketingHomePage() {
                 player rankings built from real tournament results.
               </p>
               <div className="landing-hero__cta-row landing-hero__cta-row--hero">
-                <a className="dash-main-btn landing-cta-lineup" href="#demo-contest">
-                  <span className="landing-cta-lineup__title">Try demo contest</span>
-                  <span className="landing-cta-lineup__sub">No signup — pick 5 players in 30 seconds</span>
-                </a>
+                <Link
+                  className="dash-main-btn landing-cta-lineup"
+                  to="/play"
+                  onClick={() => trackPlayInstantClick("hero_create_lineup")}
+                >
+                  <span className="landing-cta-lineup__title">Create free lineup</span>
+                  <span className="landing-cta-lineup__sub">Play instantly — no account required</span>
+                </Link>
                 <Link className="dash-ghost-btn landing-cta-rankings" to="/pickleball/rankings">
                   New pickleball rankings
+                </Link>
+                <Link
+                  className="dash-ghost-btn"
+                  to="/leaderboard/pickleball"
+                  onClick={() => trackPlayInstantClick("hero_leaderboard")}
+                >
+                  Public leaderboard
                 </Link>
               </div>
             </div>
@@ -617,11 +433,17 @@ export default function MarketingHomePage() {
 
         <LandingSocialProof stats={landingStatsQuery.data} />
 
-        <DemoContestBuilder />
+        <InstantPlayStrip />
+
+        <GuestDemoContest compact />
 
         <LandingRedditStrip />
 
-        <section style={{ ...sectionCard, marginBottom: 16 }}>
+        <section
+          id="how-it-works"
+          style={{ ...sectionCard, marginBottom: 16 }}
+          onClick={() => trackHowItWorksClick("homepage_section")}
+        >
           <h2 style={{ marginTop: 0, color: "#f8fafc", fontSize: "1.15rem" }}>How it works</h2>
           <ol className="landing-how-steps">
             <li>
